@@ -39,6 +39,11 @@ interface InsightsPanelProps {
   category?: string;
   titleMatchScore?: number;
   onAutoFix?: (issueId: string, thumbnailId: number) => void;
+  expandedSections?: {
+    titleMatch: boolean;
+    visualOverlays: boolean;
+  };
+  onToggleSection?: (section: 'titleMatch' | 'visualOverlays') => void;
 }
 
 export default function InsightsPanel({
@@ -48,7 +53,9 @@ export default function InsightsPanel({
   subScores,
   category = 'general',
   titleMatchScore = 70,
-  onAutoFix
+  onAutoFix,
+  expandedSections = { titleMatch: false, visualOverlays: false },
+  onToggleSection
 }: InsightsPanelProps) {
   const [activeOverlay, setActiveOverlay] = useState<string | null>(null);
   const [showPatternCoach, setShowPatternCoach] = useState(false);
@@ -71,39 +78,61 @@ export default function InsightsPanel({
         </div>
       </div>
 
-      {/* Title Match Gauge */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="text-sm font-semibold text-gray-300">Title Match Gauge</h4>
-          <span className="text-sm text-gray-400">{titleMatchScore}%</span>
-        </div>
-        <div className="relative h-3 bg-gray-800 rounded-full overflow-hidden">
-          <div
-            className={`absolute left-0 top-0 h-full transition-all duration-500 ${
-              titleMatchScore >= 80 ? 'bg-green-500' :
-              titleMatchScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-            }`}
-            style={{ width: `${titleMatchScore}%` }}
-          />
-        </div>
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>Poor</span>
-          <span>Good</span>
-          <span>Excellent</span>
-        </div>
-        <p className="text-xs text-gray-400 mt-2">
-          {titleMatchScore >= 80 ? '✅ Strong semantic alignment with video title' :
-           titleMatchScore >= 60 ? '⚠️  Moderate alignment - consider visual elements from title' :
-           '❌ Weak alignment - thumbnail should reflect title content'}
-        </p>
+      {/* Title Match Gauge - Collapsible */}
+      <div className="mb-8">
+        <button
+          onClick={() => onToggleSection?.('titleMatch')}
+          className="flex items-center justify-between w-full p-4 bg-gray-800 rounded-lg hover:bg-gray-750 transition-all duration-300"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-gray-300">Title Match:</span>
+            <span className={`text-sm font-bold ${
+              titleMatchScore >= 80 ? 'text-green-400' :
+              titleMatchScore >= 60 ? 'text-yellow-400' : 'text-red-400'
+            }`}>
+              {titleMatchScore}%
+            </span>
+            <span className="text-xs text-gray-400">
+              {titleMatchScore >= 80 ? 'Strong' :
+               titleMatchScore >= 60 ? 'Moderate' : 'Weak'}
+            </span>
+          </div>
+          <span className="text-gray-400 transition-transform duration-300">
+            {expandedSections.titleMatch ? '⌃' : '⌄'}
+          </span>
+        </button>
+        
+        {expandedSections.titleMatch && (
+          <div className="mt-4 p-4 bg-gray-800/50 rounded-lg animate-fade-in">
+            <div className="relative h-3 bg-gray-700 rounded-full overflow-hidden mb-3">
+              <div
+                className={`absolute left-0 top-0 h-full transition-all duration-500 ${
+                  titleMatchScore >= 80 ? 'bg-green-500' :
+                  titleMatchScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                }`}
+                style={{ width: `${titleMatchScore}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-gray-500 mb-3">
+              <span>Poor</span>
+              <span>Good</span>
+              <span>Excellent</span>
+            </div>
+            <p className="text-sm text-gray-300">
+              {titleMatchScore >= 80 ? '✅ Strong semantic alignment with video title' :
+               titleMatchScore >= 60 ? '⚠️  Moderate alignment - consider visual elements from title' :
+               '❌ Weak alignment - thumbnail should reflect title content'}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Top 3 Issues with 1-Click Fixes */}
-      <div className="mb-6">
-        <h4 className="text-sm font-semibold text-gray-300 mb-3">
+      <div className="mb-8">
+        <h4 className="text-2xl font-bold text-white mb-6">
           🔧 Top Issues & Auto-Fixes
         </h4>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {issues.slice(0, 3).map((issue, index) => (
             <div
               key={issue.id}
@@ -111,11 +140,11 @@ export default function InsightsPanel({
                 issue.priority === 'critical' ? 'border-red-500 bg-red-950/30' :
                 issue.priority === 'high' ? 'border-orange-500 bg-orange-950/30' :
                 'border-yellow-500 bg-yellow-950/30'
-              } rounded-r-lg p-4`}
+              } rounded-r-lg p-6 transition-all duration-300 hover:shadow-lg hover:shadow-white/10 hover:scale-[1.02]`}
             >
-              <div className="flex items-start justify-between mb-2">
+              <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-2">
                     <span className={`text-xs font-bold px-2 py-1 rounded ${
                       issue.priority === 'critical' ? 'bg-red-600' :
                       issue.priority === 'high' ? 'bg-orange-600' : 'bg-yellow-600'
@@ -124,20 +153,20 @@ export default function InsightsPanel({
                     </span>
                     <span className="text-xs text-gray-400">{issue.category}</span>
                   </div>
-                  <p className="text-sm font-semibold text-white mb-1">
+                  <p className="text-lg font-semibold text-white mb-2">
                     {issue.problem}
                   </p>
-                  <p className="text-xs text-gray-300 mb-2">
+                  <p className="text-sm text-gray-300 mb-3">
                     💡 {issue.fix}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-400">
                     Impact: {issue.impact}
                   </p>
                 </div>
                 {issue.autoFixAvailable && (
                   <button
                     onClick={() => onAutoFix?.(issue.id, thumbnailId)}
-                    className="ml-3 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition-colors whitespace-nowrap"
+                    className="ml-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 whitespace-nowrap"
                   >
                     Auto-Fix
                   </button>
@@ -153,12 +182,24 @@ export default function InsightsPanel({
         )}
       </div>
 
-      {/* Visual Overlays Toggle */}
-      <div className="mb-6">
-        <h4 className="text-sm font-semibold text-gray-300 mb-3">
-          🎨 Visual Overlays
-        </h4>
-        <div className="grid grid-cols-2 gap-2">
+      {/* Visual Overlays Toggle - Collapsible */}
+      <div className="mb-8">
+        <button
+          onClick={() => onToggleSection?.('visualOverlays')}
+          className="flex items-center justify-between w-full p-4 bg-gray-800 rounded-lg hover:bg-gray-750 transition-all duration-300 mb-4"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-gray-300">🎨 Visual Overlays</span>
+            <span className="text-xs text-gray-400">(4 available)</span>
+          </div>
+          <span className="text-gray-400 transition-transform duration-300">
+            {expandedSections.visualOverlays ? '⌃' : '⌄'}
+          </span>
+        </button>
+        
+        {expandedSections.visualOverlays && (
+          <div className="animate-fade-in">
+            <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => setActiveOverlay(activeOverlay === 'saliency' ? null : 'saliency')}
             className={`px-4 py-2 rounded text-sm font-semibold transition-all ${
@@ -228,6 +269,8 @@ export default function InsightsPanel({
               {activeOverlay === 'faces' && '🔍 Larger faces = better. Target 25-40% of frame. Emotion intensity shown by color.'}
               {activeOverlay === 'thirds' && '🔍 Key elements should align with intersection points for better composition.'}
             </p>
+          </div>
+        )}
           </div>
         )}
       </div>

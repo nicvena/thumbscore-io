@@ -68,6 +68,22 @@ function ResultsContent() {
   const [results, setResults] = useState<AnalysisResults | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  
+  // State for collapsible sections
+  const [expandedSections, setExpandedSections] = useState<{
+    titleMatch: boolean;
+    visualOverlays: boolean;
+  }>({
+    titleMatch: false,
+    visualOverlays: false,
+  });
+
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
 
   useEffect(() => {
     async function fetchAnalysis() {
@@ -304,19 +320,50 @@ function ResultsContent() {
         <h1 className="text-4xl font-bold mb-8 text-center">YouTube Thumbnail Analysis</h1>
         
         {/* Winner Announcement */}
-        <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-lg p-8 mb-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">🏆 Winner: Thumbnail {winner.thumbnailId}</h2>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <p className="text-lg mb-1">Predicted CTR:</p>
-              <p className="text-2xl font-bold">{winner.predictedCTR}</p>
-            </div>
-            <div>
-              <p className="text-lg mb-1">A/B Test Win Probability:</p>
-              <p className="text-2xl font-bold">{winner.abTestWinProbability}</p>
+        <div className="relative bg-gradient-to-r from-yellow-600 to-orange-600 rounded-lg p-12 mb-12 text-center overflow-hidden">
+          {/* Animated gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 opacity-20 animate-gradient-shift"></div>
+          
+          {/* Celebration badge */}
+          <div className="relative mb-6">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 mb-4 animate-pulse-slow">
+              <span className="text-2xl">🎉</span>
+              <span className="text-sm font-semibold text-white">Recommended Choice</span>
             </div>
           </div>
-          <p className="text-lg">{results.summary.recommendation}</p>
+          
+          <h2 className="text-4xl font-bold mb-6 relative">
+            <span className="text-6xl mr-3">🏆</span>
+            Winner: Thumbnail {winner.thumbnailId}
+          </h2>
+          
+          {/* Main Score - Much Larger */}
+          <div className="mb-8">
+            <p className="text-lg mb-2 text-yellow-100">Predicted CTR</p>
+            <div className="relative inline-block">
+              <p className="text-9xl font-bold text-white drop-shadow-2xl" 
+                 style={{ 
+                   textShadow: '0 0 20px rgba(255,255,255,0.5), 0 0 40px rgba(255,255,255,0.3)',
+                   filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.3))'
+                 }}>
+                {winner.clickScore}%
+              </p>
+            </div>
+          </div>
+
+          {/* Secondary Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="bg-white/10 rounded-lg p-4">
+              <p className="text-sm mb-1 text-yellow-100">A/B Test Win Rate</p>
+              <p className="text-2xl font-bold">{winner.abTestWinProbability}</p>
+            </div>
+            <div className="bg-white/10 rounded-lg p-4">
+              <p className="text-sm mb-1 text-yellow-100">Overall Score</p>
+              <p className="text-2xl font-bold">{winner.clickScore}/100</p>
+            </div>
+          </div>
+          
+          <p className="text-lg text-yellow-100">{results.summary.recommendation}</p>
         </div>
 
         {/* Rankings */}
@@ -429,11 +476,11 @@ function ResultsContent() {
         </div>
 
         {/* Data-Backed Insights Panels */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4 text-white">🔬 Data-Backed Insights</h2>
-          <div className="grid grid-cols-1 gap-6">
+        <div className="mb-12 space-y-8">
+          <h2 className="text-3xl font-bold mb-8 text-white">🔬 Data-Backed Insights - Thumbnail {winner.thumbnailId}</h2>
+          <div className="grid grid-cols-1 gap-8">
             {results.analyses.map((analysis) => (
-              <div key={analysis.thumbnailId} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div key={analysis.thumbnailId} className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left: Visual Overlays */}
                 <VisualOverlays
                   thumbnailId={analysis.thumbnailId}
@@ -460,6 +507,8 @@ function ResultsContent() {
                     console.log(`Auto-fixing ${issueId} for thumbnail ${thumbId}`);
                     alert(`Auto-fix feature coming soon! Issue: ${issueId}`);
                   }}
+                  expandedSections={expandedSections}
+                  onToggleSection={toggleSection}
                 />
               </div>
             ))}
@@ -594,16 +643,57 @@ function ResultsContent() {
 
 export default function ResultsPage() {
   return (
-    <Suspense fallback={
-      <main className="min-h-screen bg-black flex flex-col items-center justify-center p-24">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold mb-4 text-white">Loading...</h1>
-          <p className="text-gray-400">Preparing your analysis results</p>
-        </div>
-      </main>
-    }>
-      <ResultsContent />
-    </Suspense>
+    <>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes fade-in {
+            from {
+              opacity: 0;
+              transform: translateY(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          
+          @keyframes gradient-shift {
+            0% {
+              background-position: 0% 50%;
+            }
+            50% {
+              background-position: 100% 50%;
+            }
+            100% {
+              background-position: 0% 50%;
+            }
+          }
+          
+          .animate-fade-in {
+            animation: fade-in 0.3s ease-out;
+          }
+          
+          .animate-gradient-shift {
+            background-size: 200% 200%;
+            animation: gradient-shift 4s ease-in-out infinite;
+          }
+          
+          .animate-pulse-slow {
+            animation: pulse 3s ease-in-out infinite;
+          }
+        `
+      }} />
+      <Suspense fallback={
+        <main className="min-h-screen bg-black flex flex-col items-center justify-center p-24">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold mb-4 text-white">Loading...</h1>
+            <p className="text-gray-400">Preparing your analysis results</p>
+          </div>
+        </main>
+      }>
+        <ResultsContent />
+      </Suspense>
+    </>
   );
 }
 
