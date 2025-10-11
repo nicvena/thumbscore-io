@@ -5,6 +5,8 @@ import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import InsightsPanel from '../components/InsightsPanel';
 import VisualOverlays from '../components/VisualOverlays';
+import FeedbackWidget from '../components/FeedbackWidget';
+import ShareResults from '../components/ShareResults';
 
 interface ThumbnailAnalysis {
   thumbnailId: number;
@@ -530,12 +532,31 @@ function ResultsContent() {
           </div>
         </div>
 
+        {/* Share & Feedback Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <ShareResults
+            sessionId={sessionId || 'unknown'}
+            winnerScore={winner.clickScore}
+            improvement={results.summary.recommendation}
+          />
+          <FeedbackWidget
+            sessionId={sessionId || 'unknown'}
+            winnerId={winner.thumbnailId}
+          />
+        </div>
+
         <div className="flex justify-center gap-4">
           <Link
             href="/upload"
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Test More Thumbnails
+          </Link>
+          <Link
+            href="/faq"
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            FAQ
           </Link>
           <Link
             href="/"

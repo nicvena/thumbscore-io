@@ -11,12 +11,18 @@ export default function Home() {
         <p className="text-center mb-8 text-gray-400">
           AI-powered analysis to maximize your video&apos;s click-through rate
         </p>
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-4">
           <a
             href="/upload"
             className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold"
           >
             Test Your Thumbnails
+          </a>
+          <a
+            href="/faq"
+            className="px-8 py-4 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors text-lg font-semibold"
+          >
+            FAQ
           </a>
         </div>
         
