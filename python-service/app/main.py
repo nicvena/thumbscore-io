@@ -27,6 +27,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 # Import the thumbnail collection task
 from app.tasks.collect_thumbnails import update_reference_library_sync
+from app.indices import rebuild_indices_sync
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -482,27 +483,45 @@ async def startup_event():
     # Initialize models
     pipeline.initialize()
     
-    # Add scheduled job for thumbnail collection (daily at 3 AM UTC)
+    # Add scheduled job for thumbnail collection (daily at 3 AM Hobart time)
+    # Hobart is UTC+10/+11 (AEST/AEDT)
     scheduler.add_job(
         update_reference_library_sync,
-        trigger=CronTrigger(hour=3, minute=0, timezone="UTC"),
+        trigger=CronTrigger(hour=3, minute=0, timezone="Australia/Hobart"),
         id="collect_thumbnails",
         name="Collect trending YouTube thumbnails",
         replace_existing=True,
         max_instances=1
     )
     
+    # Add scheduled job for FAISS index rebuilding (daily at 3:30 AM Hobart time)
+    # Runs 30 minutes after collection to allow for data processing
+    scheduler.add_job(
+        rebuild_indices_sync,
+        trigger=CronTrigger(hour=3, minute=30, timezone="Australia/Hobart"),
+        id="rebuild_faiss_indices",
+        name="Rebuild FAISS indices for similarity search",
+        replace_existing=True,
+        max_instances=1
+    )
+    
     # Start the scheduler
     scheduler.start()
-    logger.info("Scheduler started - thumbnail collection scheduled for 3 AM UTC daily")
+    logger.info("Scheduler started:")
+    logger.info("  - Thumbnail collection: 3:00 AM Hobart time daily")
+    logger.info("  - FAISS index rebuilding: 3:30 AM Hobart time daily")
     
-    # Run initial collection (optional - comment out for production)
+    # Run initial collection and index building (optional - comment out for production)
     # logger.info("Running initial thumbnail collection...")
     # try:
     #     stats = update_reference_library_sync()
     #     logger.info(f"Initial collection completed: {stats}")
+    #     
+    #     logger.info("Rebuilding FAISS indices...")
+    #     index_results = rebuild_indices_sync()
+    #     logger.info(f"Index rebuilding completed: {index_results}")
     # except Exception as e:
-    #     logger.error(f"Initial collection failed: {e}")
+    #     logger.error(f"Initial setup failed: {e}")
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -564,6 +583,57 @@ def refresh_library():
         raise HTTPException(
             status_code=500, 
             detail=f"Failed to refresh library: {str(e)}"
+        )
+
+@app.get("/internal/rebuild-indices")
+def rebuild_indices():
+    """
+    Manually trigger FAISS index rebuilding
+    Internal endpoint for testing and manual updates
+    """
+    try:
+        logger.info("Manual FAISS index rebuilding requested")
+        results = rebuild_indices_sync()
+        
+        successful = sum(results.values())
+        total = len(results)
+        
+        return {
+            "status": "ok",
+            "message": f"FAISS indices rebuilt successfully ({successful}/{total} niches)",
+            "results": results,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Manual index rebuilding failed: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to rebuild indices: {str(e)}"
+        )
+
+@app.get("/internal/index-stats")
+def get_index_stats():
+    """
+    Get FAISS index statistics
+    Internal endpoint for monitoring index status
+    """
+    try:
+        from app.indices import get_index_manager
+        manager = get_index_manager()
+        stats = manager.get_index_stats()
+        
+        return {
+            "status": "ok",
+            "index_stats": stats,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get index stats: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to get index stats: {str(e)}"
         )
 
 @app.post("/v1/score", response_model=ScoreResponse)

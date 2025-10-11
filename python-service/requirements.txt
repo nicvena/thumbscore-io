@@ -13,6 +13,11 @@ supabase==2.3.4
 # HTTP client for async requests
 aiohttp==3.9.1
 
+# Vector similarity search
+faiss-cpu==1.7.4
+# For GPU acceleration (uncomment if using CUDA)
+# faiss-gpu==1.7.4
+
 # Image processing
 Pillow==10.2.0
 opencv-python==4.9.0.80

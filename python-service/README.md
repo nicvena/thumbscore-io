@@ -6,8 +6,9 @@ High-performance Python backend for automated YouTube thumbnail collection and M
 
 - 🤖 **Automated Collection**: Fetches trending YouTube thumbnails daily
 - 🧠 **CLIP Embeddings**: Computes semantic embeddings for similarity search
+- 🚀 **FAISS Indices**: Fast similarity search with nightly index rebuilding
 - 📊 **ML Scoring**: Advanced thumbnail analysis and CTR prediction
-- ⏰ **Scheduled Jobs**: APScheduler for background tasks
+- ⏰ **Scheduled Jobs**: APScheduler for background tasks (Hobart timezone)
 - 🔄 **Auto-cleanup**: Removes old thumbnails (90+ days)
 
 ## Quick Start
@@ -84,6 +85,16 @@ GET http://localhost:8000/health
 GET http://localhost:8000/internal/refresh-library
 ```
 
+### Manual Index Rebuilding
+```bash
+GET http://localhost:8000/internal/rebuild-indices
+```
+
+### Index Statistics
+```bash
+GET http://localhost:8000/internal/index-stats
+```
+
 ### Thumbnail Scoring
 ```bash
 POST http://localhost:8000/v1/score
@@ -99,21 +110,37 @@ Content-Type: application/json
 }
 ```
 
-## Automated Collection
+## Automated Collection & Indexing
 
-The service automatically collects trending thumbnails every day at 3 AM UTC:
+The service automatically collects and indexes trending thumbnails on Hobart time:
 
+### Daily Schedule (Australia/Hobart timezone):
+- **3:00 AM**: Collect trending YouTube thumbnails
+- **3:30 AM**: Rebuild FAISS indices for fast similarity search
+
+### Collection Details:
 - **5 Niches**: Tech, Gaming, Education, Entertainment, People & Blogs
 - **30 Videos per niche** (150 total per day)
 - **CLIP embeddings** computed for each thumbnail
 - **Views per hour** calculated from publication time
 - **Auto-cleanup** removes entries older than 90 days
 
+### FAISS Indexing:
+- **Fast similarity search** using FAISS (Facebook AI Similarity Search)
+- **Separate indices** for each niche category
+- **Cosine similarity** for semantic matching
+- **Persistent storage** with automatic loading
+
 ## Testing
 
 ### Test Collection System
 ```bash
 python test_collection.py
+```
+
+### Test FAISS Index System
+```bash
+python test_indices.py
 ```
 
 ### Test API Endpoints
@@ -123,6 +150,12 @@ curl http://localhost:8000/health
 
 # Manual refresh
 curl http://localhost:8000/internal/refresh-library
+
+# Manual index rebuilding
+curl http://localhost:8000/internal/rebuild-indices
+
+# Index statistics
+curl http://localhost:8000/internal/index-stats
 
 # Score thumbnails
 curl -X POST http://localhost:8000/v1/score \
@@ -142,11 +175,13 @@ python-service/
 ├── app/
 │   ├── main.py                 # FastAPI app with scheduler
 │   ├── features.py             # CLIP encoding utilities
+│   ├── indices.py              # FAISS index management
 │   ├── ref_library.py          # Similarity search
 │   └── tasks/
 │       └── collect_thumbnails.py  # Automated collection
 ├── requirements.txt            # Dependencies
-├── test_collection.py         # Test script
+├── test_collection.py         # Collection test script
+├── test_indices.py            # Index test script
 └── README.md                  # This file
 ```
 
