@@ -82,24 +82,30 @@ export default function InsightsPanel({
       <div className="mb-8">
         <button
           onClick={() => onToggleSection?.('titleMatch')}
-          className="flex items-center justify-between w-full p-4 bg-gray-800 rounded-lg hover:bg-gray-750 transition-all duration-300"
+          className="group flex items-center justify-between w-full p-4 bg-gray-800 rounded-lg hover:bg-gray-750 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer relative"
+          title="Click to expand title match details"
         >
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-gray-300">Title Match:</span>
-            <span className={`text-sm font-bold ${
-              titleMatchScore >= 80 ? 'text-green-400' :
-              titleMatchScore >= 60 ? 'text-yellow-400' : 'text-red-400'
+            <span className="text-sm font-semibold text-gray-300 group-hover:text-white transition-colors">Title Match:</span>
+            <span className={`text-sm font-bold transition-colors ${
+              titleMatchScore >= 80 ? 'text-green-400 group-hover:text-green-300' :
+              titleMatchScore >= 60 ? 'text-yellow-400 group-hover:text-yellow-300' : 'text-red-400 group-hover:text-red-300'
             }`}>
               {titleMatchScore}%
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">
               {titleMatchScore >= 80 ? 'Strong' :
                titleMatchScore >= 60 ? 'Moderate' : 'Weak'}
             </span>
           </div>
-          <span className="text-gray-400 transition-transform duration-300">
-            {expandedSections.titleMatch ? '⌃' : '⌄'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 group-hover:text-blue-400 transition-colors hidden group-hover:inline">
+              Click to expand
+            </span>
+            <span className="text-xl text-gray-400 group-hover:text-blue-400 transition-all duration-300 group-hover:scale-110">
+              {expandedSections.titleMatch ? '⌃' : '⌄'}
+            </span>
+          </div>
         </button>
         
         {expandedSections.titleMatch && (
@@ -186,15 +192,21 @@ export default function InsightsPanel({
       <div className="mb-8">
         <button
           onClick={() => onToggleSection?.('visualOverlays')}
-          className="flex items-center justify-between w-full p-4 bg-gray-800 rounded-lg hover:bg-gray-750 transition-all duration-300 mb-4"
+          className="group flex items-center justify-between w-full p-4 bg-gray-800 rounded-lg hover:bg-gray-750 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 cursor-pointer relative mb-4"
+          title="Click to expand visual overlay options"
         >
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-gray-300">🎨 Visual Overlays</span>
-            <span className="text-xs text-gray-400">(4 available)</span>
+            <span className="text-sm font-semibold text-gray-300 group-hover:text-white transition-colors">🎨 Visual Overlays</span>
+            <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">(4 available)</span>
           </div>
-          <span className="text-gray-400 transition-transform duration-300">
-            {expandedSections.visualOverlays ? '⌃' : '⌄'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 group-hover:text-purple-400 transition-colors hidden group-hover:inline">
+              Click to expand
+            </span>
+            <span className="text-xl text-gray-400 group-hover:text-purple-400 transition-all duration-300 group-hover:scale-110">
+              {expandedSections.visualOverlays ? '⌃' : '⌄'}
+            </span>
+          </div>
         </button>
         
         {expandedSections.visualOverlays && (
