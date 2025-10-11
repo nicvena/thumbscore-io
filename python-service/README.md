@@ -1,432 +1,229 @@
-# FastAPI Inference Service
+# Thumbnail Lab Python Service
 
-High-performance Python ML service that integrates with your Next.js Thumbnail Lab app.
+High-performance Python backend for automated YouTube thumbnail collection and ML-powered scoring.
 
-## Overview
+## Features
 
-This FastAPI service provides:
-- **Real ML model inference** (CLIP, OCR, Face Detection, Emotion)
-- **Feature extraction pipeline** (all visual features)
-- **Production-ready API** matching the `/v1/score` contract
-- **GPU acceleration** support
-- **Easy Docker deployment**
+- 🤖 **Automated Collection**: Fetches trending YouTube thumbnails daily
+- 🧠 **CLIP Embeddings**: Computes semantic embeddings for similarity search
+- 📊 **ML Scoring**: Advanced thumbnail analysis and CTR prediction
+- ⏰ **Scheduled Jobs**: APScheduler for background tasks
+- 🔄 **Auto-cleanup**: Removes old thumbnails (90+ days)
+
+## Quick Start
+
+### 1. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Set Environment Variables
+
+```bash
+# Required for YouTube API
+export YOUTUBE_API_KEY="your_youtube_api_key"
+
+# Required for Supabase database
+export SUPABASE_URL="your_supabase_url"
+export SUPABASE_KEY="your_supabase_key"
+
+# Optional: GPU acceleration
+export CUDA_VISIBLE_DEVICES="0"
+```
+
+### 3. Create Supabase Table
+
+Run this SQL in your Supabase SQL editor:
+
+```sql
+CREATE TABLE ref_thumbnails (
+    video_id TEXT PRIMARY KEY,
+    niche TEXT NOT NULL,
+    title TEXT NOT NULL,
+    thumbnail_url TEXT NOT NULL,
+    views_per_hour FLOAT NOT NULL,
+    view_count INTEGER NOT NULL,
+    published_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    channel_title TEXT,
+    description TEXT,
+    embedding VECTOR(768) NOT NULL,
+    collected_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create index for similarity search
+CREATE INDEX ON ref_thumbnails USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
+
+-- Create index for niche queries
+CREATE INDEX idx_ref_thumbnails_niche ON ref_thumbnails(niche);
+
+-- Create index for cleanup
+CREATE INDEX idx_ref_thumbnails_collected_at ON ref_thumbnails(collected_at);
+```
+
+### 4. Start the Service
+
+```bash
+# Development
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Production
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+```
+
+## API Endpoints
+
+### Health Check
+```bash
+GET http://localhost:8000/health
+```
+
+### Manual Library Refresh
+```bash
+GET http://localhost:8000/internal/refresh-library
+```
+
+### Thumbnail Scoring
+```bash
+POST http://localhost:8000/v1/score
+Content-Type: application/json
+
+{
+  "title": "My Video Title",
+  "thumbnails": [
+    {"id": "thumb1", "url": "https://example.com/thumb1.jpg"},
+    {"id": "thumb2", "url": "https://example.com/thumb2.jpg"}
+  ],
+  "category": "tech"
+}
+```
+
+## Automated Collection
+
+The service automatically collects trending thumbnails every day at 3 AM UTC:
+
+- **5 Niches**: Tech, Gaming, Education, Entertainment, People & Blogs
+- **30 Videos per niche** (150 total per day)
+- **CLIP embeddings** computed for each thumbnail
+- **Views per hour** calculated from publication time
+- **Auto-cleanup** removes entries older than 90 days
+
+## Testing
+
+### Test Collection System
+```bash
+python test_collection.py
+```
+
+### Test API Endpoints
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Manual refresh
+curl http://localhost:8000/internal/refresh-library
+
+# Score thumbnails
+curl -X POST http://localhost:8000/v1/score \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Test Video",
+    "thumbnails": [
+      {"id": "test", "url": "https://example.com/test.jpg"}
+    ]
+  }'
+```
 
 ## Architecture
 
 ```
-┌─────────────────┐
-│  Next.js App    │  ← User-facing web application
-│  (Port 3000)    │
-└────────┬────────┘
-         │
-         │ HTTP
-         ↓
-┌─────────────────┐
-│  FastAPI        │  ← ML inference service
-│  (Port 8000)    │
-└────────┬────────┘
-         │
-         ↓
-┌─────────────────┐
-│  ML Models      │
-│  - CLIP         │
-│  - PaddleOCR    │
-│  - RetinaFace   │
-│  - FER          │
-└─────────────────┘
-```
-
-## Quick Start
-
-### Option 1: Local Development
-
-```bash
-# Create virtual environment
-cd python-service
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run server
-python -m app.main
-# OR
-uvicorn app.main:app --reload --port 8000
-```
-
-### Option 2: Docker
-
-```bash
-# Build and run with Docker Compose
-cd python-service
-docker-compose up --build
-
-# Or with plain Docker
-docker build -t thumbnail-inference .
-docker run -p 8000:8000 thumbnail-inference
-```
-
-### Option 3: Production Deployment
-
-```bash
-# Install production server
-pip install gunicorn
-
-# Run with multiple workers
-gunicorn app.main:app \
-  --workers 4 \
-  --worker-class uvicorn.workers.UvicornWorker \
-  --bind 0.0.0.0:8000 \
-  --timeout 60
-```
-
-## Testing
-
-### 1. Health Check
-
-```bash
-curl http://localhost:8000/health
-```
-
-Expected response:
-```json
-{
-  "status": "healthy",
-  "models": {
-    "clip": true,
-    "ocr": true,
-    "face": true,
-    "emotion": true,
-    "ranking": false
-  },
-  "device": "cpu",
-  "gpu_available": false
-}
-```
-
-### 2. Score Thumbnails
-
-```bash
-curl -X POST http://localhost:8000/v1/score \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "I Tried MrBeasts $1 vs $100,000 Plane Seat",
-    "thumbnails": [
-      {"id":"A","url":"https://picsum.photos/1280/720"},
-      {"id":"B","url":"https://picsum.photos/1280/721"},
-      {"id":"C","url":"https://picsum.photos/1280/722"}
-    ],
-    "category":"people-blogs"
-  }'
-```
-
-### 3. Python Client
-
-```python
-import requests
-
-response = requests.post(
-    "http://localhost:8000/v1/score",
-    json={
-        "title": "Amazing Video Title",
-        "thumbnails": [
-            {"id": "A", "url": "https://example.com/thumb_a.jpg"},
-            {"id": "B", "url": "https://example.com/thumb_b.jpg"}
-        ],
-        "category": "education"
-    }
-)
-
-data = response.json()
-print(f"Winner: {data['winner_id']}")
-print(f"Score: {data['thumbnails'][0]['ctr_score']}")
-print(f"Insights: {data['thumbnails'][0]['insights']}")
-```
-
-## Integration with Next.js App
-
-### Update Next.js API to proxy to Python service:
-
-```typescript
-// app/api/v1/score/route.ts (add proxy option)
-
-const PYTHON_SERVICE_URL = process.env.PYTHON_SERVICE_URL || 'http://localhost:8000';
-
-export async function POST(request: NextRequest) {
-  const USE_PYTHON_SERVICE = process.env.USE_PYTHON_SERVICE === 'true';
-  
-  if (USE_PYTHON_SERVICE) {
-    // Proxy to Python FastAPI service
-    const body = await request.json();
-    const response = await fetch(`${PYTHON_SERVICE_URL}/v1/score`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    
-    const data = await response.json();
-    return NextResponse.json(data);
-  }
-  
-  // Otherwise use TypeScript simulation
-  // ... existing code
-}
-```
-
-### Environment Variables
-
-```bash
-# .env.local (Next.js)
-USE_PYTHON_SERVICE=true
-PYTHON_SERVICE_URL=http://localhost:8000
-```
-
-## Model Loading
-
-### 1. CLIP
-
-CLIP will download automatically on first run (~1.7GB for ViT-L/14):
-
-```python
-import clip
-model, preprocess = clip.load("ViT-L/14", device="cuda")
-```
-
-### 2. Your Trained Model
-
-Place your trained ranking model in `models/` directory:
-
-```python
-# In main.py startup
-pipeline.ranking_model = torch.load("models/ranking_model.pt", map_location=device)
-pipeline.ranking_model.eval()
-```
-
-### 3. Model Directory Structure
-
-```
 python-service/
 ├── app/
-│   └── main.py
-├── models/
-│   ├── ranking_model.pt          # Your trained model
-│   ├── clip_finetuned.pt         # Fine-tuned CLIP (optional)
-│   └── metadata.json             # Model metadata
-└── requirements.txt
+│   ├── main.py                 # FastAPI app with scheduler
+│   ├── features.py             # CLIP encoding utilities
+│   ├── ref_library.py          # Similarity search
+│   └── tasks/
+│       └── collect_thumbnails.py  # Automated collection
+├── requirements.txt            # Dependencies
+├── test_collection.py         # Test script
+└── README.md                  # This file
 ```
 
-## Performance
+## Production Deployment
 
-### Typical Latency (CPU)
-- **1 thumbnail**: ~200-400ms
-- **3 thumbnails**: ~500-1000ms
-- **10 thumbnails**: ~2-4 seconds
+### Docker (Recommended)
+```dockerfile
+FROM python:3.9-slim
 
-### With GPU (NVIDIA CUDA)
-- **1 thumbnail**: ~50-100ms
-- **3 thumbnails**: ~100-200ms
-- **10 thumbnails**: ~300-600ms
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-### Optimization Tips
+COPY app/ ./app/
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
 
-1. **Batch processing** - Process multiple thumbnails in parallel
-2. **Caching** - Cache CLIP embeddings by image URL
-3. **Model quantization** - Reduce model size for faster inference
-4. **Multiple workers** - Scale horizontally with gunicorn
-
-## GPU Setup
-
-### Enable CUDA Support
-
+### Environment Variables for Production
 ```bash
-# Install CUDA-enabled PyTorch
-pip install torch==2.1.2+cu118 torchvision==0.16.2+cu118 \
-  --extra-index-url https://download.pytorch.org/whl/cu118
+# Core
+YOUTUBE_API_KEY=your_key
+SUPABASE_URL=your_url
+SUPABASE_KEY=your_key
 
-# Verify GPU is available
-python -c "import torch; print(torch.cuda.is_available())"
+# Optional
+LOG_LEVEL=INFO
+WORKERS=4
+HOST=0.0.0.0
+PORT=8000
 ```
-
-### Docker with GPU
-
-```yaml
-# docker-compose.yml
-services:
-  inference-service:
-    build: .
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    environment:
-      - DEVICE=cuda
-```
-
-## API Documentation
-
-Once running, visit:
-- **Interactive docs**: http://localhost:8000/docs
-- **OpenAPI spec**: http://localhost:8000/openapi.json
 
 ## Monitoring
 
-### Logs
+The service provides comprehensive logging:
 
-```bash
-# View logs
-docker-compose logs -f inference-service
-
-# Or with plain Docker
-docker logs -f thumbnail-inference
-```
-
-### Metrics
-
-Add Prometheus metrics:
-
-```python
-from prometheus_fastapi_instrumentator import Instrumentator
-
-Instrumentator().instrument(app).expose(app)
-```
-
-Visit http://localhost:8000/metrics for Prometheus-compatible metrics.
+- **Collection stats**: Videos fetched, thumbnails stored, cleanup count
+- **Error handling**: Graceful failures with detailed error messages
+- **Performance metrics**: Processing time and throughput
+- **Health checks**: Model loading status and scheduler state
 
 ## Troubleshooting
 
-### Models not loading
+### Common Issues
 
-**Issue**: Models fail to download or load
+1. **YouTube API Quota Exceeded**
+   - Check your API quota in Google Cloud Console
+   - Reduce `VIDEOS_PER_NICHE` in `collect_thumbnails.py`
 
-**Solution**:
+2. **CLIP Model Loading Failed**
+   - Ensure sufficient disk space (CLIP model is ~2GB)
+   - Check internet connection for model download
+
+3. **Supabase Connection Issues**
+   - Verify `SUPABASE_URL` and `SUPABASE_KEY`
+   - Check if table exists and has correct schema
+
+4. **Memory Issues**
+   - Reduce batch sizes in collection
+   - Use GPU if available for faster processing
+
+### Logs
 ```bash
-# Pre-download models
-python -c "import clip; clip.load('ViT-L/14')"
-python -c "from paddleocr import PaddleOCR; PaddleOCR()"
+# View logs in real-time
+tail -f /var/log/thumbnail-lab.log
+
+# Check scheduler status
+curl http://localhost:8000/health | jq '.scheduler'
 ```
 
-### Out of memory
+## Contributing
 
-**Issue**: GPU/CPU runs out of memory
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
 
-**Solution**:
-- Reduce batch size
-- Use smaller CLIP model (ViT-B/32)
-- Enable model quantization
+## License
 
-### Slow inference
-
-**Issue**: High latency per request
-
-**Solution**:
-- Enable GPU acceleration
-- Add Redis caching for embeddings
-- Use model optimization (ONNX, TensorRT)
-
-## Development
-
-### Project Structure
-
-```
-python-service/
-├── app/
-│   ├── __init__.py
-│   ├── main.py              # Main FastAPI application
-│   ├── models.py            # Pydantic models (optional)
-│   ├── feature_extraction.py  # Feature extraction logic (optional)
-│   └── inference.py         # Model inference logic (optional)
-├── models/                  # Trained model weights
-├── tests/                   # Unit tests
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-└── README.md
-```
-
-### Running Tests
-
-```bash
-# Install test dependencies
-pip install pytest pytest-asyncio httpx
-
-# Run tests
-pytest tests/
-```
-
-### Add Your Custom Model
-
-Replace the `model_predict` function in `main.py`:
-
-```python
-def model_predict(features: Dict[str, Any]) -> Dict[str, Any]:
-    """Replace with your trained model"""
-    
-    with torch.no_grad():
-        # 1. Prepare input tensor
-        embedding = torch.from_numpy(features['clip_embedding']).to(pipeline.device)
-        
-        # 2. Run your model
-        ctr_score, subscores = pipeline.ranking_model(
-            embedding,
-            features['ocr'],
-            features['faces'],
-            features['colors']
-        )
-        
-        # 3. Return predictions
-        return {
-            "ctr_score": float(ctr_score),
-            "subscores": {
-                "clarity": int(subscores[0]),
-                "subject_prominence": int(subscores[1]),
-                "contrast_pop": int(subscores[2]),
-                "emotion": int(subscores[3]),
-                "hierarchy": int(subscores[4]),
-                "title_match": int(subscores[5])
-            }
-        }
-```
-
-## Deployment Checklist
-
-- [ ] GPU setup (if using CUDA)
-- [ ] Load trained model weights
-- [ ] Configure environment variables
-- [ ] Set up monitoring (logs, metrics)
-- [ ] Configure CORS for your domain
-- [ ] Add rate limiting
-- [ ] Enable caching (Redis)
-- [ ] Set up health checks
-- [ ] Configure autoscaling
-- [ ] Add authentication (API keys)
-
-## Environment Variables
-
-```bash
-# .env
-DEVICE=cuda                    # cpu or cuda
-MODEL_PATH=/app/models
-CLIP_MODEL=ViT-L/14           # ViT-L/14 or ViT-B/32
-ENABLE_CACHING=true
-REDIS_URL=redis://localhost:6379
-LOG_LEVEL=info
-MAX_WORKERS=4
-TIMEOUT_SECONDS=60
-```
-
-## Support
-
-For issues or questions:
-- Check logs: `docker-compose logs -f`
-- Test health endpoint: `curl http://localhost:8000/health`
-- Review FastAPI docs: http://localhost:8000/docs
-- Open an issue on GitHub
-
----
-
-**Ready to serve production-grade ML inference!** 🚀
-
+MIT License - see LICENSE file for details.

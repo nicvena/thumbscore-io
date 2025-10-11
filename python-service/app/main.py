@@ -1,6 +1,12 @@
 """
 FastAPI Inference Service for Thumbnail Scoring
 High-performance Python service that plugs into your existing Next.js app
+
+Features:
+- ML-powered thumbnail scoring and ranking
+- Automated YouTube thumbnail library collection
+- CLIP embeddings and similarity search
+- Background job scheduling with APScheduler
 """
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
@@ -13,6 +19,18 @@ from PIL import Image
 import io
 import requests
 from datetime import datetime
+import logging
+
+# Import APScheduler for background jobs
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+
+# Import the thumbnail collection task
+from app.tasks.collect_thumbnails import update_reference_library_sync
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Thumbnail Scoring API",
@@ -149,6 +167,9 @@ class ModelPipeline:
 
 # Global model instance
 pipeline = ModelPipeline()
+
+# Initialize scheduler for background jobs
+scheduler = AsyncIOScheduler()
 
 # ============================================================================
 # FEATURE EXTRACTION
@@ -455,8 +476,39 @@ def explain(results: List[ThumbnailScore], winner_id: str) -> str:
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize models on startup"""
+    """Initialize models and scheduler on startup"""
+    logger.info("Starting up Thumbnail Scoring API...")
+    
+    # Initialize models
     pipeline.initialize()
+    
+    # Add scheduled job for thumbnail collection (daily at 3 AM UTC)
+    scheduler.add_job(
+        update_reference_library_sync,
+        trigger=CronTrigger(hour=3, minute=0, timezone="UTC"),
+        id="collect_thumbnails",
+        name="Collect trending YouTube thumbnails",
+        replace_existing=True,
+        max_instances=1
+    )
+    
+    # Start the scheduler
+    scheduler.start()
+    logger.info("Scheduler started - thumbnail collection scheduled for 3 AM UTC daily")
+    
+    # Run initial collection (optional - comment out for production)
+    # logger.info("Running initial thumbnail collection...")
+    # try:
+    #     stats = update_reference_library_sync()
+    #     logger.info(f"Initial collection completed: {stats}")
+    # except Exception as e:
+    #     logger.error(f"Initial collection failed: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean shutdown"""
+    logger.info("Shutting down Thumbnail Scoring API...")
+    scheduler.shutdown()
 
 @app.get("/")
 def root():
@@ -483,8 +535,36 @@ def health():
             "ranking": pipeline.ranking_model is not None
         },
         "device": str(pipeline.device),
-        "gpu_available": torch.cuda.is_available()
+        "gpu_available": torch.cuda.is_available(),
+        "scheduler": {
+            "running": scheduler.running,
+            "jobs": len(scheduler.get_jobs())
+        }
     }
+
+@app.get("/internal/refresh-library")
+def refresh_library():
+    """
+    Manually trigger thumbnail library refresh
+    Internal endpoint for testing and manual updates
+    """
+    try:
+        logger.info("Manual thumbnail library refresh requested")
+        stats = update_reference_library_sync()
+        
+        return {
+            "status": "ok",
+            "message": "Reference library refreshed successfully",
+            "stats": stats,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Manual refresh failed: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to refresh library: {str(e)}"
+        )
 
 @app.post("/v1/score", response_model=ScoreResponse)
 def score(req: ScoreRequest):

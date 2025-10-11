@@ -4,6 +4,15 @@ uvicorn[standard]==0.27.0
 pydantic==2.5.3
 python-multipart==0.0.6
 
+# Background job scheduling
+apscheduler==3.10.4
+
+# Database
+supabase==2.3.4
+
+# HTTP client for async requests
+aiohttp==3.9.1
+
 # Image processing
 Pillow==10.2.0
 opencv-python==4.9.0.80
