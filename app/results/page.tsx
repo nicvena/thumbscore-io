@@ -67,9 +67,49 @@ function ResultsContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Use mock data for now since the analyze API has issues
-    // In production, this would fetch from the analyze API
-    const mockResults: AnalysisResults = {
+    async function fetchAnalysis() {
+      if (!sessionId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Get data from session storage (set during upload)
+        const title = sessionStorage.getItem('videoTitle') || '';
+        const thumbnailsJson = sessionStorage.getItem('thumbnails');
+        const thumbnails = thumbnailsJson ? JSON.parse(thumbnailsJson) : [];
+        
+        console.log('Fetching analysis with:', { sessionId, title, thumbnails: thumbnails.length });
+        
+        // Call analyze API
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId,
+            thumbnails: thumbnails.length > 0 ? thumbnails : [],
+            title
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setResults(data);
+        } else {
+          // Fall back to mock data if API fails
+          console.error('API failed, using mock data');
+          useMockData();
+        }
+      } catch (error) {
+        console.error('Error fetching analysis:', error);
+        useMockData();
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function useMockData() {
+      const mockResults: AnalysisResults = {
       sessionId: sessionId || 'mock-session',
       analyses: [
         {
@@ -213,11 +253,12 @@ function ResultsContent() {
         whyItWins: ['High contrast and vibrant colors', 'Clear focal point'],
       },
     };
-    
-    setTimeout(() => {
+      
       setResults(mockResults);
-      setLoading(false);
-    }, 2000);
+    }
+
+    // Start fetching
+    fetchAnalysis();
   }, [sessionId]);
 
   if (loading) {

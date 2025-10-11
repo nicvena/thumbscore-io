@@ -39,10 +39,15 @@ export default function UploadPage() {
       const data = await response.json();
       
       if (response.ok) {
-        // Store title in session storage for analysis
+        // Store upload data in session storage for analysis
         if (videoTitle) {
           sessionStorage.setItem('videoTitle', videoTitle);
         }
+        if (data.thumbnails) {
+          sessionStorage.setItem('thumbnails', JSON.stringify(data.thumbnails));
+        }
+        
+        // Redirect to results page
         router.push(`/results?id=${data.sessionId}`);
       } else {
         alert('Upload failed: ' + data.error);
@@ -100,25 +105,30 @@ export default function UploadPage() {
             </label>
           </div>
 
-          {files.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {files.map((file, index) => (
-                <div key={index} className="relative bg-gray-800 rounded-lg p-4">
-                  <div className="w-full h-32 bg-gray-700 rounded mb-2 flex items-center justify-center">
-                    <span className="text-gray-400 text-sm">Preview</span>
-                  </div>
-                  <p className="text-white text-sm truncate">{file.name}</p>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(index)}
-                    className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 text-xs hover:bg-red-700"
-                  >
-                    ×
-                  </button>
+              {files.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {files.map((file, index) => (
+                    <div key={index} className="relative bg-gray-800 rounded-lg p-4">
+                      <div className="w-full h-32 bg-gray-700 rounded mb-2 overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt={`Thumbnail ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <p className="text-white text-sm truncate">{file.name}</p>
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 text-xs hover:bg-red-700"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
           <button
             type="submit"
