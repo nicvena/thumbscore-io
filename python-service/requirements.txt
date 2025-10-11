@@ -34,10 +34,10 @@ git+https://github.com/openai/CLIP.git
 paddleocr==2.7.0.3
 paddlepaddle==2.6.0
 
-# Face Detection & Emotion
-retinaface==0.0.17
-fer==22.5.1
-mtcnn==0.1.1
+# Face Detection & Emotion (optional - for full ML features)
+# retinaface==0.0.17  # Version not available, use 1.1.1 if needed
+# fer==22.5.1
+# mtcnn==0.1.1
 
 # Text Processing
 transformers==4.37.0
