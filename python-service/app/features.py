@@ -43,7 +43,7 @@ def clip_encode(image: Union[Image.Image, bytes, np.ndarray]) -> np.ndarray:
     """
     try:
         # Load CLIP model
-        model, preprocess = load_clip_model()
+        model, preprocess, device = load_clip_model()
         
         # Convert input to PIL Image if needed
         if isinstance(image, bytes):
@@ -55,7 +55,7 @@ def clip_encode(image: Union[Image.Image, bytes, np.ndarray]) -> np.ndarray:
         
         # Preprocess and encode
         with torch.no_grad():
-            image_tensor = preprocess(image).unsqueeze(0).to(model.device)
+            image_tensor = preprocess(image).unsqueeze(0).to(device)
             embedding = model.encode_image(image_tensor)
             return embedding.cpu().numpy().flatten()
             
