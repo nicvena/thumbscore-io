@@ -166,7 +166,7 @@ export default function InsightsPanel({
                 {issue.autoFixAvailable && (
                   <button
                     onClick={() => onAutoFix?.(issue.id, thumbnailId)}
-                    className="ml-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 whitespace-nowrap"
+                    className="ml-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 animate-pulse-subtle whitespace-nowrap"
                   >
                     Auto-Fix
                   </button>

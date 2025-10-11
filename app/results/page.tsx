@@ -69,6 +69,10 @@ function ResultsContent() {
   const [loading, setLoading] = useState(true);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   
+  // State for animations
+  const [displayedScore, setDisplayedScore] = useState(0);
+  const [sectionsVisible, setSectionsVisible] = useState(false);
+  
   // State for collapsible sections
   const [expandedSections, setExpandedSections] = useState<{
     titleMatch: boolean;
@@ -84,6 +88,40 @@ function ResultsContent() {
       [section]: !prev[section]
     }));
   };
+
+  // Count-up animation effect
+  useEffect(() => {
+    if (results && !loading) {
+      const winner = results.analyses.find(a => a.ranking === 1);
+      if (winner) {
+        // Start count-up animation
+        const duration = 2000; // 2 seconds
+        const startTime = Date.now();
+        const startValue = 0;
+        const endValue = winner.clickScore;
+
+        const animate = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          
+          // Easing function for smooth deceleration
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+          const currentValue = Math.round(startValue + (endValue - startValue) * easeOut);
+          
+          setDisplayedScore(currentValue);
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            // Show sections after score animation completes
+            setTimeout(() => setSectionsVisible(true), 300);
+          }
+        };
+
+        requestAnimationFrame(animate);
+      }
+    }
+  }, [results, loading]);
 
   useEffect(() => {
     async function fetchAnalysis() {
@@ -346,7 +384,7 @@ function ResultsContent() {
                    textShadow: '0 0 20px rgba(255,255,255,0.5), 0 0 40px rgba(255,255,255,0.3)',
                    filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.3))'
                  }}>
-                {winner.clickScore}%
+                {displayedScore}%
               </p>
             </div>
           </div>
@@ -367,7 +405,7 @@ function ResultsContent() {
         </div>
 
         {/* Rankings */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 transition-all duration-700 ${sectionsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {results.analyses.map((analysis) => (
             <div key={analysis.thumbnailId} className={`rounded-lg p-6 ${
               analysis.ranking === 1 ? 'bg-green-900 border-2 border-green-500' :
@@ -476,7 +514,7 @@ function ResultsContent() {
         </div>
 
         {/* Data-Backed Insights Panels */}
-        <div className="mb-12 space-y-8">
+        <div className={`mb-12 space-y-8 transition-all duration-700 delay-200 ${sectionsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <h2 className="text-3xl font-bold mb-8 text-white">🔬 Data-Backed Insights - Thumbnail {winner.thumbnailId}</h2>
           <div className="grid grid-cols-1 gap-8">
             {results.analyses.map((analysis) => (
@@ -516,7 +554,7 @@ function ResultsContent() {
         </div>
 
         {/* Detailed Analysis */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 transition-all duration-700 delay-400 ${sectionsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {/* Winner Analysis */}
           <div className="bg-gray-800 rounded-lg p-6">
             <h3 className="text-xl font-bold mb-4">🏆 Winner Analysis</h3>
@@ -604,7 +642,7 @@ function ResultsContent() {
         </div>
 
         {/* Share & Feedback Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className={`grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 transition-all duration-700 delay-600 ${sectionsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <ShareResults
             sessionId={sessionId || 'unknown'}
             winnerScore={winner.clickScore}
@@ -680,6 +718,21 @@ export default function ResultsPage() {
           
           .animate-pulse-slow {
             animation: pulse 3s ease-in-out infinite;
+          }
+          
+          .animate-pulse-subtle {
+            animation: pulse-subtle 2s ease-in-out infinite;
+          }
+          
+          @keyframes pulse-subtle {
+            0%, 100% {
+              opacity: 1;
+              transform: scale(1);
+            }
+            50% {
+              opacity: 0.8;
+              transform: scale(1.02);
+            }
           }
         `
       }} />
