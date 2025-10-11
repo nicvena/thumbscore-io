@@ -115,8 +115,7 @@ Content-Type: application/json
 The service automatically collects and indexes trending thumbnails on Hobart time:
 
 ### Daily Schedule (Australia/Hobart timezone):
-- **3:00 AM**: Collect trending YouTube thumbnails
-- **3:30 AM**: Rebuild FAISS indices for fast similarity search
+- **3:00 AM**: Collect trending YouTube thumbnails + Rebuild FAISS indices (combined operation)
 
 ### Collection Details:
 - **5 Niches**: Tech, Gaming, Education, Entertainment, People & Blogs
@@ -127,9 +126,12 @@ The service automatically collects and indexes trending thumbnails on Hobart tim
 
 ### FAISS Indexing:
 - **Fast similarity search** using FAISS (Facebook AI Similarity Search)
-- **Separate indices** for each niche category
-- **Cosine similarity** for semantic matching
-- **Persistent storage** with automatic loading
+- **Separate indices** for each niche category (stored in `faiss_indices/` directory)
+- **Cosine similarity** for semantic matching (IndexFlatIP)
+- **Persistent storage** with automatic loading and caching
+- **Thread-safe** global cache for production use
+- **Instant lookups** in `/v1/score` endpoint via `ref_library.py`
+- **Automatic rebuilding** after library refresh
 
 ## Testing
 
@@ -141,6 +143,11 @@ python test_collection.py
 ### Test FAISS Index System
 ```bash
 python test_indices.py
+```
+
+### Test Complete FAISS Integration
+```bash
+python test_faiss_integration.py
 ```
 
 ### Test API Endpoints
@@ -173,16 +180,73 @@ curl -X POST http://localhost:8000/v1/score \
 ```
 python-service/
 ├── app/
-│   ├── main.py                 # FastAPI app with scheduler
-│   ├── features.py             # CLIP encoding utilities
-│   ├── indices.py              # FAISS index management
-│   ├── ref_library.py          # Similarity search
+│   ├── main.py                     # FastAPI app with scheduler
+│   ├── features.py                 # CLIP encoding utilities
+│   ├── indices.py                  # Legacy FAISS index management
+│   ├── ref_library.py              # FAISS similarity search & caching
 │   └── tasks/
-│       └── collect_thumbnails.py  # Automated collection
-├── requirements.txt            # Dependencies
-├── test_collection.py         # Collection test script
-├── test_indices.py            # Index test script
-└── README.md                  # This file
+│       ├── collect_thumbnails.py   # Automated collection
+│       └── build_faiss_index.py    # FAISS index builder
+├── faiss_indices/                  # FAISS index storage (created at runtime)
+│   ├── tech.index                  # Tech niche index
+│   ├── tech_ids.npy                # Tech video ID mapping
+│   ├── gaming.index                # Gaming niche index
+│   └── ...                         # Other niche indices
+├── requirements.txt                # Dependencies
+├── test_collection.py             # Collection test script
+├── test_indices.py                # Index test script
+├── test_faiss_integration.py      # Complete integration test
+└── README.md                      # This file
+```
+
+## FAISS Integration Flow
+
+### How It Works:
+
+1. **Library Refresh** (`collect_thumbnails.py`):
+   - Fetches trending videos from YouTube API
+   - Downloads thumbnails and computes CLIP embeddings
+   - Stores in Supabase `ref_thumbnails` table
+
+2. **Index Building** (`build_faiss_index.py`):
+   - Reads embeddings from Supabase for each niche
+   - Creates FAISS IndexFlatIP (cosine similarity)
+   - Normalizes embeddings for proper cosine distance
+   - Saves indices to `faiss_indices/{niche}.index`
+   - Saves video ID mappings to `faiss_indices/{niche}_ids.npy`
+
+3. **Similarity Search** (`ref_library.py`):
+   - Loads indices into memory (with thread-safe caching)
+   - Performs instant similarity lookups for `/v1/score` endpoint
+   - Falls back to Supabase if index not available
+   - Returns percentile scores (0-100)
+
+### Usage in `/v1/score` endpoint:
+
+```python
+from app.ref_library import get_similarity_score
+
+# User uploads thumbnail, we compute embedding
+user_embedding = clip_encode(user_image)
+
+# Get similarity score against reference library
+niche = "tech"
+similarity_percentile = get_similarity_score(user_embedding, niche)
+
+# Use in scoring logic
+print(f"Your thumbnail is in the {similarity_percentile:.1f}th percentile for {niche}")
+```
+
+### Environment Variables:
+
+```bash
+# Required
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+YOUTUBE_API_KEY=your_youtube_key
+
+# Optional
+FAISS_INDEX_PATH=faiss_indices  # Default: faiss_indices/
 ```
 
 ## Production Deployment

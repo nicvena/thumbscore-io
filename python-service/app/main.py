@@ -28,6 +28,8 @@ from apscheduler.triggers.cron import CronTrigger
 # Import the thumbnail collection task
 from app.tasks.collect_thumbnails import update_reference_library_sync
 from app.indices import rebuild_indices_sync
+from app.tasks.build_faiss_index import build_faiss_indices, get_faiss_index_info
+from app.ref_library import clear_index_cache
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -171,6 +173,41 @@ pipeline = ModelPipeline()
 
 # Initialize scheduler for background jobs
 scheduler = AsyncIOScheduler()
+
+# ============================================================================
+# SCHEDULED TASK WRAPPERS
+# ============================================================================
+
+def scheduled_library_refresh_and_index_rebuild():
+    """
+    Scheduled task that refreshes library and rebuilds FAISS indices.
+    Combines both operations for the nightly job.
+    """
+    logger.info("Starting scheduled library refresh and index rebuild...")
+    
+    try:
+        # Step 1: Update reference library
+        logger.info("Updating reference thumbnail library...")
+        stats = update_reference_library_sync()
+        logger.info(f"Library refresh completed: {stats}")
+        
+        # Step 2: Rebuild FAISS indices
+        logger.info("Rebuilding FAISS indices...")
+        index_results = build_faiss_indices()
+        logger.info(f"FAISS index building completed: {index_results}")
+        
+        # Step 3: Clear cache to force reload
+        clear_index_cache()
+        logger.info("Done building FAISS indices.")
+        
+        successful = sum(index_results.values())
+        total = len(index_results)
+        logger.info(f"Scheduled task completed: {successful}/{total} indices built")
+        
+    except Exception as e:
+        logger.error(f"Scheduled task failed: {e}")
+        import traceback
+        traceback.print_exc()
 
 # ============================================================================
 # FEATURE EXTRACTION
@@ -483,24 +520,14 @@ async def startup_event():
     # Initialize models
     pipeline.initialize()
     
-    # Add scheduled job for thumbnail collection (daily at 3 AM Hobart time)
+    # Add scheduled job for thumbnail collection + FAISS index rebuilding
+    # (daily at 3 AM Hobart time)
     # Hobart is UTC+10/+11 (AEST/AEDT)
     scheduler.add_job(
-        update_reference_library_sync,
+        scheduled_library_refresh_and_index_rebuild,
         trigger=CronTrigger(hour=3, minute=0, timezone="Australia/Hobart"),
-        id="collect_thumbnails",
-        name="Collect trending YouTube thumbnails",
-        replace_existing=True,
-        max_instances=1
-    )
-    
-    # Add scheduled job for FAISS index rebuilding (daily at 3:30 AM Hobart time)
-    # Runs 30 minutes after collection to allow for data processing
-    scheduler.add_job(
-        rebuild_indices_sync,
-        trigger=CronTrigger(hour=3, minute=30, timezone="Australia/Hobart"),
-        id="rebuild_faiss_indices",
-        name="Rebuild FAISS indices for similarity search",
+        id="refresh_and_index",
+        name="Collect thumbnails and rebuild FAISS indices",
         replace_existing=True,
         max_instances=1
     )
@@ -508,18 +535,12 @@ async def startup_event():
     # Start the scheduler
     scheduler.start()
     logger.info("Scheduler started:")
-    logger.info("  - Thumbnail collection: 3:00 AM Hobart time daily")
-    logger.info("  - FAISS index rebuilding: 3:30 AM Hobart time daily")
+    logger.info("  - Library refresh + FAISS index rebuilding: 3:00 AM Hobart time daily")
     
     # Run initial collection and index building (optional - comment out for production)
-    # logger.info("Running initial thumbnail collection...")
+    # logger.info("Running initial setup...")
     # try:
-    #     stats = update_reference_library_sync()
-    #     logger.info(f"Initial collection completed: {stats}")
-    #     
-    #     logger.info("Rebuilding FAISS indices...")
-    #     index_results = rebuild_indices_sync()
-    #     logger.info(f"Index rebuilding completed: {index_results}")
+    #     scheduled_library_refresh_and_index_rebuild()
     # except Exception as e:
     #     logger.error(f"Initial setup failed: {e}")
 
@@ -565,16 +586,34 @@ def health():
 def refresh_library():
     """
     Manually trigger thumbnail library refresh
+    Also rebuilds FAISS indices after refresh
     Internal endpoint for testing and manual updates
     """
     try:
         logger.info("Manual thumbnail library refresh requested")
+        
+        # Step 1: Update reference library
+        logger.info("Updating reference thumbnail library...")
         stats = update_reference_library_sync()
+        logger.info(f"Library refresh completed: {stats}")
+        
+        # Step 2: Rebuild FAISS indices
+        logger.info("Rebuilding FAISS indices...")
+        index_results = build_faiss_indices()
+        logger.info(f"FAISS index building completed: {index_results}")
+        
+        # Step 3: Clear cache to force reload
+        clear_index_cache()
+        logger.info("Done building FAISS indices.")
+        
+        successful_indices = sum(index_results.values())
+        total_indices = len(index_results)
         
         return {
             "status": "ok",
-            "message": "Reference library refreshed successfully",
-            "stats": stats,
+            "message": f"Reference library and FAISS indices refreshed successfully ({successful_indices}/{total_indices} indices)",
+            "library_stats": stats,
+            "index_results": index_results,
             "timestamp": datetime.now().isoformat()
         }
         
@@ -589,11 +628,19 @@ def refresh_library():
 def rebuild_indices():
     """
     Manually trigger FAISS index rebuilding
+    Uses the new build_faiss_index module for consistency
     Internal endpoint for testing and manual updates
     """
     try:
         logger.info("Manual FAISS index rebuilding requested")
-        results = rebuild_indices_sync()
+        
+        # Rebuild FAISS indices
+        logger.info("Rebuilding FAISS indices...")
+        results = build_faiss_indices()
+        
+        # Clear cache to force reload
+        clear_index_cache()
+        logger.info("Done building FAISS indices.")
         
         successful = sum(results.values())
         total = len(results)
@@ -613,19 +660,24 @@ def rebuild_indices():
         )
 
 @app.get("/internal/index-stats")
-def get_index_stats():
+def get_index_stats_endpoint():
     """
     Get FAISS index statistics
     Internal endpoint for monitoring index status
     """
     try:
-        from app.indices import get_index_manager
-        manager = get_index_manager()
-        stats = manager.get_index_stats()
+        from app.ref_library import get_index_cache_stats
+        
+        # Get file-based index info
+        index_info = get_faiss_index_info()
+        
+        # Get cache stats
+        cache_stats = get_index_cache_stats()
         
         return {
             "status": "ok",
-            "index_stats": stats,
+            "index_info": index_info,
+            "cache_stats": cache_stats,
             "timestamp": datetime.now().isoformat()
         }
         
