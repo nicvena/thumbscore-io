@@ -67,6 +67,7 @@ function ResultsContent() {
   const sessionId = searchParams.get('id');
   const [results, setResults] = useState<AnalysisResults | null>(null);
   const [loading, setLoading] = useState(true);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchAnalysis() {
@@ -75,13 +76,18 @@ function ResultsContent() {
         return;
       }
 
-      try {
-        // Get data from session storage (set during upload)
-        const title = sessionStorage.getItem('videoTitle') || '';
-        const thumbnailsJson = sessionStorage.getItem('thumbnails');
-        const thumbnails = thumbnailsJson ? JSON.parse(thumbnailsJson) : [];
-        
-        console.log('Fetching analysis with:', { sessionId, title, thumbnails: thumbnails.length });
+        try {
+          // Get data from session storage (set during upload)
+          const title = sessionStorage.getItem('videoTitle') || '';
+          const thumbnailsJson = sessionStorage.getItem('thumbnails');
+          const thumbnails = thumbnailsJson ? JSON.parse(thumbnailsJson) : [];
+          
+          // Get image URLs for display
+          const imageUrlsJson = sessionStorage.getItem('imageUrls');
+          const storedImageUrls = imageUrlsJson ? JSON.parse(imageUrlsJson) : [];
+          setImageUrls(storedImageUrls);
+          
+          console.log('Fetching analysis with:', { sessionId, title, thumbnails: thumbnails.length });
         
         // Call analyze API
         const response = await fetch('/api/analyze', {
@@ -322,6 +328,21 @@ function ResultsContent() {
               'bg-gray-800 border-2 border-gray-600'
             }`}>
               <div className="text-center mb-4">
+                {/* Thumbnail Image */}
+                <div className="relative w-full h-32 mb-3 rounded-lg overflow-hidden bg-gray-700">
+                  {imageUrls[analysis.thumbnailId - 1] ? (
+                    <img
+                      src={imageUrls[analysis.thumbnailId - 1]}
+                      alt={`Thumbnail ${analysis.thumbnailId}`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-500">
+                      <span className="text-4xl">🖼️</span>
+                    </div>
+                  )}
+                </div>
+                
                 <div className="text-4xl mb-2">
                   {analysis.ranking === 1 ? '🥇' : analysis.ranking === 2 ? '🥈' : '🥉'}
                 </div>
@@ -417,6 +438,7 @@ function ResultsContent() {
                 <VisualOverlays
                   thumbnailId={analysis.thumbnailId}
                   fileName={analysis.fileName}
+                  imageUrl={imageUrls[analysis.thumbnailId - 1]}
                   heatmapData={analysis.heatmapData}
                   ocrBoxes={analysis.ocrHighlights.map(ocr => ({
                     text: ocr.text,

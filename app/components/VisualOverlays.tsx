@@ -15,6 +15,7 @@ import { useState } from 'react';
 interface OverlayProps {
   thumbnailId: number;
   fileName: string;
+  imageUrl?: string;
   width?: number;
   height?: number;
   heatmapData?: Array<{ x: number; y: number; intensity: number; label: string }>;
@@ -25,6 +26,7 @@ interface OverlayProps {
 export default function VisualOverlays({
   thumbnailId,
   fileName,
+  imageUrl,
   width = 1280,
   height = 720,
   heatmapData = [],
@@ -81,13 +83,21 @@ export default function VisualOverlays({
 
       {/* Visualization Canvas */}
       <div className="relative aspect-video bg-gray-800 rounded-lg overflow-hidden">
-        {/* Base thumbnail placeholder */}
-        <div className="absolute inset-0 flex items-center justify-center text-gray-600">
-          <div className="text-center">
-            <div className="text-6xl mb-2">🖼️</div>
-            <p className="text-sm">{fileName}</p>
+        {/* Base thumbnail image or placeholder */}
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={`Thumbnail ${thumbnailId}`}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-600">
+            <div className="text-center">
+              <div className="text-6xl mb-2">🖼️</div>
+              <p className="text-sm">{fileName}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Saliency Heatmap Overlay */}
         {activeOverlay === 'saliency' && (

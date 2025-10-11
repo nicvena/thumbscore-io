@@ -46,6 +46,14 @@ export default function UploadPage() {
         if (data.thumbnails) {
           sessionStorage.setItem('thumbnails', JSON.stringify(data.thumbnails));
         }
+
+        // Store image URLs for display in results
+        const imageUrls: string[] = [];
+        files.forEach((file) => {
+          const url = URL.createObjectURL(file);
+          imageUrls.push(url);
+        });
+        sessionStorage.setItem('imageUrls', JSON.stringify(imageUrls));
         
         // Redirect to results page
         router.push(`/results?id=${data.sessionId}`);
