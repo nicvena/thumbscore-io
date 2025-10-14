@@ -2,7 +2,7 @@
 Reference Library Similarity Scoring
 
 This module provides FAISS-based similarity lookups for thumbnail scoring.
-It loads pre-built FAISS indices and performs fast similarity searches.
+It uses the centralized FAISS cache for instant similarity searches.
 """
 
 import os
@@ -14,6 +14,9 @@ import numpy as np
 import faiss
 from supabase import create_client, Client
 
+# Import the centralized FAISS cache
+from app.faiss_cache import get_index, get_cache_stats, is_cache_ready
+
 logger = logging.getLogger(__name__)
 
 # Configuration
@@ -22,15 +25,11 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 FAISS_INDEX_PATH = os.getenv("FAISS_INDEX_PATH", "faiss_indices")
 EMBEDDING_DIM = 768
 
-# Global cache for FAISS indices (thread-safe)
-_index_cache: Dict[str, Tuple[faiss.Index, np.ndarray]] = {}
-_cache_lock = threading.Lock()
-
 
 def load_faiss_index(niche: str) -> Optional[Tuple[faiss.Index, np.ndarray]]:
     """
-    Load FAISS index and reference IDs for a specific niche.
-    Uses global cache to avoid reloading indices.
+    Get FAISS index and reference IDs for a specific niche from cache.
+    Uses centralized cache for instant access.
     
     Args:
         niche: Niche category name
@@ -38,46 +37,21 @@ def load_faiss_index(niche: str) -> Optional[Tuple[faiss.Index, np.ndarray]]:
     Returns:
         Tuple of (faiss_index, video_ids_array) or None if not found
     """
-    # Check cache first (thread-safe read)
-    with _cache_lock:
-        if niche in _index_cache:
-            logger.debug(f"Using cached FAISS index for {niche}")
-            return _index_cache[niche]
-    
-    # Load from disk
-    try:
-        index_path = os.path.join(FAISS_INDEX_PATH, f"{niche}.index")
-        metadata_path = os.path.join(FAISS_INDEX_PATH, f"{niche}_ids.npy")
-        
-        if not os.path.exists(index_path) or not os.path.exists(metadata_path):
-            logger.warning(f"FAISS index not found for {niche}")
-            return None
-        
-        # Load FAISS index
-        index = faiss.read_index(index_path)
-        
-        # Load video IDs
-        video_ids = np.load(metadata_path)
-        
-        logger.info(f"Loaded FAISS index for {niche}: {index.ntotal} vectors")
-        
-        # Store in cache (thread-safe write)
-        with _cache_lock:
-            _index_cache[niche] = (index, video_ids)
-        
-        return index, video_ids
-        
-    except Exception as e:
-        logger.error(f"Error loading FAISS index for {niche}: {e}")
+    # Use centralized cache
+    result = get_index(niche)
+    if result is None:
+        logger.warning(f"FAISS index for {niche} not found in cache")
         return None
+    
+    index, video_ids = result
+    logger.debug(f"Retrieved cached FAISS index for {niche} with {index.ntotal} vectors")
+    return index, video_ids
 
 
 def clear_index_cache():
     """Clear the global FAISS index cache. Useful after rebuilding indices."""
-    global _index_cache
-    with _cache_lock:
-        _index_cache.clear()
-        logger.info("FAISS index cache cleared")
+    from app.faiss_cache import clear_cache
+    clear_cache()
 
 
 def faiss_similarity_percentile(
@@ -87,6 +61,8 @@ def faiss_similarity_percentile(
 ) -> Optional[float]:
     """
     Calculate similarity percentile score using FAISS index.
+    
+    Now supports deterministic search for consistent results.
     
     Args:
         upload_vec: User's thumbnail embedding (768-dim)
@@ -109,17 +85,25 @@ def faiss_similarity_percentile(
             logger.warning(f"Empty FAISS index for {niche}")
             return None
         
-        # Prepare query vector
-        query_vec = upload_vec.reshape(1, -1).astype(np.float32)
+        # Prepare query vector with deterministic rounding
+        query_vec = upload_vec.astype(np.float32)
+        query_vec = np.round(query_vec, decimals=4)  # Deterministic rounding
+        query_vec = query_vec.reshape(1, -1)
         faiss.normalize_L2(query_vec)  # Normalize for cosine similarity
         
-        # Search for top-k similar thumbnails
-        k = min(top_k, index.ntotal)
-        scores, indices = index.search(query_vec, k)
+        # Use deterministic search if available
+        try:
+            from app.determinism import deterministic_faiss_search
+            scores, indices = deterministic_faiss_search(index, query_vec[0], top_k)
+        except ImportError:
+            # Fallback to regular search
+            k = min(top_k, index.ntotal)
+            scores, indices = index.search(query_vec, k)
+            scores = scores[0]
+            indices = indices[0]
         
-        # Calculate percentile
-        # Higher similarity scores = better
-        avg_similarity = float(np.mean(scores[0]))
+        # Calculate percentile with deterministic averaging
+        avg_similarity = float(np.mean(scores))
         
         # Convert to percentile (0-100 scale)
         # Similarity scores typically range from -1 to 1 (after normalization)
@@ -210,6 +194,7 @@ def fallback_supabase_similarity(
     try:
         logger.info(f"Using Supabase fallback for {niche} similarity")
         
+        # Create Supabase client (v2.22.0+ doesn't support proxy parameter)
         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
         
         # Convert embedding to list for Supabase
@@ -242,7 +227,7 @@ def fallback_supabase_similarity(
         
     except Exception as e:
         logger.error(f"Supabase fallback failed for {niche}: {e}")
-        return 50.0  # Default middle percentile
+        return None  # Let caller handle the fallback
 
 
 def get_similarity_score(
@@ -270,26 +255,22 @@ def get_similarity_score(
         logger.info(f"FAISS not available for {niche}, using Supabase fallback")
         score = fallback_supabase_similarity(upload_vec, niche, top_k)
     
-    # Default to 50 if all methods fail
+    # Return None if all methods fail (let caller decide default)
     if score is None:
-        logger.warning(f"All similarity methods failed for {niche}, using default score")
-        score = 50.0
+        logger.warning(f"All similarity methods failed for {niche}, returning None for caller handling")
+        return None
     
     return score
 
 
-def get_index_cache_stats() -> Dict[str, int]:
+def get_index_cache_stats() -> Dict[str, any]:
     """
     Get statistics about the FAISS index cache.
     
     Returns:
         Dictionary with cache statistics
     """
-    with _cache_lock:
-        return {
-            "cached_niches": len(_index_cache),
-            "niches": list(_index_cache.keys())
-        }
+    return get_cache_stats()
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ThumbnailRankingModel, MODEL_PRESETS } from '@/lib/ml-modeling';
+import { getNicheInsights } from '@/app/niche_insights';
 
 // Initialize ML model for advanced analysis
 let mlModel: ThumbnailRankingModel | null = null;
@@ -13,10 +14,10 @@ async function getMLModel(): Promise<ThumbnailRankingModel> {
 }
 
 // Generate analysis for thumbnails using ML modeling architecture
-async function generateAnalysis(sessionId: string, thumbnails: Array<{fileName: string, originalName: string}>, title?: string) {
+async function generateAnalysis(sessionId: string, thumbnails: Array<{fileName: string, originalName: string}>, title?: string, niche?: string) {
   const analyses = [];
 
-  console.log(`Starting ML-powered analysis for ${thumbnails.length} thumbnails${title ? ` with title: "${title}"` : ''}`);
+  console.log(`Starting ML-powered analysis for ${thumbnails.length} thumbnails${title ? ` with title: "${title}"` : ''}${niche ? ` in niche: ${niche}` : ' (general niche)'}`);
 
   // Get ML model
   const model = await getMLModel();
@@ -36,7 +37,8 @@ async function generateAnalysis(sessionId: string, thumbnails: Array<{fileName: 
       channelId: `channel_${Math.floor(Math.random() * 1000)}`,
       publishedAt: new Date().toISOString(),
       title: title || 'Sample Video Title',
-      category: 'general',
+      category: niche || 'general',
+      niche: niche || 'general',
       duration: 300
     };
 
@@ -49,6 +51,20 @@ async function generateAnalysis(sessionId: string, thumbnails: Array<{fileName: 
     
     // Enhanced OCR with title context
     const ocrText = generateContextualOCR(title);
+    
+    // Niche-specific power words analysis
+    const powerWordsScore = analyzeNicheSpecificPowerWords(title || '', niche || 'general');
+    
+    // Comprehensive niche logging
+    console.log(`📊 Niche Analysis for Thumbnail ${i + 1}:`, {
+      niche: niche || 'general',
+      title: title || 'No title provided',
+      powerWordsFound: powerWordsScore.foundWords,
+      powerWordsScore: powerWordsScore.score,
+      powerWordsTier: powerWordsScore.tier,
+      predictedCTR: clickScore,
+      nicheOptimized: !!niche
+    });
     
     const analysis = {
       thumbnailId: i + 1,
@@ -82,11 +98,25 @@ async function generateAnalysis(sessionId: string, thumbnails: Array<{fileName: 
         confidence: 0.85 + Math.random() * 0.15,
         mlModel: 'CLIP + MiniLM semantic matching'
       } : null,
+      powerWords: title ? {
+        score: powerWordsScore.score,
+        foundWords: powerWordsScore.foundWords,
+        tier: powerWordsScore.tier,
+        niche: niche || 'general'
+      } : null,
       insights: {
         strengths: generateStrengths(subScores),
         weaknesses: generateWeaknesses(subScores),
         recommendations: generateRecommendations(subScores)
-      }
+      },
+      nicheInsights: getNicheInsights(niche || 'general', {
+        emotion: subScores.emotion * 100,
+        color_pop: subScores.contrastColorPop * 100,
+        text_clarity: subScores.clarity * 100,
+        composition: subScores.visualHierarchy * 100,
+        subject_prominence: subScores.subjectProminence * 100,
+        similarity: subScores.clickIntentMatch * 100
+      })
     };
 
     analyses.push(analysis);
@@ -104,11 +134,13 @@ async function generateAnalysis(sessionId: string, thumbnails: Array<{fileName: 
     bestScore: winner.clickScore,
     recommendation: `Thumbnail ${winner.thumbnailId} is predicted to get ${winner.predictedCTR} click-through rate and is your best option!`,
     whyItWins: winner.insights?.strengths?.slice(0, 2) || winner.recommendations.slice(0, 2).map(rec => rec.suggestion),
+    niche: niche || 'general',
     advancedFeatures: {
       aiModel: 'ML-Powered Two-Stage Multi-Task Learning',
       models: ['CLIP ViT-L/14', 'Pairwise Ranking Head', 'CTR Prediction Head', 'Auxiliary Sub-Score Heads'],
       interpretable: true,
       titleAnalysis: !!title,
+      nicheOptimized: !!niche,
       mlArchitecture: 'Two-stage multi-task learning with margin ranking loss',
       confidence: analyses.reduce((sum, a) => sum + Object.values(a.subScores).reduce((s: number, v: number) => s + v, 0) / 6, 0) / analyses.length
     }
@@ -125,6 +157,8 @@ async function generateAnalysis(sessionId: string, thumbnails: Array<{fileName: 
       timestamp: new Date().toISOString(),
       version: '3.0.0',
       titleProvided: !!title,
+      nicheProvided: !!niche,
+      niche: niche || 'general',
       targetMetrics: {
         pairwiseAUC: '≥0.65 baseline, ≥0.72 target',
         ctrCorrelation: '>0.3 minimum, >0.5 good'
@@ -144,6 +178,78 @@ function generateContextualOCR(title?: string): string {
     }
   }
   return defaultTexts[Math.floor(Math.random() * defaultTexts.length)];
+}
+
+// Niche-specific power words analysis (simplified from Python backend)
+function analyzeNicheSpecificPowerWords(text: string, niche: string): { score: number; foundWords: string[]; tier: string } {
+  const lowerText = text.toLowerCase();
+  
+  // Simplified niche-specific power words (based on niche_config.py)
+  const nicheWords: { [key: string]: { tier1: string[]; tier2: string[]; tier3: string[] } } = {
+    gaming: {
+      tier1: ['insane', 'broken', 'op', 'destroyed', 'unbeatable', 'clutch', 'epic', 'legendary'],
+      tier2: ['pro', 'ultimate', 'best', 'crazy', 'impossible', 'secret', 'hidden'],
+      tier3: ['new', 'first', 'world', 'record', 'challenge', 'vs', 'reaction']
+    },
+    business: {
+      tier1: ['proven', 'strategy', 'framework', 'blueprint', 'system', 'growth'],
+      tier2: ['scale', 'profit', 'revenue', 'success', 'million', 'secrets'],
+      tier3: ['tips', 'guide', 'how to', 'steps', 'avoid', 'mistakes']
+    },
+    education: {
+      tier1: ['learn', 'master', 'complete', 'guide', 'course', 'explained'],
+      tier2: ['easy', 'simple', 'beginner', 'advanced', 'tutorial', 'lesson'],
+      tier3: ['how to', 'step by step', 'ultimate', 'full', 'free', 'quick']
+    },
+    travel: {
+      tier1: ['hidden', 'secret', 'paradise', 'ultimate', 'guide', 'best'],
+      tier2: ['travel', 'adventure', 'explore', 'journey', 'destination', 'tips'],
+      tier3: ['budget', 'cheap', 'expensive', 'worth it', 'solo', 'backpacking']
+    },
+    general: {
+      tier1: ['best', 'top', 'ultimate', 'complete', 'secrets', 'revealed'],
+      tier2: ['new', 'how to', 'guide', 'tips', 'tricks', 'hacks'],
+      tier3: ['watch', 'must', 'you need', 'everyone', 'everything', 'full']
+    }
+  };
+
+  const currentNiche = nicheWords[niche] || nicheWords.general;
+  const foundWords: string[] = [];
+  let totalScore = 0;
+  let highestTier = '';
+
+  // Check tier 1 (15 points each)
+  for (const word of currentNiche.tier1) {
+    if (lowerText.includes(word)) {
+      foundWords.push(word);
+      totalScore += 15;
+      highestTier = 'tier1';
+    }
+  }
+
+  // Check tier 2 (10 points each)
+  for (const word of currentNiche.tier2) {
+    if (lowerText.includes(word)) {
+      foundWords.push(word);
+      totalScore += 10;
+      if (!highestTier) highestTier = 'tier2';
+    }
+  }
+
+  // Check tier 3 (5 points each)
+  for (const word of currentNiche.tier3) {
+    if (lowerText.includes(word)) {
+      foundWords.push(word);
+      totalScore += 5;
+      if (!highestTier) highestTier = 'tier3';
+    }
+  }
+
+  return {
+    score: Math.min(100, totalScore), // Cap at 100
+    foundWords: [...new Set(foundWords)], // Remove duplicates
+    tier: highestTier || 'none'
+  };
 }
 
 function generateStrengths(subScores: Record<string, number>): string[] {
@@ -295,9 +401,9 @@ function generateRecommendations(subScores: {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { sessionId, thumbnails, title } = body;
+    const { sessionId, thumbnails, title, niche } = body;
 
-    console.log('Analyze API called with:', { sessionId, thumbnails: thumbnails?.length });
+    console.log('Analyze API called with:', { sessionId, thumbnails: thumbnails?.length, niche: niche || 'general' });
 
     if (!sessionId) {
       return NextResponse.json(
@@ -314,10 +420,10 @@ export async function POST(request: NextRequest) {
         fileName: `${sessionId}-thumb${i + 1}-mock.jpg`,
         originalName: `thumbnail${i + 1}.jpg`
       }));
-      return generateAnalysis(sessionId, mockThumbnails, title);
+      return generateAnalysis(sessionId, mockThumbnails, title, niche);
     }
 
-    return generateAnalysis(sessionId, thumbnails, title);
+    return generateAnalysis(sessionId, thumbnails, title, niche);
   } catch (error) {
     console.error('Analysis error:', error);
     return NextResponse.json(

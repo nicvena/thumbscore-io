@@ -48,6 +48,7 @@ export interface ThumbnailMetadata {
   publishedAt: string;
   title: string;
   category: string;
+  niche?: string;
   duration: number;
   viewCount?: number;
   likeCount?: number;
@@ -173,13 +174,63 @@ export class ThumbnailRankingModel {
 
     const clickIntentMatch = await this.predictClickIntentMatch(embedding, metadata);
 
-    return {
+    // Apply niche-specific calibration
+    const rawScores = {
       clarity,
       subjectProminence,
       contrastColorPop,
       emotion,
       visualHierarchy,
       clickIntentMatch
+    };
+
+    return this.applyNicheCalibration(rawScores, metadata.niche || 'general');
+  }
+
+  // Apply niche-specific score calibration
+  private applyNicheCalibration(scores: SubScoreTargets, niche: string): SubScoreTargets {
+    // Niche-specific baseline adjustments (simplified version of Python config)
+    const nicheAdjustments: { [key: string]: Partial<SubScoreTargets> } = {
+      'gaming': {
+        emotion: scores.emotion * 1.1, // Gaming values emotion more
+        contrastColorPop: scores.contrastColorPop * 1.05,
+      },
+      'business': {
+        clarity: scores.clarity * 1.15, // Business values text clarity
+        visualHierarchy: scores.visualHierarchy * 1.1,
+      },
+      'education': {
+        clarity: scores.clarity * 1.2, // Education heavily values clarity
+        clickIntentMatch: scores.clickIntentMatch * 1.1,
+      },
+      'food': {
+        contrastColorPop: scores.contrastColorPop * 1.15, // Food values vibrant colors
+      },
+      'fitness': {
+        subjectProminence: scores.subjectProminence * 1.1, // Fitness values subject focus
+        emotion: scores.emotion * 1.05,
+      },
+      'entertainment': {
+        emotion: scores.emotion * 1.2, // Entertainment heavily values emotion
+        contrastColorPop: scores.contrastColorPop * 1.05,
+      },
+      'travel': {
+        visualHierarchy: scores.visualHierarchy * 1.15, // Travel values composition
+        contrastColorPop: scores.contrastColorPop * 1.1, // Vibrant landscapes
+        clarity: scores.clarity * 1.05, // Location names matter
+      },
+    };
+
+    const adjustments = nicheAdjustments[niche] || {};
+    
+    // Apply adjustments and cap at 1.0
+    return {
+      clarity: Math.min(1.0, adjustments.clarity || scores.clarity),
+      subjectProminence: Math.min(1.0, adjustments.subjectProminence || scores.subjectProminence),
+      contrastColorPop: Math.min(1.0, adjustments.contrastColorPop || scores.contrastColorPop),
+      emotion: Math.min(1.0, adjustments.emotion || scores.emotion),
+      visualHierarchy: Math.min(1.0, adjustments.visualHierarchy || scores.visualHierarchy),
+      clickIntentMatch: Math.min(1.0, adjustments.clickIntentMatch || scores.clickIntentMatch),
     };
   }
 

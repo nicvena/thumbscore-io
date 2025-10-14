@@ -29,7 +29,8 @@ def load_clip_model():
             logger.error(f"Failed to load CLIP model: {e}")
             raise
     
-    return _clip_model, _clip_preprocess
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    return _clip_model, _clip_preprocess, device
 
 def clip_encode(image: Union[Image.Image, bytes, np.ndarray]) -> np.ndarray:
     """

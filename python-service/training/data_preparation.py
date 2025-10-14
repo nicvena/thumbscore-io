@@ -498,6 +498,7 @@ def setup_supabase_schema(supabase_url: str, supabase_key: str):
         print("⚠ Supabase not available. Install with: pip install supabase")
         return
     
+    # Create Supabase client (v2.22.0+ doesn't support proxy parameter)
     supabase: Client = create_client(supabase_url, supabase_key)
     
     print("Setting up Supabase schema...")

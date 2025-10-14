@@ -1,15 +1,15 @@
 """
-Automated YouTube Thumbnail Library Builder
+Automated YouTube Thumbnail Library Builder - SCALED UP
 
 This module automatically collects trending YouTube thumbnails every night,
 computes CLIP embeddings, and stores them in Supabase for similarity queries.
 
-Features:
-- Fetches trending videos from 5 niches using YouTube Data API v3
-- Downloads thumbnails and computes CLIP embeddings
-- Stores in Supabase with metadata (views_per_hour, title, etc.)
-- Automatically cleans up old entries (90+ days)
-- Production-safe with proper error handling and logging
+SCALED FEATURES:
+- Fetches 200+ trending videos per niche using YouTube Data API v3 with pagination
+- Parallel downloads and CLIP encoding with asyncio + aiohttp
+- Batch upserts to Supabase for optimal throughput
+- Automatic cleanup of old entries (90+ days)
+- Production-safe with comprehensive error handling and logging
 """
 
 import asyncio
@@ -43,313 +43,407 @@ NICHES = {
     "gaming": 20,         # Gaming
     "education": 27,      # Education
     "entertainment": 24,  # Entertainment
-    "people": 22          # People & Blogs
+    "people": 22,         # People & Blogs
+    "travel": 19,         # Travel & Events
+    "general": 10         # Music (used as general catch-all)
 }
 
-# Constants
-VIDEOS_PER_NICHE = 30
-MAX_THUMBNAIL_AGE_DAYS = 90
-YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
+# SCALED CONSTANTS
+DEFAULT_VIDEOS_PER_NICHE = 200
+MAX_CONCURRENT_REQUESTS = 12
+BATCH_SIZE = 50  # Supabase batch insert size
+REQUEST_TIMEOUT = 30  # seconds
 
 
-class ThumbnailCollector:
-    """Handles automated collection of trending YouTube thumbnails."""
+async def fetch_videos_with_pagination(
+    niche: str, 
+    category_id: int, 
+    limit: int = DEFAULT_VIDEOS_PER_NICHE
+) -> List[Dict]:
+    """
+    Fetch trending videos with pagination to get more than 50 results.
     
-    def __init__(self):
-        """Initialize the collector with API credentials."""
-        if not YOUTUBE_API_KEY:
-            raise ValueError("YOUTUBE_API_KEY environment variable is required")
-        if not SUPABASE_URL or not SUPABASE_KEY:
-            raise ValueError("SUPABASE_URL and SUPABASE_KEY environment variables are required")
+    Args:
+        niche: Niche name
+        category_id: YouTube category ID
+        limit: Maximum number of videos to fetch
         
-        self.supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-        self.session: Optional[aiohttp.ClientSession] = None
+    Returns:
+        List of video data dictionaries
+    """
+    videos = []
+    page_token = None
+    max_results = 50  # YouTube API max per request
+    
+    logger.info(f"Fetching up to {limit} trending videos for {niche}")
+    
+    while len(videos) < limit:
+        # Calculate how many more we need
+        remaining = limit - len(videos)
+        current_max = min(max_results, remaining)
         
-    async def __aenter__(self):
-        """Async context manager entry."""
-        self.session = aiohttp.ClientSession()
-        return self
-        
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Async context manager exit."""
-        if self.session:
-            await self.session.close()
-
-    async def fetch_trending_videos(self, niche: str, category_id: int) -> List[Dict]:
-        """
-        Fetch trending videos for a specific niche.
-        
-        Args:
-            niche: Human-readable niche name
-            category_id: YouTube category ID
-            
-        Returns:
-            List of video metadata dictionaries
-        """
-        url = f"{YOUTUBE_API_BASE}/videos"
+        # Build API request
+        url = "https://www.googleapis.com/youtube/v3/videos"
         params = {
-            "part": "snippet,statistics",
+            "part": "snippet,statistics,contentDetails",
             "chart": "mostPopular",
-            "regionCode": "US",  # Can be made configurable
-            "maxResults": VIDEOS_PER_NICHE,
-            "videoCategoryId": category_id,
+            "regionCode": "US",
+            "videoCategoryId": str(category_id),
+            "maxResults": str(current_max),
             "key": YOUTUBE_API_KEY
         }
         
+        if page_token:
+            params["pageToken"] = page_token
+        
         try:
-            async with self.session.get(url, params=params) as response:
-                if response.status != 200:
-                    logger.error(f"Failed to fetch videos for {niche}: {response.status}")
-                    return []
-                
-                data = await response.json()
-                videos = []
-                
-                for item in data.get("items", []):
-                    snippet = item.get("snippet", {})
-                    stats = item.get("statistics", {})
+            response = requests.get(url, params=params, timeout=REQUEST_TIMEOUT)
+            response.raise_for_status()
+            data = response.json()
+            
+            if "items" not in data:
+                logger.warning(f"No items found in API response for {niche}")
+                break
+            
+            # Process videos
+            for item in data["items"]:
+                if len(videos) >= limit:
+                    break
                     
-                    # Calculate views per hour
-                    published_at = snippet.get("publishedAt", "")
-                    view_count = int(stats.get("viewCount", 0))
-                    views_per_hour = self._calculate_views_per_hour(published_at, view_count)
-                    
-                    video_data = {
-                        "video_id": item.get("id"),
-                        "title": snippet.get("title", ""),
-                        "thumbnail_url": snippet.get("thumbnails", {}).get("high", {}).get("url", ""),
-                        "published_at": published_at,
-                        "view_count": view_count,
-                        "views_per_hour": views_per_hour,
-                        "channel_title": snippet.get("channelTitle", ""),
-                        "description": snippet.get("description", "")[:500]  # Truncate for storage
-                    }
-                    videos.append(video_data)
-                
-                logger.info(f"Fetched {len(videos)} trending videos for {niche}")
-                return videos
-                
-        except Exception as e:
-            logger.error(f"Error fetching videos for {niche}: {e}")
-            return []
-
-    def _calculate_views_per_hour(self, published_at: str, view_count: int) -> float:
-        """
-        Calculate views per hour since publication.
-        
-        Args:
-            published_at: ISO 8601 timestamp
-            view_count: Total view count
-            
-        Returns:
-            Views per hour (float)
-        """
-        try:
-            pub_date = datetime.fromisoformat(published_at.replace('Z', '+00:00'))
-            hours_since_pub = (datetime.now(pub_date.tzinfo) - pub_date).total_seconds() / 3600
-            
-            if hours_since_pub <= 0:
-                return float(view_count)  # Just published
-                
-            return float(view_count) / hours_since_pub
-            
-        except Exception as e:
-            logger.warning(f"Error calculating views per hour: {e}")
-            return 0.0
-
-    async def download_and_encode_thumbnail(self, thumbnail_url: str) -> Optional[np.ndarray]:
-        """
-        Download thumbnail and compute CLIP embedding.
-        
-        Args:
-            thumbnail_url: URL of the thumbnail image
-            
-        Returns:
-            CLIP embedding as numpy array, or None if failed
-        """
-        try:
-            # Download image
-            async with self.session.get(thumbnail_url) as response:
-                if response.status != 200:
-                    logger.warning(f"Failed to download thumbnail: {response.status}")
-                    return None
-                
-                image_data = await response.read()
-            
-            # Load image with PIL
-            image = Image.open(io.BytesIO(image_data))
-            
-            # Convert to RGB if needed
-            if image.mode != 'RGB':
-                image = image.convert('RGB')
-            
-            # Compute CLIP embedding
-            embedding = clip_encode(image)
-            
-            return embedding
-            
-        except Exception as e:
-            logger.warning(f"Error processing thumbnail {thumbnail_url}: {e}")
-            return None
-
-    async def store_thumbnails(self, niche: str, videos: List[Dict]) -> int:
-        """
-        Store video thumbnails with embeddings in Supabase.
-        
-        Args:
-            niche: Niche category
-            videos: List of video metadata
-            
-        Returns:
-            Number of successfully stored thumbnails
-        """
-        stored_count = 0
-        
-        for video in videos:
-            try:
-                # Download and encode thumbnail
-                embedding = await self.download_and_encode_thumbnail(video["thumbnail_url"])
-                
-                if embedding is None:
-                    logger.warning(f"Skipping video {video['video_id']} - failed to process thumbnail")
-                    continue
-                
-                # Prepare data for Supabase
-                thumbnail_data = {
-                    "video_id": video["video_id"],
-                    "niche": niche,
-                    "title": video["title"],
-                    "thumbnail_url": video["thumbnail_url"],
-                    "views_per_hour": video["views_per_hour"],
-                    "view_count": video["view_count"],
-                    "published_at": video["published_at"],
-                    "channel_title": video["channel_title"],
-                    "description": video["description"],
-                    "embedding": embedding.tolist(),  # Convert numpy array to list
-                    "collected_at": datetime.utcnow().isoformat()
+                video_data = {
+                    "video_id": item["id"],
+                    "title": item["snippet"]["title"],
+                    "thumbnail_url": item["snippet"]["thumbnails"]["high"]["url"],
+                    "published_at": item["snippet"]["publishedAt"],
+                    "channel_title": item["snippet"]["channelTitle"],
+                    "description": item["snippet"]["description"][:500],  # Truncate
+                    "view_count": int(item["statistics"].get("viewCount", 0))
                 }
                 
-                # Upsert into Supabase
-                result = self.supabase.table("ref_thumbnails").upsert(
-                    thumbnail_data,
-                    on_conflict="video_id"
-                ).execute()
+                # Calculate views_per_hour
+                published = datetime.fromisoformat(item["snippet"]["publishedAt"].replace("Z", "+00:00"))
+                hours_ago = (datetime.now(published.tzinfo) - published).total_seconds() / 3600
+                video_data["views_per_hour"] = video_data["view_count"] / max(hours_ago, 1)
                 
-                if result.data:
-                    stored_count += 1
-                    logger.debug(f"Stored thumbnail for video: {video['title'][:50]}...")
-                else:
-                    logger.warning(f"Failed to store thumbnail for video: {video['video_id']}")
-                    
-            except Exception as e:
-                logger.error(f"Error storing thumbnail for video {video.get('video_id', 'unknown')}: {e}")
-                continue
-        
-        return stored_count
-
-    async def cleanup_old_thumbnails(self) -> int:
-        """
-        Remove thumbnails older than MAX_THUMBNAIL_AGE_DAYS.
-        
-        Returns:
-            Number of deleted thumbnails
-        """
-        try:
-            cutoff_date = datetime.utcnow() - timedelta(days=MAX_THUMBNAIL_AGE_DAYS)
-            cutoff_iso = cutoff_date.isoformat()
+                videos.append(video_data)
             
-            # Delete old entries
-            result = self.supabase.table("ref_thumbnails").delete().lt(
-                "collected_at", cutoff_iso
+            # Check for next page
+            page_token = data.get("nextPageToken")
+            if not page_token:
+                logger.info(f"No more pages available for {niche}")
+                break
+                
+            logger.debug(f"Fetched {len(videos)}/{limit} videos for {niche}")
+            
+        except requests.RequestException as e:
+            logger.error(f"API request failed for {niche}: {e}")
+            break
+        except Exception as e:
+            logger.error(f"Unexpected error fetching videos for {niche}: {e}")
+            break
+    
+    logger.info(f"Fetched {len(videos)} trending videos for {niche}")
+    return videos
+
+
+async def download_and_encode_thumbnail(
+    session: aiohttp.ClientSession,
+    video_data: Dict,
+    niche: str
+) -> Optional[Dict]:
+    """
+    Download thumbnail and compute CLIP embedding for a single video.
+    
+    Args:
+        session: aiohttp session for downloading
+        video_data: Video metadata
+        niche: Niche category
+        
+    Returns:
+        Enhanced video data with embedding, or None if failed
+    """
+    try:
+        # Download thumbnail
+        async with session.get(
+            video_data["thumbnail_url"], 
+            timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
+        ) as response:
+            if response.status != 200:
+                logger.warning(f"Failed to download thumbnail for {video_data['video_id']}: {response.status}")
+                return None
+            
+            image_data = await response.read()
+        
+        # Process image and encode
+        image = Image.open(io.BytesIO(image_data))
+        embedding = clip_encode(image)
+        
+        if embedding is None:
+            logger.warning(f"CLIP encoding failed for {video_data['video_id']}")
+            return None
+        
+        # Add embedding and metadata
+        enhanced_data = video_data.copy()
+        enhanced_data["embedding"] = embedding.tolist()
+        enhanced_data["niche"] = niche
+        enhanced_data["collected_at"] = datetime.utcnow().isoformat()
+        
+        return enhanced_data
+        
+    except Exception as e:
+        logger.error(f"Failed to process thumbnail for {video_data.get('video_id', 'unknown')}: {e}")
+        return None
+
+
+async def process_videos_batch(
+    videos: List[Dict], 
+    niche: str, 
+    semaphore: asyncio.Semaphore
+) -> List[Dict]:
+    """
+    Process a batch of videos with concurrency control.
+    
+    Args:
+        videos: List of video data
+        niche: Niche category
+        semaphore: Concurrency limiter
+        
+    Returns:
+        List of processed video data with embeddings
+    """
+    async def process_single(video_data):
+        async with semaphore:
+            return await download_and_encode_thumbnail(session, video_data, niche)
+    
+    # Create session with connection limits
+    connector = aiohttp.TCPConnector(limit=MAX_CONCURRENT_REQUESTS)
+    async with aiohttp.ClientSession(connector=connector) as session:
+        tasks = [process_single(video) for video in videos]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    # Filter out None results and exceptions
+    processed = []
+    for result in results:
+        if isinstance(result, Exception):
+            logger.error(f"Task failed with exception: {result}")
+        elif result is not None:
+            processed.append(result)
+    
+    return processed
+
+
+def batch_upsert_to_supabase(
+    client: Client, 
+    processed_videos: List[Dict], 
+    batch_size: int = BATCH_SIZE
+) -> int:
+    """
+    Upsert processed videos to Supabase in batches for optimal performance.
+    
+    Args:
+        client: Supabase client
+        processed_videos: List of processed video data
+        batch_size: Number of records per batch
+        
+    Returns:
+        Number of successfully stored videos
+    """
+    total_stored = 0
+    
+    # Process in batches
+    for i in range(0, len(processed_videos), batch_size):
+        batch = processed_videos[i:i + batch_size]
+        
+        try:
+            result = client.table("ref_thumbnails").upsert(
+                batch,
+                on_conflict="video_id"
             ).execute()
             
-            deleted_count = len(result.data) if result.data else 0
-            logger.info(f"Cleaned up {deleted_count} old thumbnails (older than {MAX_THUMBNAIL_AGE_DAYS} days)")
+            batch_stored = len(result.data) if result.data else 0
+            total_stored += batch_stored
             
-            return deleted_count
-            
-        except Exception as e:
-            logger.error(f"Error cleaning up old thumbnails: {e}")
-            return 0
-
-    async def update_reference_library(self) -> Dict[str, int]:
-        """
-        Main function to update the entire reference thumbnail library.
-        
-        Returns:
-            Dictionary with collection statistics
-        """
-        logger.info("Updating reference thumbnail library...")
-        start_time = time.time()
-        
-        stats = {
-            "total_videos_fetched": 0,
-            "total_thumbnails_stored": 0,
-            "niches_processed": 0,
-            "old_thumbnails_deleted": 0,
-            "processing_time_seconds": 0
-        }
-        
-        try:
-            async with self as collector:
-                # Process each niche
-                for niche, category_id in NICHES.items():
-                    logger.info(f"Processing niche: {niche} (category {category_id})")
-                    
-                    # Fetch trending videos
-                    videos = await collector.fetch_trending_videos(niche, category_id)
-                    stats["total_videos_fetched"] += len(videos)
-                    
-                    if videos:
-                        # Store thumbnails with embeddings
-                        stored_count = await collector.store_thumbnails(niche, videos)
-                        stats["total_thumbnails_stored"] += stored_count
-                        stats["niches_processed"] += 1
-                        
-                        logger.info(f"Stored {stored_count}/{len(videos)} thumbnails for {niche}")
-                
-                # Cleanup old thumbnails
-                deleted_count = await collector.cleanup_old_thumbnails()
-                stats["old_thumbnails_deleted"] = deleted_count
-            
-            # Calculate processing time
-            stats["processing_time_seconds"] = round(time.time() - start_time, 2)
-            
-            logger.info(f"Reference library refreshed. Stats: {stats}")
-            return stats
+            logger.debug(f"Stored batch {i//batch_size + 1}: {batch_stored}/{len(batch)} videos")
             
         except Exception as e:
-            logger.error(f"Error updating reference library: {e}")
-            raise
-
-
-# Convenience function for external use
-async def update_reference_library() -> Dict[str, int]:
-    """
-    Public function to update the reference thumbnail library.
+            logger.error(f"Failed to store batch {i//batch_size + 1}: {e}")
+            continue
     
+    return total_stored
+
+
+async def collect_niche_thumbnails(
+    niche: str, 
+    category_id: int, 
+    limit: int = DEFAULT_VIDEOS_PER_NICHE
+) -> Tuple[int, int]:
+    """
+    Collect thumbnails for a single niche with parallel processing.
+    
+    Args:
+        niche: Niche name
+        category_id: YouTube category ID
+        limit: Maximum videos to collect
+        
+    Returns:
+        Tuple of (videos_fetched, thumbnails_stored)
+    """
+    logger.info(f"Processing niche: {niche} (category {category_id})")
+    
+    # Step 1: Fetch videos with pagination
+    videos = await fetch_videos_with_pagination(niche, category_id, limit)
+    
+    if not videos:
+        logger.warning(f"No videos fetched for {niche}")
+        return 0, 0
+    
+    # Step 2: Process videos in parallel with concurrency control
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT_REQUESTS)
+    processed_videos = await process_videos_batch(videos, niche, semaphore)
+    
+    logger.info(f"Processed {len(processed_videos)}/{len(videos)} thumbnails for {niche}")
+    
+    # Step 3: Store in Supabase
+    if SUPABASE_URL and SUPABASE_KEY:
+        # Create Supabase client (v2.22.0+ doesn't support proxy parameter)
+        client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        stored_count = batch_upsert_to_supabase(client, processed_videos)
+        logger.info(f"Stored {stored_count}/{len(processed_videos)} thumbnails for {niche}")
+    else:
+        logger.error("Supabase credentials not configured")
+        stored_count = 0
+    
+    return len(videos), stored_count
+
+
+def cleanup_old_thumbnails(client: Client, days_old: int = 90) -> int:
+    """
+    Clean up thumbnails older than specified days.
+    
+    Args:
+        client: Supabase client
+        days_old: Age threshold in days
+        
+    Returns:
+        Number of deleted records
+    """
+    cutoff_date = (datetime.utcnow() - timedelta(days=days_old)).isoformat()
+    
+    try:
+        result = client.table("ref_thumbnails").delete().lt(
+            "collected_at", cutoff_date
+        ).execute()
+        
+        deleted_count = len(result.data) if result.data else 0
+        logger.info(f"Cleaned up {deleted_count} old thumbnails (older than {days_old} days)")
+        return deleted_count
+        
+    except Exception as e:
+        logger.error(f"Failed to cleanup old thumbnails: {e}")
+        return 0
+
+
+async def update_reference_library(
+    limit_per_niche: int = DEFAULT_VIDEOS_PER_NICHE
+) -> Dict[str, any]:
+    """
+    Main function to update the reference thumbnail library.
+    
+    Args:
+        limit_per_niche: Maximum videos to collect per niche
+        
     Returns:
         Dictionary with collection statistics
     """
-    collector = ThumbnailCollector()
-    return await collector.update_reference_library()
-
-
-# Synchronous wrapper for scheduler compatibility
-def update_reference_library_sync() -> Dict[str, int]:
-    """
-    Synchronous wrapper for APScheduler compatibility.
+    start_time = time.time()
     
+    if not YOUTUBE_API_KEY:
+        raise ValueError("YOUTUBE_API_KEY environment variable is required")
+    
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        raise ValueError("SUPABASE_URL and SUPABASE_KEY environment variables are required")
+    
+    logger.info("[Thumbscore] Updating reference thumbnail library...")
+    logger.info(f"Target: {limit_per_niche} videos per niche ({len(NICHES)} niches)")
+    
+    # Initialize Supabase client
+    # Create Supabase client (v2.22.0+ doesn't support proxy parameter)
+    client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    
+    # Collect thumbnails for all niches in parallel
+    tasks = []
+    for niche, category_id in NICHES.items():
+        task = collect_niche_thumbnails(niche, category_id, limit_per_niche)
+        tasks.append(task)
+    
+    # Wait for all niches to complete
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    # Process results
+    total_videos_fetched = 0
+    total_thumbnails_stored = 0
+    niche_stats = {}
+    
+    for i, (niche, result) in enumerate(zip(NICHES.keys(), results)):
+        if isinstance(result, Exception):
+            logger.error(f"Failed to collect thumbnails for {niche}: {result}")
+            niche_stats[niche] = {"fetched": 0, "stored": 0}
+        else:
+            fetched, stored = result
+            total_videos_fetched += fetched
+            total_thumbnails_stored += stored
+            niche_stats[niche] = {"fetched": fetched, "stored": stored}
+    
+    # Cleanup old thumbnails
+    old_deleted = cleanup_old_thumbnails(client)
+    
+    # Calculate processing time
+    processing_time = time.time() - start_time
+    
+    # Log comprehensive summary
+    logger.info("=" * 60)
+    logger.info("📊 COLLECTION SUMMARY")
+    logger.info("=" * 60)
+    
+    for niche, stats in niche_stats.items():
+        logger.info(f"  {niche:12s}: {stats['fetched']:3d} fetched | {stats['stored']:3d} stored")
+    
+    logger.info("-" * 60)
+    logger.info(f"  TOTAL       : {total_videos_fetched:3d} fetched | {total_thumbnails_stored:3d} stored")
+    logger.info(f"  Processing  : {processing_time:.1f}s ({total_thumbnails_stored/processing_time:.1f} thumbnails/sec)")
+    logger.info(f"  Cleanup     : {old_deleted} old thumbnails removed")
+    logger.info(f"  Status      : {'✅ SUCCESS' if total_thumbnails_stored > 0 else '❌ FAILED'}")
+    logger.info("=" * 60)
+    
+    return {
+        "total_videos_fetched": total_videos_fetched,
+        "total_thumbnails_stored": total_thumbnails_stored,
+        "niches_processed": len(NICHES),
+        "old_thumbnails_deleted": old_deleted,
+        "processing_time_seconds": processing_time,
+        "niche_stats": niche_stats,
+        "throughput_thumbnails_per_sec": total_thumbnails_stored / processing_time if processing_time > 0 else 0
+    }
+
+
+def update_reference_library_sync(limit_per_niche: int = DEFAULT_VIDEOS_PER_NICHE) -> Dict[str, any]:
+    """
+    Synchronous wrapper for the async update function.
+    
+    Args:
+        limit_per_niche: Maximum videos to collect per niche
+        
     Returns:
         Dictionary with collection statistics
     """
-    return asyncio.run(update_reference_library())
+    return asyncio.run(update_reference_library(limit_per_niche))
 
 
 if __name__ == "__main__":
-    # Test the collector
-    async def test_collector():
-        stats = await update_reference_library()
+    # Test the collection process
+    try:
+        stats = update_reference_library_sync()
         print(f"Collection completed: {stats}")
-    
-    asyncio.run(test_collector())
+    except Exception as e:
+        logger.error(f"Collection failed: {e}")
+        raise

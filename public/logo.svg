@@ -1,0 +1,26 @@
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient Definitions -->
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6a5af9;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1de9b6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6a5af9;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Icon: Simplified thumbnail with score badge -->
+  <g>
+    <!-- Thumbnail rectangle -->
+    <rect x="5" y="10" width="40" height="30" rx="4" fill="url(#logoGradient)" opacity="0.2" stroke="url(#logoGradient)" stroke-width="2"/>
+    
+    <!-- Score badge -->
+    <circle cx="45" cy="15" r="10" fill="#1de9b6"/>
+    <text x="45" y="19" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#0a0f25" text-anchor="middle">A+</text>
+  </g>
+  
+  <!-- Text: Thumbscore.io -->
+  <text x="55" y="32" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="url(#logoGradient)">
+    Thumbscore.io
+  </text>
+</svg>
+

@@ -1,23 +1,52 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { NicheSelector } from '../components/NicheSelector';
+import { useFormAnalytics, useUploadAnalytics } from '@/lib/hooks/useAnalytics';
 
 export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [videoTitle, setVideoTitle] = useState('');
+  const [selectedNiche, setSelectedNiche] = useState('general');
   const router = useRouter();
+  
+  const formAnalytics = useFormAnalytics('upload_form');
+  const uploadAnalytics = useUploadAnalytics();
+
+  useEffect(() => {
+    // Track form start
+    formAnalytics.trackFormStart();
+  }, [formAnalytics]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files).slice(0, 3); // Limit to 3 files
       setFiles(newFiles);
+      
+      // Track file selection
+      const totalSize = newFiles.reduce((sum, file) => sum + file.size, 0);
+      uploadAnalytics.trackFileSelection(newFiles.length, totalSize);
+      
+      // Track niche selection
+      formAnalytics.trackFormFieldInteraction('file_upload', 'files_selected');
     }
   };
 
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index));
+    formAnalytics.trackFormFieldInteraction('file_upload', 'file_removed');
+  };
+
+  const handleNicheChange = (niche: string) => {
+    setSelectedNiche(niche);
+    formAnalytics.trackFormFieldInteraction('niche_selector', niche);
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVideoTitle(e.target.value);
+    formAnalytics.trackFormFieldInteraction('video_title', 'title_entered');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,9 +68,16 @@ export default function UploadPage() {
       const data = await response.json();
       
       if (response.ok) {
+        // Track successful upload
+        const fileSizes = files.map(file => file.size);
+        formAnalytics.trackFormSubmit(true);
+        
         // Store upload data in session storage for analysis
         if (videoTitle) {
           sessionStorage.setItem('videoTitle', videoTitle);
+        }
+        if (selectedNiche) {
+          sessionStorage.setItem('selectedNiche', selectedNiche);
         }
         if (data.thumbnails) {
           sessionStorage.setItem('thumbnails', JSON.stringify(data.thumbnails));
@@ -58,9 +94,16 @@ export default function UploadPage() {
         // Redirect to results page
         router.push(`/results?id=${data.sessionId}`);
       } else {
+        // Track upload error
+        formAnalytics.trackFormSubmit(false, data.error);
+        uploadAnalytics.trackUploadError(data.error);
         alert('Upload failed: ' + data.error);
       }
     } catch (error) {
+      // Track upload error
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      formAnalytics.trackFormSubmit(false, errorMessage);
+      uploadAnalytics.trackUploadError(errorMessage);
       alert('Upload failed: ' + error);
     } finally {
       setUploading(false);
@@ -68,14 +111,23 @@ export default function UploadPage() {
   };
 
   return (
-    <main className="min-h-screen bg-black flex flex-col items-center justify-center p-24">
+    <main className="min-h-screen bg-gradient-to-br from-[#0a0f25] via-[#0d1229] to-[#0a0f25] flex flex-col items-center justify-center p-24">
       <div className="w-full max-w-4xl">
-        <h1 className="text-3xl font-bold mb-8 text-center text-white">
-          Upload 3 Thumbnails
-        </h1>
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-[#6a5af9] via-[#1de9b6] to-[#6a5af9] bg-clip-text text-transparent">
+            Thumbscore.io
+          </h1>
+          <p className="text-lg text-gray-300 mb-4">Upload 3 Thumbnails</p>
+        </div>
         <p className="text-center text-gray-400 mb-8">
           Upload 3 different thumbnail options to see which will get more clicks on YouTube
         </p>
+        
+        {/* Enhanced Niche Selector */}
+        <NicheSelector 
+          value={selectedNiche}
+          onChange={handleNicheChange}
+        />
         
         {/* Video Title Input */}
         <div className="mb-6">
@@ -86,7 +138,7 @@ export default function UploadPage() {
             type="text"
             id="video-title"
             value={videoTitle}
-            onChange={(e) => setVideoTitle(e.target.value)}
+            onChange={handleTitleChange}
             placeholder="Enter your YouTube video title..."
             className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
           />

@@ -43,6 +43,7 @@ class FAISSIndexManager:
         if not SUPABASE_URL or not SUPABASE_KEY:
             raise ValueError("SUPABASE_URL and SUPABASE_KEY environment variables are required")
         
+        # Create Supabase client (v2.22.0+ doesn't support proxy parameter)
         self.supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
         self.indices: Dict[str, faiss.Index] = {}
         self.metadata: Dict[str, List[Dict]] = {}

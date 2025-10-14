@@ -11,6 +11,8 @@
 'use client';
 
 import { useState } from 'react';
+import PowerWordAnalysis from './PowerWordAnalysis';
+import { useAnalytics } from '@/lib/hooks/useAnalytics';
 
 interface SubScores {
   clarity: number;
@@ -19,6 +21,28 @@ interface SubScores {
   emotion: number;
   visualHierarchy: number;
   clickIntentMatch: number;
+  powerWords?: number;
+}
+
+interface PowerWordAnalysisData {
+  score: number;
+  found_words: Array<{
+    word: string;
+    tier: number | string;
+    impact: number;
+  }>;
+  recommendation: string;
+  warnings: string[];
+  missing_opportunities: string[];
+  breakdown: {
+    tier1_count: number;
+    tier2_count: number;
+    tier3_count: number;
+    tier4_count: number;
+    niche_count: number;
+    negative_count: number;
+  };
+  caps_percentage: number;
 }
 
 interface Issue {
@@ -41,9 +65,11 @@ interface InsightsPanelProps {
   onAutoFix?: (issueId: string, thumbnailId: number) => void;
   expandedSections?: {
     titleMatch: boolean;
-    visualOverlays: boolean;
   };
-  onToggleSection?: (section: 'titleMatch' | 'visualOverlays') => void;
+  onToggleSection?: (section: 'titleMatch') => void;
+  powerWordAnalysis?: PowerWordAnalysisData;
+  ocrText?: string;
+  nicheInsights?: string[];
 }
 
 export default function InsightsPanel({
@@ -54,14 +80,26 @@ export default function InsightsPanel({
   category = 'general',
   titleMatchScore = 70,
   onAutoFix,
-  expandedSections = { titleMatch: false, visualOverlays: false },
-  onToggleSection
+  expandedSections = { titleMatch: false },
+  onToggleSection,
+  powerWordAnalysis,
+  ocrText = '',
+  nicheInsights = []
 }: InsightsPanelProps) {
-  const [activeOverlay, setActiveOverlay] = useState<string | null>(null);
+  // Analytics tracking
+  const analytics = useAnalytics();
+  
+  // Removed activeOverlay state - no longer needed without visual overlays
   const [showPatternCoach, setShowPatternCoach] = useState(false);
 
   // Generate top 3 issues from sub-scores
   const issues = generateTopIssues(subScores);
+
+  // Handle auto-fix with analytics tracking
+  const handleAutoFix = (issueId: string) => {
+    analytics.trackAutoFixClick(issueId, category);
+    onAutoFix?.(issueId, thumbnailId);
+  };
 
   // Get niche-specific patterns
   const nichePatterns = getNichePatterns(category);
@@ -78,67 +116,12 @@ export default function InsightsPanel({
         </div>
       </div>
 
-      {/* Title Match Gauge - Collapsible */}
-      <div className="mb-8">
-        <button
-          onClick={() => onToggleSection?.('titleMatch')}
-          className="group flex items-center justify-between w-full p-4 bg-gray-800 rounded-lg hover:bg-gray-750 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer relative"
-          title="Click to expand title match details"
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-gray-300 group-hover:text-white transition-colors">Title Match:</span>
-            <span className={`text-sm font-bold transition-colors ${
-              titleMatchScore >= 80 ? 'text-green-400 group-hover:text-green-300' :
-              titleMatchScore >= 60 ? 'text-yellow-400 group-hover:text-yellow-300' : 'text-red-400 group-hover:text-red-300'
-            }`}>
-              {titleMatchScore}%
-            </span>
-            <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">
-              {titleMatchScore >= 80 ? 'Strong' :
-               titleMatchScore >= 60 ? 'Moderate' : 'Weak'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 group-hover:text-blue-400 transition-colors hidden group-hover:inline">
-              Click to expand
-            </span>
-            <span className="text-xl text-gray-400 group-hover:text-blue-400 transition-all duration-300 group-hover:scale-110">
-              {expandedSections.titleMatch ? '⌃' : '⌄'}
-            </span>
-          </div>
-        </button>
-        
-        {expandedSections.titleMatch && (
-          <div className="mt-4 p-4 bg-gray-800/50 rounded-lg animate-fade-in">
-            <div className="relative h-3 bg-gray-700 rounded-full overflow-hidden mb-3">
-              <div
-                className={`absolute left-0 top-0 h-full transition-all duration-500 ${
-                  titleMatchScore >= 80 ? 'bg-green-500' :
-                  titleMatchScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                }`}
-                style={{ width: `${titleMatchScore}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-gray-500 mb-3">
-              <span>Poor</span>
-              <span>Good</span>
-              <span>Excellent</span>
-            </div>
-            <p className="text-sm text-gray-300">
-              {titleMatchScore >= 80 ? '✅ Strong semantic alignment with video title' :
-               titleMatchScore >= 60 ? '⚠️  Moderate alignment - consider visual elements from title' :
-               '❌ Weak alignment - thumbnail should reflect title content'}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Top 3 Issues with 1-Click Fixes */}
+      {/* Top 3 Issues with 1-Click Fixes - ENHANCED */}
       <div className="mb-8">
         <h4 className="text-2xl font-bold text-white mb-6">
-          🔧 Top Issues & Auto-Fixes
+          ⚠️ Top Issues to Fix
         </h4>
-        <div className="space-y-4">
+        <div className="space-y-6">
           {issues.slice(0, 3).map((issue, index) => (
             <div
               key={issue.id}
@@ -171,8 +154,8 @@ export default function InsightsPanel({
                 </div>
                 {issue.autoFixAvailable && (
                   <button
-                    onClick={() => onAutoFix?.(issue.id, thumbnailId)}
-                    className="ml-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 animate-pulse-subtle whitespace-nowrap"
+                    onClick={() => handleAutoFix(issue.id)}
+                    className="ml-3 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-base font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/50 animate-pulse-subtle whitespace-nowrap"
                   >
                     Auto-Fix
                   </button>
@@ -188,104 +171,38 @@ export default function InsightsPanel({
         )}
       </div>
 
-      {/* Visual Overlays Toggle - Collapsible */}
-      <div className="mb-8">
-        <button
-          onClick={() => onToggleSection?.('visualOverlays')}
-          className="group flex items-center justify-between w-full p-4 bg-gray-800 rounded-lg hover:bg-gray-750 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 cursor-pointer relative mb-4"
-          title="Click to expand visual overlay options"
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-gray-300 group-hover:text-white transition-colors">🎨 Visual Overlays</span>
-            <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">(4 available)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 group-hover:text-purple-400 transition-colors hidden group-hover:inline">
-              Click to expand
-            </span>
-            <span className="text-xl text-gray-400 group-hover:text-purple-400 transition-all duration-300 group-hover:scale-110">
-              {expandedSections.visualOverlays ? '⌃' : '⌄'}
-            </span>
-          </div>
-        </button>
-        
-        {expandedSections.visualOverlays && (
-          <div className="animate-fade-in">
-            <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => setActiveOverlay(activeOverlay === 'saliency' ? null : 'saliency')}
-            className={`px-4 py-2 rounded text-sm font-semibold transition-all ${
-              activeOverlay === 'saliency'
-                ? 'bg-purple-600 text-white shadow-lg'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
-          >
-            {activeOverlay === 'saliency' ? '✓' : ''} Saliency Heatmap
-          </button>
-          <button
-            onClick={() => setActiveOverlay(activeOverlay === 'ocr' ? null : 'ocr')}
-            className={`px-4 py-2 rounded text-sm font-semibold transition-all ${
-              activeOverlay === 'ocr'
-                ? 'bg-blue-600 text-white shadow-lg'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
-          >
-            {activeOverlay === 'ocr' ? '✓' : ''} OCR Contrast
-          </button>
-          <button
-            onClick={() => setActiveOverlay(activeOverlay === 'faces' ? null : 'faces')}
-            className={`px-4 py-2 rounded text-sm font-semibold transition-all ${
-              activeOverlay === 'faces'
-                ? 'bg-green-600 text-white shadow-lg'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
-          >
-            {activeOverlay === 'faces' ? '✓' : ''} Face Boxes
-          </button>
-          <button
-            onClick={() => setActiveOverlay(activeOverlay === 'thirds' ? null : 'thirds')}
-            className={`px-4 py-2 rounded text-sm font-semibold transition-all ${
-              activeOverlay === 'thirds'
-                ? 'bg-yellow-600 text-white shadow-lg'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
-          >
-            {activeOverlay === 'thirds' ? '✓' : ''} Thirds Grid
-          </button>
+      {/* Power Word Analysis Section - NEW! */}
+      {powerWordAnalysis && (
+        <div className="mb-8">
+          <PowerWordAnalysis analysis={powerWordAnalysis} ocrText={ocrText} />
         </div>
+      )}
 
-        {/* Overlay Preview */}
-        {activeOverlay && (
-          <div className="mt-4 bg-gray-800 rounded-lg p-4">
-            <div className="aspect-video bg-gray-700 rounded relative flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-4xl mb-2">
-                  {activeOverlay === 'saliency' ? '🔥' :
-                   activeOverlay === 'ocr' ? '📝' :
-                   activeOverlay === 'faces' ? '😊' : '📐'}
-                </div>
-                <p className="text-sm text-gray-400">
-                  {activeOverlay === 'saliency' ? 'Attention heatmap - where viewers look first' :
-                   activeOverlay === 'ocr' ? 'Text detection with readability analysis' :
-                   activeOverlay === 'faces' ? 'Face detection with emotion analysis' :
-                   'Rule of thirds composition grid'}
-                </p>
-                <p className="text-xs text-gray-500 mt-2">
-                  Overlay visualization would appear here with actual thumbnail
+      {/* Niche-Specific Insights Section */}
+      {nicheInsights && nicheInsights.length > 0 && (
+        <div className="mb-8">
+          <h4 className="text-xl font-bold text-white mb-4">
+            🎯 {category.charAt(0).toUpperCase() + category.slice(1)} Niche Insights
+          </h4>
+          <div className="space-y-3">
+            {nicheInsights.map((insight, index) => (
+              <div
+                key={index}
+                className="bg-gradient-to-r from-cyan-950/50 to-blue-950/50 rounded-lg p-4 border border-cyan-500/30"
+              >
+                <p className="text-sm text-cyan-100">
+                  {insight}
                 </p>
               </div>
-            </div>
-            <p className="text-xs text-gray-400 mt-2">
-              {activeOverlay === 'saliency' && '🔍 Hotspots show predicted viewer attention. Align key elements with high-intensity areas.'}
-              {activeOverlay === 'ocr' && '🔍 Green boxes = high contrast, Red boxes = low readability. Aim for 95%+ contrast score.'}
-              {activeOverlay === 'faces' && '🔍 Larger faces = better. Target 25-40% of frame. Emotion intensity shown by color.'}
-              {activeOverlay === 'thirds' && '🔍 Key elements should align with intersection points for better composition.'}
-            </p>
+            ))}
           </div>
-        )}
+          <div className="mt-3 text-xs text-gray-400">
+            💡 Insights tailored specifically for {category} content creators
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Visual Overlays Toggle - REMOVED */}
 
       {/* Pattern Coach */}
       <div>
@@ -463,7 +380,17 @@ function getNichePatterns(category: string): {
     ctrLift: number;
   }>;
 } {
-  const patterns: Record<string, any> = {
+  const patterns: Record<string, {
+    sampleSize: number;
+    avgCTR: string;
+    lastUpdated: string;
+    commonPatterns: Array<{
+      pattern: string;
+      description: string;
+      tags: string[];
+      ctrLift: number;
+    }>;
+  }> = {
     education: {
       sampleSize: 15420,
       avgCTR: '4.2',

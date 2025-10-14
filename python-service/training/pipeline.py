@@ -646,6 +646,7 @@ class YouTubeDataIngestion:
         # Initialize Supabase client
         try:
             from supabase import create_client
+            # Create Supabase client (v2.22.0+ doesn't support proxy parameter)
             self.supabase = create_client(supabase_url, supabase_key)
             print("✓ Supabase client initialized")
         except Exception as e:
