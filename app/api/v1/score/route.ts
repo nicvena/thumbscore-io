@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ThumbnailRankingModel, MODEL_PRESETS } from '@/lib/ml-modeling';
+import { userStore, getOrCreateAnonymousUser, checkRateLimit, TIER_LIMITS } from '@/lib/user-management';
 
 // Initialize ML model (singleton for performance)
 let mlModel: ThumbnailRankingModel | null = null;
@@ -53,6 +54,35 @@ export async function POST(request: NextRequest) {
   try {
     const body: ScoreRequest = await request.json();
     const { title, thumbnails, category = 'general' } = body;
+
+    // Get user session and check usage limits
+    const sessionId = request.headers.get('x-session-id') || undefined;
+    const user = getOrCreateAnonymousUser(sessionId);
+    
+    // Check rate limiting
+    const rateLimit = checkRateLimit(user.id);
+    if (!rateLimit.allowed) {
+      const resetDate = rateLimit.resetDate?.toISOString().split('T')[0]; // YYYY-MM-DD
+      return NextResponse.json(
+        {
+          error: 'Usage limit exceeded',
+          message: `You've reached your monthly limit. Upgrade your plan or wait until ${resetDate} for more analyses.`,
+          tier: user.tier,
+          limits: TIER_LIMITS[user.tier],
+          resetDate: rateLimit.resetDate,
+          upgradeUrl: '/pricing'
+        },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': TIER_LIMITS[user.tier].monthlyAnalyses.toString(),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': rateLimit.resetDate?.getTime().toString() || '',
+            'X-User-Tier': user.tier,
+          }
+        }
+      );
+    }
     
     // Check if Python service should be used
     const USE_PYTHON_SERVICE = process.env.USE_PYTHON_SERVICE === 'true';
@@ -75,14 +105,21 @@ export async function POST(request: NextRequest) {
         const pythonData = await pythonResponse.json();
         const duration = Date.now() - startTime;
         
-        console.log(`[Inference] Python service completed in ${duration}ms. Winner: ${pythonData.winner_id}`);
+        // Increment usage count for successful analysis
+        const newUsageCount = userStore.incrementUsage(user.id);
+        const remainingQuota = rateLimit.remainingQuota === -1 ? -1 : (rateLimit.remainingQuota! - 1);
+        
+        console.log(`[Inference] Python service completed in ${duration}ms. Winner: ${pythonData.winner_id}. User ${user.id} usage: ${newUsageCount}`);
         
         return NextResponse.json(pythonData, {
           headers: {
             'X-Processing-Time-Ms': duration.toString(),
             'X-Model-Version': 'v3.0.0',
             'X-Model-Type': 'python-fastapi',
-            'X-Inference-Backend': 'python'
+            'X-Inference-Backend': 'python',
+            'X-RateLimit-Remaining': remainingQuota.toString(),
+            'X-User-Tier': user.tier,
+            'X-User-Usage': newUsageCount.toString(),
           }
         });
       } catch (error) {
@@ -194,14 +231,21 @@ export async function POST(request: NextRequest) {
       explanation
     };
     
+    // Increment usage count for successful analysis
+    const newUsageCount = userStore.incrementUsage(user.id);
+    const remainingQuota = rateLimit.remainingQuota === -1 ? -1 : (rateLimit.remainingQuota! - 1);
+    
     const duration = Date.now() - startTime;
-    console.log(`[Inference] Completed in ${duration}ms. Winner: ${winnerId} (${winner.ctr_score}%)`);
+    console.log(`[Inference] Completed in ${duration}ms. Winner: ${winnerId} (${winner.ctr_score}%). User ${user.id} usage: ${newUsageCount}`);
     
     return NextResponse.json(response, {
       headers: {
         'X-Processing-Time-Ms': duration.toString(),
         'X-Model-Version': 'v3.0.0',
-        'X-Model-Type': 'two-stage-multi-task'
+        'X-Model-Type': 'two-stage-multi-task',
+        'X-RateLimit-Remaining': remainingQuota.toString(),
+        'X-User-Tier': user.tier,
+        'X-User-Usage': newUsageCount.toString(),
       }
     });
 

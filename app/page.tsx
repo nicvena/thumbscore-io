@@ -30,6 +30,14 @@ export default function Home() {
     });
   };
 
+  const handlePricingClick = () => {
+    analytics.trackEvent('cta_click', {
+      event_category: 'engagement',
+      event_label: 'pricing_button',
+      custom_parameter_1: 'homepage',
+    });
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#0a0f25] via-[#0d1229] to-[#0a0f25] flex flex-col items-center justify-center p-24">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm">
@@ -48,20 +56,33 @@ export default function Home() {
             <span className="text-blue-300 font-semibold">🧪 BETA</span>
             <span className="text-gray-300 ml-2">AI-powered thumbnail analysis trained on real YouTube data</span>
           </div>
-          <p className="text-gray-300 text-lg">
-            Get your YouTube thumbnails AI-scored in seconds
+          <h2 className="text-3xl font-bold text-white mb-4">
+            Stop Guessing Which Thumbnail Will Get Clicks
+          </h2>
+          <p className="text-xl text-gray-300 mb-4">
+            You spent hours editing your video. Don't let a bad thumbnail kill your views. 82% of viewers decide whether to click based on your thumbnail alone.
+          </p>
+          <p className="text-lg text-cyan-300 font-semibold">
+            Upload 3 options. Our AI tells you which one will get the most clicks. In under 10 seconds.
           </p>
         </div>
         <p className="text-center mb-8 text-gray-400">
           Data-backed predictions, continuously improving
         </p>
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-4 flex-wrap">
           <a
             href="/upload"
             onClick={handleUploadClick}
             className="px-8 py-4 bg-gradient-to-r from-[#6a5af9] to-[#1de9b6] text-white rounded-lg hover:shadow-lg hover:shadow-cyan-500/50 transition-all text-lg font-semibold"
           >
-            Test Your Thumbnails
+            Find Your Winning Thumbnail Free →
+          </a>
+          <a
+            href="/pricing"
+            onClick={handlePricingClick}
+            className="px-8 py-4 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors text-lg font-semibold backdrop-blur-sm"
+          >
+            Pricing
           </a>
           <a
             href="/faq"
@@ -71,7 +92,87 @@ export default function Home() {
             FAQ
           </a>
         </div>
+        <div className="text-center mt-3">
+          <p className="text-sm text-gray-400">
+            No credit card • 5 free analyses • See results instantly
+          </p>
+        </div>
         
+        {/* Pain Points Section */}
+        <div className="mt-16 bg-red-900/20 backdrop-blur-sm rounded-lg p-8 border border-red-500/30 max-w-4xl mx-auto">
+          <h3 className="text-2xl font-bold text-white mb-8 text-center">
+            Why Most YouTubers Struggle With Thumbnails
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            <div className="bg-red-800/20 rounded-lg p-6 border border-red-500/20">
+              <div className="text-4xl mb-4">😫</div>
+              <h4 className="text-xl font-semibold mb-2 text-red-300">You're Guessing</h4>
+              <p className="text-gray-300">Going with gut feeling costs you thousands of potential views. What looks good to you might bomb with your audience.</p>
+            </div>
+            <div className="bg-red-800/20 rounded-lg p-6 border border-red-500/20">
+              <div className="text-4xl mb-4">⏰</div>
+              <h4 className="text-xl font-semibold mb-2 text-red-300">A/B Testing Takes Forever</h4>
+              <p className="text-gray-300">Traditional thumbnail testing means waiting days or weeks for meaningful data. Your momentum dies while you wait.</p>
+            </div>
+            <div className="bg-red-800/20 rounded-lg p-6 border border-red-500/20">
+              <div className="text-4xl mb-4">📉</div>
+              <h4 className="text-xl font-semibold mb-2 text-red-300">Bad Thumbnails Kill Great Videos</h4>
+              <p className="text-gray-300">Your best content gets buried because the thumbnail didn't grab attention. All that editing work goes to waste.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Comparison Section */}
+        <div className="mt-16 bg-gradient-to-r from-red-900/10 via-gray-900/20 to-green-900/10 backdrop-blur-sm rounded-lg p-8 border border-white/10 max-w-5xl mx-auto">
+          <h3 className="text-2xl font-bold text-white mb-8 text-center">
+            Old Way vs ThumbScore Way
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-red-900/20 rounded-lg p-6 border border-red-500/30">
+              <h4 className="text-xl font-semibold mb-4 text-red-300 text-center">😤 The Old Way</h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-red-400">❌</span>
+                  <span className="text-gray-300">Upload and pray it works</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-red-400">❌</span>
+                  <span className="text-gray-300">Wait weeks for A/B test results</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-red-400">❌</span>
+                  <span className="text-gray-300">Miss algorithm window</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-red-400">❌</span>
+                  <span className="text-gray-300">Lose thousands of potential views</span>
+                </div>
+              </div>
+            </div>
+            <div className="bg-green-900/20 rounded-lg p-6 border border-green-500/30">
+              <h4 className="text-xl font-semibold mb-4 text-green-300 text-center">🚀 ThumbScore Way</h4>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-green-400">✅</span>
+                  <span className="text-gray-300">Know which thumbnail wins before uploading</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-green-400">✅</span>
+                  <span className="text-gray-300">Get instant AI predictions in 10 seconds</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-green-400">✅</span>
+                  <span className="text-gray-300">Publish with confidence immediately</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-green-400">✅</span>
+                  <span className="text-gray-300">Maximize views from day one</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
           <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 border border-white/10 hover:border-cyan-500/50 transition-colors">
             <div className="text-3xl mb-4">📸</div>

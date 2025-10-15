@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { NicheSelector } from '../components/NicheSelector';
+import { UsageTracker, useUsageTracking } from '../components/UsageTracker';
 import { useFormAnalytics, useUploadAnalytics } from '@/lib/hooks/useAnalytics';
 
 export default function UploadPage() {
@@ -14,6 +16,7 @@ export default function UploadPage() {
   
   const formAnalytics = useFormAnalytics('upload_form');
   const uploadAnalytics = useUploadAnalytics();
+  const { usage, refreshUsage, checkCanAnalyze } = useUsageTracking();
 
   useEffect(() => {
     // Track form start
@@ -53,6 +56,12 @@ export default function UploadPage() {
     e.preventDefault();
     if (files.length === 0) return;
 
+    // Check usage limits before uploading
+    if (!checkCanAnalyze()) {
+      alert('You have reached your monthly analysis limit. Please upgrade your plan or wait until next month.');
+      return;
+    }
+
     setUploading(true);
     const formData = new FormData();
     files.forEach((file, index) => {
@@ -60,9 +69,16 @@ export default function UploadPage() {
     });
 
     try {
+      // Get session ID for usage tracking
+      const sessionId = localStorage.getItem('session-id') || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('session-id', sessionId);
+      
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
+        headers: {
+          'X-Session-Id': sessionId,
+        },
       });
 
       const data = await response.json();
@@ -91,6 +107,9 @@ export default function UploadPage() {
         });
         sessionStorage.setItem('imageUrls', JSON.stringify(imageUrls));
         
+        // Refresh usage after successful upload
+        await refreshUsage();
+        
         // Redirect to results page
         router.push(`/results?id=${data.sessionId}`);
       } else {
@@ -114,6 +133,9 @@ export default function UploadPage() {
     <main className="min-h-screen bg-gradient-to-br from-[#0a0f25] via-[#0d1229] to-[#0a0f25] flex flex-col items-center justify-center p-24">
       <div className="w-full max-w-4xl">
         <div className="text-center mb-8">
+          <Link href="/" className="text-blue-400 hover:text-blue-300 text-sm mb-4 inline-block">
+            ← Back to Home
+          </Link>
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-[#6a5af9] via-[#1de9b6] to-[#6a5af9] bg-clip-text text-transparent">
             Thumbscore.io
           </h1>
@@ -122,6 +144,11 @@ export default function UploadPage() {
         <p className="text-center text-gray-400 mb-8">
           Upload 3 different thumbnail options to see which will get more clicks on YouTube
         </p>
+        
+        {/* Usage Tracker */}
+        <div className="mb-6">
+          <UsageTracker />
+        </div>
         
         {/* Enhanced Niche Selector */}
         <NicheSelector 

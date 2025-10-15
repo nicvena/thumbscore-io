@@ -4,9 +4,11 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import InsightsPanel from '../components/InsightsPanel';
-// VisualOverlays removed - no longer needed
+import VisualOverlays from '../components/VisualOverlays';
 import FeedbackWidget from '../components/FeedbackWidget';
 import ShareResults from '../components/ShareResults';
+import { UsageTracker } from '../components/UsageTracker';
+import { AdvancedScoringGate, ABTestingGate, TrendAnalysisGate } from '../components/FeatureGate';
 
 // ThumbScore Quality Labels Helper
 function getQualityLabel(score: number) {
@@ -40,6 +42,98 @@ function getQualityLabel(score: number) {
     color: "text-red-400",
     message: "❌ Weak thumbnail - review critical issues below"
   };
+}
+
+// Helper function to generate dynamic recommendations based on actual subscores
+function getTopRecommendations(subScores: any) {
+  const recommendations = [];
+  
+  // Text Clarity recommendations
+  if (subScores.clarity < 70) {
+    recommendations.push({
+      priority: 'CRITICAL',
+      title: 'Text Readability',
+      suggestion: 'Add high-contrast text with 2-3 power words',
+      impact: '+15-25% CTR',
+      bgColor: 'bg-red-900/20',
+      borderColor: 'border-red-500/30',
+      numberBg: 'bg-red-500',
+      priorityColor: 'text-red-400'
+    });
+  }
+  
+  // Subject Prominence recommendations
+  if (subScores.subjectProminence < 70) {
+    recommendations.push({
+      priority: 'HIGH',
+      title: 'Subject Size',
+      suggestion: 'Make main subject 40% larger',
+      impact: '+10-15% CTR',
+      bgColor: 'bg-orange-900/20',
+      borderColor: 'border-orange-500/30',
+      numberBg: 'bg-orange-500',
+      priorityColor: 'text-orange-400'
+    });
+  }
+  
+  // Color Pop recommendations
+  if (subScores.contrastColorPop < 70) {
+    recommendations.push({
+      priority: 'MEDIUM',
+      title: 'Color Pop',
+      suggestion: 'Increase saturation by 20-30%',
+      impact: '+5-10% CTR',
+      bgColor: 'bg-yellow-900/20',
+      borderColor: 'border-yellow-500/30',
+      numberBg: 'bg-yellow-500',
+      priorityColor: 'text-yellow-400'
+    });
+  }
+  
+  // Visual Hierarchy recommendations
+  if (subScores.visualHierarchy < 70) {
+    recommendations.push({
+      priority: 'MEDIUM',
+      title: 'Visual Hierarchy',
+      suggestion: 'Improve composition and focal points',
+      impact: '+5-10% CTR',
+      bgColor: 'bg-blue-900/20',
+      borderColor: 'border-blue-500/30',
+      numberBg: 'bg-blue-500',
+      priorityColor: 'text-blue-400'
+    });
+  }
+  
+  // Emotion recommendations
+  if (subScores.emotion < 70) {
+    recommendations.push({
+      priority: 'LOW',
+      title: 'Emotional Appeal',
+      suggestion: 'Add more engaging facial expressions',
+      impact: '+3-8% CTR',
+      bgColor: 'bg-purple-900/20',
+      borderColor: 'border-purple-500/30',
+      numberBg: 'bg-purple-500',
+      priorityColor: 'text-purple-400'
+    });
+  }
+  
+  // If no issues found, show positive feedback
+  if (recommendations.length === 0) {
+    recommendations.push({
+      priority: 'EXCELLENT',
+      title: 'Great Job!',
+      suggestion: 'Your thumbnail is well-optimized',
+      impact: 'Keep it up!',
+      bgColor: 'bg-green-900/20',
+      borderColor: 'border-green-500/30',
+      numberBg: 'bg-green-500',
+      priorityColor: 'text-green-400'
+    });
+  }
+  
+  // Return top 3 recommendations
+  return recommendations.slice(0, 3);
 }
 
 interface ThumbnailAnalysis {
@@ -83,6 +177,12 @@ interface ThumbnailAnalysis {
   }>;
   thumbScore: string;
   abTestWinProbability: string;
+  powerWords?: {
+    score: number;
+    foundWords: string[];
+    tier: string;
+    niche: string;
+  };
 }
 
 interface AnalysisResults {
@@ -417,6 +517,11 @@ function ResultsContent() {
           <p className="text-lg text-cyan-400">Analysis Results</p>
         </div>
         
+        {/* Usage Tracker */}
+        <div className="mb-8 max-w-sm mx-auto">
+          <UsageTracker />
+        </div>
+        
         {/* Winner Announcement - ENHANCED 3X MORE PROMINENT */}
         <div className="relative bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 rounded-2xl p-16 mb-16 text-center overflow-hidden shadow-2xl">
           {/* Animated gradient background */}
@@ -502,7 +607,7 @@ function ResultsContent() {
             
             return (
             <div key={analysis.thumbnailId} className={`relative rounded-2xl p-8 border-2 transition-all duration-300 ${
-              isWinner ? 'transform md:scale-105 md:hover:scale-106 scale-100 hover:scale-[1.02] z-10 border-green-500 bg-green-500/5 shadow-[0_0_40px_rgba(34,197,94,0.25)] shadow-2xl md:mr-4 mr-0 border-l-8 animate-border-pulse' :
+              isWinner ? 'group transform md:scale-105 md:hover:scale-106 scale-100 hover:scale-[1.02] z-10 border-green-500 bg-green-500/5 shadow-[0_0_40px_rgba(34,197,94,0.25)] shadow-2xl md:mr-4 mr-0 border-l-8 animate-border-pulse' :
               analysis.ranking === 2 ? 'scale-100 hover:scale-[1.02] border-yellow-500/50 bg-yellow-500/5 border-l-4 shadow-lg border-gray-700' :
               'scale-100 hover:scale-[1.02] border-red-500/50 bg-red-500/5 border-l-4 shadow-lg border-gray-700'
             }`}>
@@ -523,14 +628,39 @@ function ResultsContent() {
               )}
               
               <div className="text-center mb-4">
-                {/* Thumbnail Image */}
-                <div className="relative w-full h-32 mb-3 rounded-lg overflow-hidden bg-gray-700">
+                {/* Thumbnail Image with Interactive Overlays */}
+                <div className="relative w-full h-32 mb-3 rounded-lg overflow-hidden bg-gray-700 group-hover:ring-2 group-hover:ring-blue-400 transition-all duration-300">
                   {imageUrls[analysis.thumbnailId - 1] ? (
-                    <img
-                      src={imageUrls[analysis.thumbnailId - 1]}
-                      alt={`Thumbnail ${analysis.thumbnailId}`}
-                      className="w-full h-full object-cover"
-                    />
+                    <>
+                      <img
+                        src={imageUrls[analysis.thumbnailId - 1]}
+                        alt={`Thumbnail ${analysis.thumbnailId}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Interactive Overlays - Only for Winner */}
+                      {isWinner && (
+                        <>
+                          <div className="absolute inset-0 group-hover:opacity-100 opacity-0 transition-opacity duration-300">
+                            <VisualOverlays
+                              thumbnailId={analysis.thumbnailId}
+                              fileName={analysis.fileName}
+                              imageUrl={imageUrls[analysis.thumbnailId - 1]}
+                              width={320}
+                              height={128}
+                              heatmapData={analysis.heatmapData || []}
+                              ocrBoxes={analysis.ocrHighlights || []}
+                              faceBoxes={analysis.faceBoxes || []}
+                            />
+                          </div>
+                          {/* Hover Indicator */}
+                          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div className="bg-blue-500/80 backdrop-blur-sm rounded-full p-1.5">
+                              <span className="text-white text-xs">👁️</span>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-500">
                       <span className="text-4xl">🖼️</span>
@@ -646,55 +776,39 @@ function ResultsContent() {
           
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Top 3 Recommendations */}
-              <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center font-bold text-sm">1</span>
-                  <span className="text-red-400 font-semibold">CRITICAL</span>
+              {/* Dynamic Recommendations Based on Actual Subscores */}
+              {getTopRecommendations(winner.subScores).map((rec, index) => (
+                <div key={index} className={`${rec.bgColor} border ${rec.borderColor} rounded-lg p-6`}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className={`w-8 h-8 ${rec.numberBg} text-white rounded-full flex items-center justify-center font-bold text-sm`}>
+                      {index + 1}
+                    </span>
+                    <span className={`${rec.priorityColor} font-semibold`}>{rec.priority}</span>
+                  </div>
+                  <h3 className="font-semibold text-white mb-2">{rec.title}</h3>
+                  <p className="text-sm text-gray-300 mb-3">{rec.suggestion}</p>
+                  <div className="text-xs text-gray-400">Impact: {rec.impact}</div>
                 </div>
-                <h3 className="font-semibold text-white mb-2">Text Readability</h3>
-                <p className="text-sm text-gray-300 mb-3">Add high-contrast text with 2-3 power words</p>
-                <div className="text-xs text-gray-400">Impact: +15-25% CTR</div>
-              </div>
-              
-              <div className="bg-orange-900/20 border border-orange-500/30 rounded-lg p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold text-sm">2</span>
-                  <span className="text-orange-400 font-semibold">HIGH</span>
-                </div>
-                <h3 className="font-semibold text-white mb-2">Subject Size</h3>
-                <p className="text-sm text-gray-300 mb-3">Make main subject 40% larger</p>
-                <div className="text-xs text-gray-400">Impact: +10-15% CTR</div>
-              </div>
-              
-              <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-bold text-sm">3</span>
-                  <span className="text-yellow-400 font-semibold">MEDIUM</span>
-                </div>
-                <h3 className="font-semibold text-white mb-2">Color Pop</h3>
-                <p className="text-sm text-gray-300 mb-3">Increase saturation by 20-30%</p>
-                <div className="text-xs text-gray-400">Impact: +5-10% CTR</div>
-              </div>
+              ))}
             </div>
             
             {/* Quick Stats */}
             <div className="mt-8 bg-gray-800/30 rounded-lg p-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-blue-400">15/100</div>
+                  <div className="text-2xl font-bold text-blue-400">{winner.subScores.clarity}/100</div>
                   <div className="text-sm text-gray-400">Text Clarity</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-purple-400">0/100</div>
+                  <div className="text-2xl font-bold text-purple-400">{winner.subScores.subjectProminence}/100</div>
                   <div className="text-sm text-gray-400">Subject Size</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-pink-400">21/100</div>
+                  <div className="text-2xl font-bold text-pink-400">{winner.subScores.contrastColorPop}/100</div>
                   <div className="text-sm text-gray-400">Color Pop</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-green-400">95/100</div>
+                  <div className="text-2xl font-bold text-green-400">{winner.powerWords?.score || 95}/100</div>
                   <div className="text-sm text-gray-400">Power Words</div>
                 </div>
               </div>
@@ -734,7 +848,12 @@ function ResultsContent() {
 
           {/* AI Detection Results */}
           <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-xl font-bold mb-4">🔍 AI Detection Results</h3>
+            <h3 className="text-xl font-bold mb-4">
+              🔍 AI Detection Results
+              <span className="text-sm font-normal text-gray-400 ml-2">
+                💡 Hover over the winning thumbnail to see overlays
+              </span>
+            </h3>
             <div className="space-y-4">
               <div>
                 <h4 className="font-semibold mb-2">Face & Emotion Analysis</h4>

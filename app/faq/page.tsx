@@ -165,6 +165,8 @@ export default function FAQPage() {
           <span>•</span>
           <Link href="/upload" className="hover:text-gray-300 mx-2">Upload</Link>
           <span>•</span>
+          <Link href="/pricing" className="hover:text-gray-300 mx-2">Pricing</Link>
+          <span>•</span>
           <a href="/api/v1/score" className="hover:text-gray-300 mx-2">API Docs</a>
         </div>
       </div>
