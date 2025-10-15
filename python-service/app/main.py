@@ -1152,6 +1152,18 @@ def pred_with_explanations(thumb_id: str, features: Dict[str, Any], prediction: 
         face_boxes_url=f"/api/v1/overlays/{session_id}/{thumb_id}/faces.png"
     )
     
+    # Ensure all required fields are present and have correct data types
+    required_fields = ['similarity', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+    for field in required_fields:
+        if field not in subscores:
+            logger.error(f"[ERROR] Missing required field '{field}' in subscores: {list(subscores.keys())}")
+            subscores[field] = 0  # Default value
+        else:
+            # Ensure the value is an integer
+            if not isinstance(subscores[field], int):
+                logger.warning(f"[WARNING] Field '{field}' is not int: {type(subscores[field])} = {subscores[field]}")
+                subscores[field] = int(round(subscores[field])) if subscores[field] is not None else 0
+    
     return ThumbnailScore(
         id=thumb_id,
         ctr_score=round(prediction['ctr_score'], 1),
@@ -1166,9 +1178,18 @@ def explain(results: List[ThumbnailScore], winner_id: str) -> str:
     
     # Find strongest sub-scores
     subscores = winner.subscores.dict()
+    
+    # Safety check: ensure all required fields are present
+    required_fields = ['similarity', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+    for field in required_fields:
+        if field not in subscores:
+            logger.error(f"[ERROR] Missing field '{field}' in winner.subscores: {list(subscores.keys())}")
+            subscores[field] = 0
+    
     top_scores = sorted(subscores.items(), key=lambda x: x[1], reverse=True)[:3]
     
     score_names = {
+        "similarity": "similarity to top performers",
         "clarity": "text clarity",
         "subject_prominence": "face/subject prominence",
         "contrast_pop": "color contrast",
