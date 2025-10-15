@@ -30,7 +30,7 @@ def load_clip_model():
             raise
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    return _clip_model, _clip_preprocess, device
+    return _clip_model, _clip_preprocess
 
 def clip_encode(image: Union[Image.Image, bytes, np.ndarray]) -> np.ndarray:
     """
@@ -44,7 +44,8 @@ def clip_encode(image: Union[Image.Image, bytes, np.ndarray]) -> np.ndarray:
     """
     try:
         # Load CLIP model
-        model, preprocess, device = load_clip_model()
+        model, preprocess = load_clip_model()
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         # Convert input to PIL Image if needed
         if isinstance(image, bytes):

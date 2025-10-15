@@ -486,8 +486,8 @@ def extract_face_features(image: Image.Image) -> Dict[str, Any]:
                     face_size = bbox.width * bbox.height
                     face_sizes.append(face_size)
                 
-                # Get dominant face size
-                dominant_face_size = max(face_sizes) if face_sizes else 0
+                # Get dominant face size (convert to percentage)
+                dominant_face_size = max(face_sizes) * 100 if face_sizes else 0
                 face_count = len(results.detections)
                 
                 # Get emotions if emotion model is available
@@ -560,7 +560,7 @@ def extract_face_features(image: Image.Image) -> Dict[str, Any]:
                 
                 # Intelligent face size estimation
                 base_face_size = face_area_ratio * 3.0  # More generous multiplier
-                estimated_face_size = min(0.35, max(0.15, base_face_size * brightness_factor * variance_factor))
+                estimated_face_size = min(35, max(15, base_face_size * brightness_factor * variance_factor * 100))  # Convert to percentage
                 estimated_face_count = 1  # Assume there's a face
                 
                 # Intelligent emotion estimation based on multiple factors
@@ -875,11 +875,11 @@ async def model_predict(features: Dict[str, Any], niche: str = "tech") -> Dict[s
     face_size = faces['dominant_face_size']
     face_count = faces.get('face_count', 0)
     
-    if face_size >= 0.25:  # 25%+ of frame
+    if face_size >= 25:  # 25%+ of frame
         prominence_score = 95  # Excellent
-    elif face_size >= 0.15:  # 15-25%
+    elif face_size >= 15:  # 15-25%
         prominence_score = 85  # Good
-    elif face_size >= 0.08:  # 8-15%
+    elif face_size >= 8:  # 8-15%
         prominence_score = 75  # Average
     elif face_size > 0 or face_count > 0:  # Small face detected
         prominence_score = 65  # Poor but present
@@ -960,7 +960,7 @@ async def model_predict(features: Dict[str, Any], niche: str = "tech") -> Dict[s
         "similarity": 0.30,    # Reduced from 35% to prevent similarity dominance
         "power_words": 0.10,   # Language quality
         "clarity": 0.22,       # Increased from 20% - text clarity is crucial
-        "color_pop": 0.15,     # Visual appeal
+        "contrast_pop": 0.15,     # Visual appeal - Fixed key name
         "emotion": 0.10,       # Emotional impact
         "hierarchy": 0.13      # Increased from 10% - visual structure important
     }
@@ -970,7 +970,7 @@ async def model_predict(features: Dict[str, Any], niche: str = "tech") -> Dict[s
         "similarity": similarity_score,
         "power_words": power_word_score,  # NEW!
         "clarity": clarity_score,
-        "color_pop": contrast_score,
+        "contrast_pop": contrast_score,  # Fixed key name to match SubScores
         "emotion": emotion_score,
         "hierarchy": hierarchy_score
     }
@@ -1083,11 +1083,14 @@ async def model_predict(features: Dict[str, Any], niche: str = "tech") -> Dict[s
         "brain_weighted": brain_weighted_score if brain_weighted_score else amplify_score(similarity_score),  # Fallback to similarity
         "clarity": amplify_score(clarity_score),
         "subject_prominence": amplify_score(prominence_score),
-        "color_pop": amplify_score(contrast_score),
+        "contrast_pop": amplify_score(contrast_score),
         "emotion": amplify_score(emotion_score),
         "hierarchy": amplify_score(hierarchy_score),
         "title_match": amplify_score(similarity_score)  # Use similarity as title match proxy
     }
+    
+    # DEBUG: Log the subscores dictionary
+    logger.info(f"[DEBUG] amplified_subscores keys: {list(amplified_subscores.keys())}")
     
     # 8. Enhanced logging for debugging
     logger.info(f"[SCORE] Niche '{niche}' - Raw: {raw_ctr_score:.1f} → Final: {final_score}")
@@ -1168,7 +1171,7 @@ def explain(results: List[ThumbnailScore], winner_id: str) -> str:
     score_names = {
         "clarity": "text clarity",
         "subject_prominence": "face/subject prominence",
-        "color_pop": "color contrast",
+        "contrast_pop": "color contrast",
         "emotion": "emotional appeal",
         "hierarchy": "visual hierarchy",
         "title_match": "title alignment"
@@ -1193,28 +1196,33 @@ async def startup_event():
     # Initialize models
     pipeline.initialize()
     
+    # TEMPORARILY DISABLED FOR DEBUGGING
+    logger.info("[DEBUG] Temporarily disabling Brain and FAISS for debugging")
+    global youtube_brain
+    youtube_brain = None
+    
     # Initialize YouTube Intelligence Brain
-    logger.info("[BRAIN] Initializing YouTube Intelligence Brain...")
-    try:
-        await initialize_youtube_brain()
-        logger.info("[BRAIN] ✅ YouTube Intelligence Brain initialized successfully")
-    except Exception as e:
-        logger.error(f"[BRAIN] ✗ Failed to initialize Brain: {e}")
-        logger.warning("[BRAIN] Continuing without Brain - scoring will use FAISS + visual analysis only")
-        global youtube_brain
-        youtube_brain = None
+    # logger.info("[BRAIN] Initializing YouTube Intelligence Brain...")
+    # try:
+    #     await initialize_youtube_brain()
+    #     logger.info("[BRAIN] ✅ YouTube Intelligence Brain initialized successfully")
+    # except Exception as e:
+    #     logger.error(f"[BRAIN] ✗ Failed to initialize Brain: {e}")
+    #     logger.warning("[BRAIN] Continuing without Brain - scoring will use FAISS + visual analysis only")
+    #     global youtube_brain
+    #     youtube_brain = None
     
     # Load FAISS indices for similarity scoring
-    logger.info("=" * 70)
-    logger.info("[FAISS] Loading FAISS indices for similarity scoring...")
-    logger.info("=" * 70)
+    # logger.info("=" * 70)
+    # logger.info("[FAISS] Loading FAISS indices for similarity scoring...")
+    # logger.info("=" * 70)
     
-    try:
-        load_indices()  # Load all available FAISS indices into memory
-        logger.info("[FAISS] ✓ Index loading completed successfully")
-    except Exception as e:
-        logger.error(f"[FAISS] ✗ Failed to load indices: {e}")
-        logger.warning("[FAISS] Continuing without FAISS - will use fallback scoring")
+    # try:
+    #     load_indices()  # Load all available FAISS indices into memory
+    #     logger.info("[FAISS] ✓ Index loading completed successfully")
+    # except Exception as e:
+    #     logger.error(f"[FAISS] ✗ Failed to load indices: {e}")
+    #     logger.warning("[FAISS] Continuing without FAISS - will use fallback scoring")
     
     if is_cache_ready():
         cache_stats = get_cache_stats()
@@ -1639,15 +1647,23 @@ async def score(req: ScoreRequest):
         for thumb in req.thumbnails:
             print(f"[Inference] Analyzing thumbnail {thumb.id} for niche '{niche}'...")
             
-            # 1. Extract features
-            features = extract_features(thumb.url, req.title)
-            
-            # 2. Run hybrid model prediction with niche
-            prediction = await model_predict(features, niche)
-            
-            # 3. Format with explanations
-            result = pred_with_explanations(thumb.id, features, prediction)
-            results.append(result)
+            try:
+                # 1. Extract features
+                features = extract_features(thumb.url, req.title)
+                print(f"[Inference] Features extracted successfully")
+                
+                # 2. Run hybrid model prediction with niche
+                prediction = await model_predict(features, niche)
+                print(f"[Inference] Prediction completed, subscores keys: {list(prediction['subscores'].keys())}")
+                
+                # 3. Format with explanations
+                result = pred_with_explanations(thumb.id, features, prediction)
+                results.append(result)
+            except Exception as e:
+                print(f"[Inference] Error: {e}")
+                import traceback
+                traceback.print_exc()
+                raise
         
         # 4. Choose winner with visual tie-breaker when close
         results.sort(key=lambda r: r.ctr_score, reverse=True)
