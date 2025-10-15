@@ -1219,33 +1219,30 @@ async def startup_event():
     # Initialize models
     pipeline.initialize()
     
-    # TEMPORARILY DISABLED FOR DEBUGGING
-    logger.info("[DEBUG] Temporarily disabling Brain and FAISS for debugging")
+    # Initialize Brain and FAISS
     global youtube_brain
-    youtube_brain = None
-    
     # Initialize YouTube Intelligence Brain
-    # logger.info("[BRAIN] Initializing YouTube Intelligence Brain...")
-    # try:
-    #     await initialize_youtube_brain()
-    #     logger.info("[BRAIN] ✅ YouTube Intelligence Brain initialized successfully")
-    # except Exception as e:
-    #     logger.error(f"[BRAIN] ✗ Failed to initialize Brain: {e}")
-    #     logger.warning("[BRAIN] Continuing without Brain - scoring will use FAISS + visual analysis only")
-    #     global youtube_brain
-    #     youtube_brain = None
+    logger.info("[BRAIN] Initializing YouTube Intelligence Brain...")
+    try:
+        await initialize_youtube_brain()
+        logger.info("[BRAIN] ✅ YouTube Intelligence Brain initialized successfully")
+    except Exception as e:
+        logger.error(f"[BRAIN] ✗ Failed to initialize Brain: {e}")
+        logger.warning("[BRAIN] Continuing without Brain - scoring will use FAISS + visual analysis only")
+        global youtube_brain
+        youtube_brain = None
     
     # Load FAISS indices for similarity scoring
-    # logger.info("=" * 70)
-    # logger.info("[FAISS] Loading FAISS indices for similarity scoring...")
-    # logger.info("=" * 70)
+    logger.info("=" * 70)
+    logger.info("[FAISS] Loading FAISS indices for similarity scoring...")
+    logger.info("=" * 70)
     
-    # try:
-    #     load_indices()  # Load all available FAISS indices into memory
-    #     logger.info("[FAISS] ✓ Index loading completed successfully")
-    # except Exception as e:
-    #     logger.error(f"[FAISS] ✗ Failed to load indices: {e}")
-    #     logger.warning("[FAISS] Continuing without FAISS - will use fallback scoring")
+    try:
+        load_indices()  # Load all available FAISS indices into memory
+        logger.info("[FAISS] ✓ Index loading completed successfully")
+    except Exception as e:
+        logger.error(f"[FAISS] ✗ Failed to load indices: {e}")
+        logger.warning("[FAISS] Continuing without FAISS - will use fallback scoring")
     
     if is_cache_ready():
         cache_stats = get_cache_stats()
