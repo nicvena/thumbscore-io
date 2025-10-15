@@ -29,7 +29,7 @@ INDEX_CACHE_DIR = os.getenv("INDEX_CACHE_DIR", "./indices")
 EMBEDDING_DIM = 768  # CLIP ViT-L/14 embedding dimension
 
 # Niche categories
-NICHES = ["tech", "gaming", "education", "entertainment", "people"]
+NICHES = ["tech", "gaming", "education", "entertainment", "people", "business"]
 
 
 class FAISSIndexManager:

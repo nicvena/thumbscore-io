@@ -23,7 +23,7 @@ FAISS_INDEX_PATH = os.getenv("FAISS_INDEX_PATH", "faiss_indices")
 EMBEDDING_DIM = 768  # CLIP ViT-L/14 dimension
 
 # Niche categories
-NICHES = ["tech", "gaming", "education", "entertainment", "people"]
+NICHES = ["tech", "gaming", "education", "entertainment", "people", "business"]
 
 
 class FAISSIndexBuilder:
