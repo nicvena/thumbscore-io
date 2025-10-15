@@ -24,15 +24,23 @@ export async function POST(request: NextRequest) {
     const sessionId = randomUUID();
     const uploadResults = [];
 
-    // Simulate file processing (in real app, upload to S3)
+    // Convert files to base64 for backend processing
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const fileName = `${sessionId}-thumb${i + 1}-${file.name}`;
       
-      // Simulate processing delay
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Convert file to base64
+      const arrayBuffer = await file.arrayBuffer();
+      const base64 = Buffer.from(arrayBuffer).toString('base64');
+      const dataUrl = `data:${file.type};base64,${base64}`;
       
-      uploadResults.push({ fileName, originalName: file.name });
+      uploadResults.push({ 
+        fileName, 
+        originalName: file.name,
+        dataUrl: dataUrl,
+        mimeType: file.type,
+        size: file.size
+      });
     }
 
     // Return session data for frontend to handle analysis

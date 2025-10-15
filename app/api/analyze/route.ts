@@ -417,9 +417,10 @@ export async function POST(request: NextRequest) {
       console.log('🔄 Proxying to fixed Python server...');
       
       // Convert thumbnails to the format expected by Python server
+      // Use the actual base64 data URLs from the upload
       const pythonThumbnails = thumbnails.map((thumb: any, index: number) => ({
         id: `thumb${index + 1}`,
-        url: `https://example.com/${thumb.fileName || thumb.originalName || `thumb${index + 1}.jpg`}`
+        url: thumb.dataUrl || `data:image/jpeg;base64,placeholder_${index + 1}`
       }));
 
       const pythonRequest = {
@@ -524,14 +525,17 @@ export async function POST(request: NextRequest) {
         throw new Error(`Python server returned ${pythonResponse.status}`);
       }
     } catch (pythonError) {
-      console.error('❌ Failed to connect to Python server, falling back to mock:', pythonError);
+      console.error('❌ Failed to connect to Python server:', pythonError);
       
-      // Fallback to mock data if Python server is unavailable
-      const mockThumbnails = thumbnails.length > 0 ? thumbnails : Array.from({ length: 3 }, (_, i) => ({
-        fileName: `${sessionId}-thumb${i + 1}-mock.jpg`,
-        originalName: `thumbnail${i + 1}.jpg`
-      }));
-      return generateAnalysis(sessionId, mockThumbnails, title, niche);
+      // DO NOT fall back to mock data - return error instead
+      return NextResponse.json(
+        { 
+          error: 'Backend service unavailable', 
+          details: 'Python scoring service is not responding. Please try again later.',
+          pythonError: pythonError.message 
+        },
+        { status: 503 }
+      );
     }
   } catch (error) {
     console.error('Analysis error:', error);

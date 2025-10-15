@@ -1,0 +1,545 @@
+INFO:     Will watch for changes in these directories: ['/Users/nicvenettacci/Desktop/Thumbnail Lab/thumbnail-lab/python-service']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [28871] using WatchFiles
+INFO:faiss.loader:Loading faiss with AVX2 support.
+INFO:faiss.loader:Successfully loaded faiss with AVX2 support.
+INFO:app.determinism:[DETERMINISTIC] Initializing deterministic mode
+INFO:app.determinism:[DETERMINISTIC] Setting seeds to 42
+INFO:app.determinism:[DETERMINISTIC] PyTorch seeds set
+INFO:app.determinism:[DETERMINISTIC] Cache initialized at deterministic_cache
+INFO:app.determinism:[DETERMINISTIC] Global normalizer initialized
+INFO:app.main:[DETERMINISTIC] Mode: ENABLED
+INFO:app.main:[DETERMINISTIC] Score version: v1.4-faiss-hybrid
+INFO:app.main:[DETERMINISTIC] Model version: clip-vit-l14-v1.4-faiss-hybrid
+INFO:     Started server process [28885]
+INFO:     Waiting for application startup.
+INFO:app.main:[Thumbscore.io] Starting up AI thumbnail scoring service...
+INFO:app.main:[STARTUP] Temporarily skipping model initialization for faster startup...
+INFO:app.main:[STARTUP] Models will be lazy-loaded on first request
+INFO:app.main:[STARTUP] Temporarily skipping Brain initialization...
+INFO:app.main:[STARTUP] Temporarily skipping FAISS initialization...
+INFO:app.main:[FAISS] ⚠️ FAISS temporarily disabled for debugging
+INFO:app.main:======================================================================
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Collect thumbnails and rebuild FAISS indices" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:Scheduler started:
+INFO:app.main:  - Library refresh + FAISS index rebuilding: 3:00 AM Hobart time daily
+INFO:     Application startup complete.
+[ModelPipeline] Initializing on device: cpu
+INFO:     127.0.0.1:59707 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59770 - "GET / HTTP/1.1" 200 OK
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 3670379100
+INFO:app.main:[POWER_WORDS] Niche 'tech': 50.0/100 - ❌ Generic text won't drive clicks. Try: INSANE [Topic] REVEALED - You Won't Believe This!
+WARNING:app.main:[FAISS] Cache is empty - no indices loaded
+WARNING:app.faiss_cache:[FAISS] Index for tech not found in cache
+WARNING:app.ref_library:FAISS index for tech not found in cache
+WARNING:app.ref_library:FAISS index not available for tech
+INFO:app.ref_library:FAISS not available for tech, using Supabase fallback
+INFO:app.ref_library:Using Supabase fallback for tech similarity
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/rpc/match_thumbnails "HTTP/1.1 401 Unauthorized"
+ERROR:app.ref_library:Supabase fallback failed for tech: {'message': 'Invalid API key', 'hint': 'Double check your Supabase `anon` or `service_role` API key.'}
+WARNING:app.ref_library:All similarity methods failed for tech, returning None for caller handling
+WARNING:app.main:[SIMILARITY] Niche 'tech': 75.0 (from baseline - FAISS unavailable) ⚠️
+INFO:app.main:[MODEL_STATUS] OCR detection: fallback, Face detection: fallback
+INFO:app.main:[SCORING] Raw score: 80.2, Amplified score: 84
+INFO:app.main:[DEBUG] amplified_subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+INFO:app.main:[SCORE] Niche 'tech' - Raw: 80.2 → Final: 84
+INFO:app.main:[SUBS] Sim: 75→82, Power: 50→69, Clarity: 95→92
+INFO:app.main:[DETERMINISTIC] Cached score for niche 'tech'
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 3670379100
+INFO:app.main:[DETERMINISTIC] Cache hit for niche 'tech' - returning cached score
+[Inference] Processing 2 thumbnails for: 'Amazing Tech Tutorial - How To Fix Your PC'
+[Inference] Analyzing thumbnail thumb1 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Analyzing thumbnail thumb2 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Completed in 800ms. Winner: thumb1 (84.0%)
+INFO:     127.0.0.1:59772 - "POST /v1/score HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60200 - "GET / HTTP/1.1" 200 OK
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 3670379100
+INFO:app.main:[DETERMINISTIC] Cache hit for niche 'tech' - returning cached score
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 3670379100
+INFO:app.main:[DETERMINISTIC] Cache hit for niche 'tech' - returning cached score
+[Inference] Processing 2 thumbnails for: 'Amazing Tech Tutorial - How To Fix Your PC'
+[Inference] Analyzing thumbnail thumb1 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Analyzing thumbnail thumb2 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Completed in 181ms. Winner: thumb1 (84.0%)
+INFO:     127.0.0.1:60202 - "POST /v1/score HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'test_base64.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.main:[Thumbscore.io] Shutting down AI thumbnail scoring service...
+INFO:apscheduler.scheduler:Scheduler has been shut down
+INFO:     Application shutdown complete.
+INFO:     Finished server process [28885]
+INFO:faiss.loader:Loading faiss with AVX2 support.
+INFO:faiss.loader:Successfully loaded faiss with AVX2 support.
+WARNING:  WatchFiles detected changes in 'minimal_server.py'. Reloading...
+INFO:faiss.loader:Loading faiss with AVX2 support.
+INFO:faiss.loader:Successfully loaded faiss with AVX2 support.
+INFO:app.determinism:[DETERMINISTIC] Initializing deterministic mode
+INFO:app.determinism:[DETERMINISTIC] Setting seeds to 42
+INFO:app.determinism:[DETERMINISTIC] PyTorch seeds set
+INFO:app.determinism:[DETERMINISTIC] Cache initialized at deterministic_cache
+INFO:app.determinism:[DETERMINISTIC] Global normalizer initialized
+INFO:app.main:[DETERMINISTIC] Mode: ENABLED
+INFO:app.main:[DETERMINISTIC] Score version: v1.4-faiss-hybrid
+INFO:app.main:[DETERMINISTIC] Model version: clip-vit-l14-v1.4-faiss-hybrid
+INFO:     Started server process [29225]
+INFO:     Waiting for application startup.
+INFO:app.main:[Thumbscore.io] Starting up AI thumbnail scoring service...
+INFO:app.main:[STARTUP] Temporarily skipping model initialization for faster startup...
+INFO:app.main:[STARTUP] Models will be lazy-loaded on first request
+INFO:app.main:[STARTUP] Temporarily skipping Brain initialization...
+INFO:app.main:[STARTUP] Temporarily skipping FAISS initialization...
+INFO:app.main:[FAISS] ⚠️ FAISS temporarily disabled for debugging
+INFO:app.main:======================================================================
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Collect thumbnails and rebuild FAISS indices" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:Scheduler started:
+INFO:app.main:  - Library refresh + FAISS index rebuilding: 3:00 AM Hobart time daily
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'create_test_image.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.main:[Thumbscore.io] Shutting down AI thumbnail scoring service...
+INFO:apscheduler.scheduler:Scheduler has been shut down
+INFO:     Application shutdown complete.
+INFO:     Finished server process [29225]
+[ModelPipeline] Initializing on device: cpu
+INFO:faiss.loader:Loading faiss with AVX2 support.
+INFO:faiss.loader:Successfully loaded faiss with AVX2 support.
+INFO:app.determinism:[DETERMINISTIC] Initializing deterministic mode
+INFO:app.determinism:[DETERMINISTIC] Setting seeds to 42
+INFO:app.determinism:[DETERMINISTIC] PyTorch seeds set
+INFO:app.determinism:[DETERMINISTIC] Cache initialized at deterministic_cache
+INFO:app.determinism:[DETERMINISTIC] Global normalizer initialized
+INFO:app.main:[DETERMINISTIC] Mode: ENABLED
+INFO:app.main:[DETERMINISTIC] Score version: v1.4-faiss-hybrid
+INFO:app.main:[DETERMINISTIC] Model version: clip-vit-l14-v1.4-faiss-hybrid
+INFO:     Started server process [29240]
+INFO:     Waiting for application startup.
+INFO:app.main:[Thumbscore.io] Starting up AI thumbnail scoring service...
+INFO:app.main:[STARTUP] Temporarily skipping model initialization for faster startup...
+INFO:app.main:[STARTUP] Models will be lazy-loaded on first request
+INFO:app.main:[STARTUP] Temporarily skipping Brain initialization...
+INFO:app.main:[STARTUP] Temporarily skipping FAISS initialization...
+INFO:app.main:[FAISS] ⚠️ FAISS temporarily disabled for debugging
+INFO:app.main:======================================================================
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Collect thumbnails and rebuild FAISS indices" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:Scheduler started:
+INFO:app.main:  - Library refresh + FAISS index rebuilding: 3:00 AM Hobart time daily
+INFO:     Application startup complete.
+[ModelPipeline] Initializing on device: cpu
+INFO:     127.0.0.1:60430 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60437 - "GET / HTTP/1.1" 200 OK
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 3670379100
+INFO:app.main:[DETERMINISTIC] Cache hit for niche 'tech' - returning cached score
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 3670379100
+INFO:app.main:[DETERMINISTIC] Cache hit for niche 'tech' - returning cached score
+[Inference] Processing 2 thumbnails for: 'Amazing Tech Tutorial - How To Fix Your PC'
+[Inference] Analyzing thumbnail thumb1 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Analyzing thumbnail thumb2 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Completed in 193ms. Winner: thumb1 (84.0%)
+INFO:     127.0.0.1:60439 - "POST /v1/score HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'app/main.py', 'test_e2e.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.main:[Thumbscore.io] Shutting down AI thumbnail scoring service...
+INFO:apscheduler.scheduler:Scheduler has been shut down
+INFO:     Application shutdown complete.
+INFO:     Finished server process [29240]
+INFO:faiss.loader:Loading faiss with AVX2 support.
+INFO:faiss.loader:Successfully loaded faiss with AVX2 support.
+INFO:app.determinism:[DETERMINISTIC] Initializing deterministic mode
+INFO:app.determinism:[DETERMINISTIC] Setting seeds to 42
+INFO:app.determinism:[DETERMINISTIC] PyTorch seeds set
+INFO:app.determinism:[DETERMINISTIC] Cache initialized at deterministic_cache
+INFO:app.determinism:[DETERMINISTIC] Global normalizer initialized
+INFO:app.main:[DETERMINISTIC] Mode: ENABLED
+INFO:app.main:[DETERMINISTIC] Score version: v1.4-faiss-hybrid
+INFO:app.main:[DETERMINISTIC] Model version: clip-vit-l14-v1.4-faiss-hybrid
+INFO:     Started server process [29326]
+INFO:     Waiting for application startup.
+INFO:app.main:[Thumbscore.io] Starting up AI thumbnail scoring service...
+INFO:app.main:[STARTUP] Temporarily skipping model initialization for faster startup...
+INFO:app.main:[STARTUP] Models will be lazy-loaded on first request
+INFO:app.main:[STARTUP] Temporarily skipping Brain initialization...
+INFO:app.main:[STARTUP] Temporarily skipping FAISS initialization...
+INFO:app.main:[FAISS] ⚠️ FAISS temporarily disabled for debugging
+INFO:app.main:======================================================================
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Collect thumbnails and rebuild FAISS indices" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:Scheduler started:
+INFO:app.main:  - Library refresh + FAISS index rebuilding: 3:00 AM Hobart time daily
+INFO:     Application startup complete.
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 105194767
+INFO:app.main:[POWER_WORDS] Niche 'tech': 50.0/100 - ❌ Generic text won't drive clicks. Try: INSANE [Topic] REVEALED - You Won't Believe This!
+WARNING:app.main:[FAISS] Cache is empty - no indices loaded
+WARNING:app.faiss_cache:[FAISS] Index for tech not found in cache
+WARNING:app.ref_library:FAISS index for tech not found in cache
+WARNING:app.ref_library:FAISS index not available for tech
+INFO:app.ref_library:FAISS not available for tech, using Supabase fallback
+INFO:app.ref_library:Using Supabase fallback for tech similarity
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 105194767
+INFO:app.main:[POWER_WORDS] Niche 'tech': 50.0/100 - ❌ Generic text won't drive clicks. Try: INSANE [Topic] REVEALED - You Won't Believe This!
+WARNING:app.main:[FAISS] Cache is empty - no indices loaded
+WARNING:app.faiss_cache:[FAISS] Index for tech not found in cache
+WARNING:app.ref_library:FAISS index for tech not found in cache
+WARNING:app.ref_library:FAISS index not available for tech
+INFO:app.ref_library:FAISS not available for tech, using Supabase fallback
+INFO:app.ref_library:Using Supabase fallback for tech similarity
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/rpc/match_thumbnails "HTTP/1.1 401 Unauthorized"
+ERROR:app.ref_library:Supabase fallback failed for tech: {'message': 'Invalid API key', 'hint': 'Double check your Supabase `anon` or `service_role` API key.'}
+WARNING:app.ref_library:All similarity methods failed for tech, returning None for caller handling
+WARNING:app.main:[SIMILARITY] Niche 'tech': 75.0 (from baseline - FAISS unavailable) ⚠️
+INFO:app.main:[MODEL_STATUS] OCR detection: fallback, Face detection: fallback
+INFO:app.main:[SCORING] Raw score: 79.4, Amplified score: 84
+INFO:app.main:[DEBUG] amplified_subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+INFO:app.main:[SCORE] Niche 'tech' - Raw: 79.4 → Final: 84
+INFO:app.main:[SUBS] Sim: 75→82, Power: 50→69, Clarity: 95→92
+INFO:app.main:[DETERMINISTIC] Cached score for niche 'tech'
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/rpc/match_thumbnails "HTTP/1.1 401 Unauthorized"
+ERROR:app.ref_library:Supabase fallback failed for tech: {'message': 'Invalid API key', 'hint': 'Double check your Supabase `anon` or `service_role` API key.'}
+WARNING:app.ref_library:All similarity methods failed for tech, returning None for caller handling
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 2972829540
+INFO:app.main:[POWER_WORDS] Niche 'tech': 50.0/100 - ❌ Generic text won't drive clicks. Try: INSANE [Topic] REVEALED - You Won't Believe This!
+WARNING:app.main:[FAISS] Cache is empty - no indices loaded
+WARNING:app.faiss_cache:[FAISS] Index for tech not found in cache
+WARNING:app.ref_library:FAISS index for tech not found in cache
+WARNING:app.ref_library:FAISS index not available for tech
+INFO:app.ref_library:FAISS not available for tech, using Supabase fallback
+INFO:app.ref_library:Using Supabase fallback for tech similarity
+WARNING:app.main:[SIMILARITY] Niche 'tech': 75.0 (from baseline - FAISS unavailable) ⚠️
+INFO:app.main:[MODEL_STATUS] OCR detection: fallback, Face detection: fallback
+INFO:app.main:[SCORING] Raw score: 79.4, Amplified score: 84
+INFO:app.main:[DEBUG] amplified_subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+INFO:app.main:[SCORE] Niche 'tech' - Raw: 79.4 → Final: 84
+INFO:app.main:[SUBS] Sim: 75→82, Power: 50→69, Clarity: 95→92
+INFO:app.main:[DETERMINISTIC] Cached score for niche 'tech'
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/rpc/match_thumbnails "HTTP/1.1 401 Unauthorized"
+ERROR:app.ref_library:Supabase fallback failed for tech: {'message': 'Invalid API key', 'hint': 'Double check your Supabase `anon` or `service_role` API key.'}
+WARNING:app.ref_library:All similarity methods failed for tech, returning None for caller handling
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 2972829540
+INFO:app.main:[POWER_WORDS] Niche 'tech': 50.0/100 - ❌ Generic text won't drive clicks. Try: INSANE [Topic] REVEALED - You Won't Believe This!
+WARNING:app.main:[FAISS] Cache is empty - no indices loaded
+WARNING:app.faiss_cache:[FAISS] Index for tech not found in cache
+WARNING:app.ref_library:FAISS index for tech not found in cache
+WARNING:app.ref_library:FAISS index not available for tech
+INFO:app.ref_library:FAISS not available for tech, using Supabase fallback
+INFO:app.ref_library:Using Supabase fallback for tech similarity
+WARNING:app.main:[SIMILARITY] Niche 'tech': 75.0 (from baseline - FAISS unavailable) ⚠️
+INFO:app.main:[MODEL_STATUS] OCR detection: fallback, Face detection: fallback
+INFO:app.main:[SCORING] Raw score: 79.4, Amplified score: 84
+INFO:app.main:[DEBUG] amplified_subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+INFO:app.main:[SCORE] Niche 'tech' - Raw: 79.4 → Final: 84
+INFO:app.main:[SUBS] Sim: 75→82, Power: 50→69, Clarity: 95→92
+INFO:app.main:[DETERMINISTIC] Cached score for niche 'tech'
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/rpc/match_thumbnails "HTTP/1.1 401 Unauthorized"
+ERROR:app.ref_library:Supabase fallback failed for tech: {'message': 'Invalid API key', 'hint': 'Double check your Supabase `anon` or `service_role` API key.'}
+WARNING:app.ref_library:All similarity methods failed for tech, returning None for caller handling
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 869851645
+INFO:app.main:[POWER_WORDS] Niche 'tech': 50.0/100 - ❌ Generic text won't drive clicks. Try: INSANE [Topic] REVEALED - You Won't Believe This!
+WARNING:app.main:[FAISS] Cache is empty - no indices loaded
+WARNING:app.faiss_cache:[FAISS] Index for tech not found in cache
+WARNING:app.ref_library:FAISS index for tech not found in cache
+WARNING:app.ref_library:FAISS index not available for tech
+INFO:app.ref_library:FAISS not available for tech, using Supabase fallback
+INFO:app.ref_library:Using Supabase fallback for tech similarity
+WARNING:app.main:[SIMILARITY] Niche 'tech': 75.0 (from baseline - FAISS unavailable) ⚠️
+INFO:app.main:[MODEL_STATUS] OCR detection: fallback, Face detection: fallback
+INFO:app.main:[SCORING] Raw score: 79.4, Amplified score: 84
+INFO:app.main:[DEBUG] amplified_subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+INFO:app.main:[SCORE] Niche 'tech' - Raw: 79.4 → Final: 84
+INFO:app.main:[SUBS] Sim: 75→82, Power: 50→69, Clarity: 95→92
+INFO:app.main:[DETERMINISTIC] Cached score for niche 'tech'
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/rpc/match_thumbnails "HTTP/1.1 401 Unauthorized"
+ERROR:app.ref_library:Supabase fallback failed for tech: {'message': 'Invalid API key', 'hint': 'Double check your Supabase `anon` or `service_role` API key.'}
+WARNING:app.ref_library:All similarity methods failed for tech, returning None for caller handling
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 869851645
+INFO:app.main:[POWER_WORDS] Niche 'tech': 50.0/100 - ❌ Generic text won't drive clicks. Try: INSANE [Topic] REVEALED - You Won't Believe This!
+WARNING:app.main:[FAISS] Cache is empty - no indices loaded
+WARNING:app.faiss_cache:[FAISS] Index for tech not found in cache
+WARNING:app.ref_library:FAISS index for tech not found in cache
+WARNING:app.ref_library:FAISS index not available for tech
+WARNING:app.main:[SIMILARITY] Niche 'tech': 75.0 (from baseline - FAISS unavailable) ⚠️
+INFO:app.main:[MODEL_STATUS] OCR detection: fallback, Face detection: fallback
+INFO:app.main:[SCORING] Raw score: 79.4, Amplified score: 84
+INFO:app.ref_library:FAISS not available for tech, using Supabase fallback
+INFO:app.main:[DEBUG] amplified_subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+INFO:app.main:[SCORE] Niche 'tech' - Raw: 79.4 → Final: 84
+INFO:app.ref_library:Using Supabase fallback for tech similarity
+INFO:app.main:[SUBS] Sim: 75→82, Power: 50→69, Clarity: 95→92
+INFO:app.main:[DETERMINISTIC] Cached score for niche 'tech'
+[ModelPipeline] Initializing on device: cpu
+[Inference] Processing 3 thumbnails for: 'Sample Video Title'
+[Inference] Analyzing thumbnail thumb1 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Processing 3 thumbnails for: 'Sample Video Title'
+[Inference] Analyzing thumbnail thumb1 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Analyzing thumbnail thumb2 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Analyzing thumbnail thumb2 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Analyzing thumbnail thumb3 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Analyzing thumbnail thumb3 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Completed in 3201ms. Winner: thumb1 (84.0%)
+INFO:     127.0.0.1:60627 - "POST /v1/score HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/rpc/match_thumbnails "HTTP/1.1 401 Unauthorized"
+ERROR:app.ref_library:Supabase fallback failed for tech: {'message': 'Invalid API key', 'hint': 'Double check your Supabase `anon` or `service_role` API key.'}
+WARNING:app.ref_library:All similarity methods failed for tech, returning None for caller handling
+WARNING:app.main:[SIMILARITY] Niche 'tech': 75.0 (from baseline - FAISS unavailable) ⚠️
+INFO:app.main:[MODEL_STATUS] OCR detection: fallback, Face detection: fallback
+INFO:app.main:[SCORING] Raw score: 79.4, Amplified score: 84
+INFO:app.main:[DEBUG] amplified_subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+INFO:app.main:[SCORE] Niche 'tech' - Raw: 79.4 → Final: 84
+INFO:app.main:[SUBS] Sim: 75→82, Power: 50→69, Clarity: 95→92
+INFO:app.main:[DETERMINISTIC] Cached score for niche 'tech'
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Completed in 2836ms. Winner: thumb1 (84.0%)
+INFO:     127.0.0.1:60628 - "POST /v1/score HTTP/1.1" 200 OK
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 1376104312
+INFO:app.main:[POWER_WORDS] Niche 'tech': 50.0/100 - ❌ Generic text won't drive clicks. Try: INSANE [Topic] REVEALED - You Won't Believe This!
+WARNING:app.main:[FAISS] Cache is empty - no indices loaded
+WARNING:app.faiss_cache:[FAISS] Index for tech not found in cache
+WARNING:app.ref_library:FAISS index for tech not found in cache
+WARNING:app.ref_library:FAISS index not available for tech
+INFO:app.ref_library:FAISS not available for tech, using Supabase fallback
+INFO:app.ref_library:Using Supabase fallback for tech similarity
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/rpc/match_thumbnails "HTTP/1.1 401 Unauthorized"
+ERROR:app.ref_library:Supabase fallback failed for tech: {'message': 'Invalid API key', 'hint': 'Double check your Supabase `anon` or `service_role` API key.'}
+WARNING:app.ref_library:All similarity methods failed for tech, returning None for caller handling
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 1376104312
+INFO:app.main:[POWER_WORDS] Niche 'tech': 50.0/100 - ❌ Generic text won't drive clicks. Try: INSANE [Topic] REVEALED - You Won't Believe This!
+WARNING:app.main:[FAISS] Cache is empty - no indices loaded
+WARNING:app.faiss_cache:[FAISS] Index for tech not found in cache
+WARNING:app.ref_library:FAISS index for tech not found in cache
+WARNING:app.ref_library:FAISS index not available for tech
+INFO:app.ref_library:FAISS not available for tech, using Supabase fallback
+INFO:app.ref_library:Using Supabase fallback for tech similarity
+WARNING:app.main:[SIMILARITY] Niche 'tech': 75.0 (from baseline - FAISS unavailable) ⚠️
+INFO:app.main:[MODEL_STATUS] OCR detection: fallback, Face detection: fallback
+INFO:app.main:[SCORING] Raw score: 79.4, Amplified score: 84
+INFO:app.main:[DEBUG] amplified_subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+INFO:app.main:[SCORE] Niche 'tech' - Raw: 79.4 → Final: 84
+INFO:app.main:[SUBS] Sim: 75→82, Power: 50→69, Clarity: 95→92
+INFO:app.main:[DETERMINISTIC] Cached score for niche 'tech'
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/rpc/match_thumbnails "HTTP/1.1 401 Unauthorized"
+ERROR:app.ref_library:Supabase fallback failed for tech: {'message': 'Invalid API key', 'hint': 'Double check your Supabase `anon` or `service_role` API key.'}
+WARNING:app.ref_library:All similarity methods failed for tech, returning None for caller handling
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 146430332
+INFO:app.main:[POWER_WORDS] Niche 'tech': 50.0/100 - ❌ Generic text won't drive clicks. Try: INSANE [Topic] REVEALED - You Won't Believe This!
+WARNING:app.main:[FAISS] Cache is empty - no indices loaded
+WARNING:app.faiss_cache:[FAISS] Index for tech not found in cache
+WARNING:app.ref_library:FAISS index for tech not found in cache
+WARNING:app.ref_library:FAISS index not available for tech
+WARNING:app.main:[SIMILARITY] Niche 'tech': 75.0 (from baseline - FAISS unavailable) ⚠️
+INFO:app.ref_library:FAISS not available for tech, using Supabase fallback
+INFO:app.main:[MODEL_STATUS] OCR detection: fallback, Face detection: fallback
+INFO:app.ref_library:Using Supabase fallback for tech similarity
+INFO:app.main:[SCORING] Raw score: 79.4, Amplified score: 84
+INFO:app.main:[DEBUG] amplified_subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+INFO:app.main:[SCORE] Niche 'tech' - Raw: 79.4 → Final: 84
+INFO:app.main:[SUBS] Sim: 75→82, Power: 50→69, Clarity: 95→92
+INFO:app.main:[DETERMINISTIC] Cached score for niche 'tech'
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/rpc/match_thumbnails "HTTP/1.1 401 Unauthorized"
+ERROR:app.ref_library:Supabase fallback failed for tech: {'message': 'Invalid API key', 'hint': 'Double check your Supabase `anon` or `service_role` API key.'}
+WARNING:app.ref_library:All similarity methods failed for tech, returning None for caller handling
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 146430332
+INFO:app.main:[POWER_WORDS] Niche 'tech': 50.0/100 - ❌ Generic text won't drive clicks. Try: INSANE [Topic] REVEALED - You Won't Believe This!
+WARNING:app.main:[FAISS] Cache is empty - no indices loaded
+WARNING:app.faiss_cache:[FAISS] Index for tech not found in cache
+WARNING:app.ref_library:FAISS index for tech not found in cache
+WARNING:app.ref_library:FAISS index not available for tech
+WARNING:app.main:[SIMILARITY] Niche 'tech': 75.0 (from baseline - FAISS unavailable) ⚠️
+INFO:app.ref_library:FAISS not available for tech, using Supabase fallback
+INFO:app.main:[MODEL_STATUS] OCR detection: fallback, Face detection: fallback
+INFO:app.ref_library:Using Supabase fallback for tech similarity
+INFO:app.main:[SCORING] Raw score: 78.7, Amplified score: 83
+INFO:app.main:[DEBUG] amplified_subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+INFO:app.main:[SCORE] Niche 'tech' - Raw: 78.7 → Final: 83
+INFO:app.main:[SUBS] Sim: 75→82, Power: 50→69, Clarity: 95→92
+INFO:app.main:[DETERMINISTIC] Cached score for niche 'tech'
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/rpc/match_thumbnails "HTTP/1.1 401 Unauthorized"
+ERROR:app.ref_library:Supabase fallback failed for tech: {'message': 'Invalid API key', 'hint': 'Double check your Supabase `anon` or `service_role` API key.'}
+WARNING:app.ref_library:All similarity methods failed for tech, returning None for caller handling
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 4132281272
+INFO:app.main:[POWER_WORDS] Niche 'tech': 50.0/100 - ❌ Generic text won't drive clicks. Try: INSANE [Topic] REVEALED - You Won't Believe This!
+WARNING:app.main:[FAISS] Cache is empty - no indices loaded
+WARNING:app.faiss_cache:[FAISS] Index for tech not found in cache
+WARNING:app.ref_library:FAISS index for tech not found in cache
+WARNING:app.ref_library:FAISS index not available for tech
+WARNING:app.main:[SIMILARITY] Niche 'tech': 75.0 (from baseline - FAISS unavailable) ⚠️
+INFO:app.ref_library:FAISS not available for tech, using Supabase fallback
+INFO:app.main:[MODEL_STATUS] OCR detection: fallback, Face detection: fallback
+INFO:app.ref_library:Using Supabase fallback for tech similarity
+INFO:app.main:[SCORING] Raw score: 78.7, Amplified score: 83
+INFO:app.main:[DEBUG] amplified_subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+INFO:app.main:[SCORE] Niche 'tech' - Raw: 78.7 → Final: 83
+INFO:app.main:[SUBS] Sim: 75→82, Power: 50→69, Clarity: 95→92
+INFO:app.main:[DETERMINISTIC] Cached score for niche 'tech'
+INFO:app.main:[ocr_debug] OCR model available: False
+WARNING:app.main:[ocr_debug] OCR model is None - using intelligent fallback text detection
+INFO:app.main:[face_debug] Face model available: False
+INFO:app.main:[face_debug] Emotion model available: False
+WARNING:app.main:[face_debug] Face or emotion model is None - using intelligent fallback face detection
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/rpc/match_thumbnails "HTTP/1.1 401 Unauthorized"
+ERROR:app.ref_library:Supabase fallback failed for tech: {'message': 'Invalid API key', 'hint': 'Double check your Supabase `anon` or `service_role` API key.'}
+WARNING:app.ref_library:All similarity methods failed for tech, returning None for caller handling
+INFO:app.main:[CLIP] Generated deterministic embedding with seed 4132281272
+INFO:app.main:[POWER_WORDS] Niche 'tech': 50.0/100 - ❌ Generic text won't drive clicks. Try: INSANE [Topic] REVEALED - You Won't Believe This!
+WARNING:app.main:[FAISS] Cache is empty - no indices loaded
+WARNING:app.faiss_cache:[FAISS] Index for tech not found in cache
+WARNING:app.ref_library:FAISS index for tech not found in cache
+WARNING:app.ref_library:FAISS index not available for tech
+INFO:app.ref_library:FAISS not available for tech, using Supabase fallback
+INFO:app.ref_library:Using Supabase fallback for tech similarity
+WARNING:app.main:[SIMILARITY] Niche 'tech': 75.0 (from baseline - FAISS unavailable) ⚠️
+INFO:app.main:[MODEL_STATUS] OCR detection: fallback, Face detection: fallback
+INFO:app.main:[SCORING] Raw score: 80.2, Amplified score: 84
+INFO:app.main:[DEBUG] amplified_subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+INFO:app.main:[SCORE] Niche 'tech' - Raw: 80.2 → Final: 84
+INFO:app.main:[SUBS] Sim: 75→82, Power: 50→69, Clarity: 95→92
+INFO:app.main:[DETERMINISTIC] Cached score for niche 'tech'
+[Inference] Processing 3 thumbnails for: 'Sample Video Title'
+[Inference] Analyzing thumbnail thumb1 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Processing 3 thumbnails for: 'Sample Video Title'
+[Inference] Analyzing thumbnail thumb1 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Analyzing thumbnail thumb2 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Analyzing thumbnail thumb2 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Analyzing thumbnail thumb3 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Analyzing thumbnail thumb3 for niche 'tech'...
+[Inference] Features extracted successfully
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Completed in 4969ms. Winner: thumb3 (84.0%)
+INFO:     127.0.0.1:60820 - "POST /v1/score HTTP/1.1" 200 OK
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/rpc/match_thumbnails "HTTP/1.1 401 Unauthorized"
+ERROR:app.ref_library:Supabase fallback failed for tech: {'message': 'Invalid API key', 'hint': 'Double check your Supabase `anon` or `service_role` API key.'}
+WARNING:app.ref_library:All similarity methods failed for tech, returning None for caller handling
+WARNING:app.main:[SIMILARITY] Niche 'tech': 75.0 (from baseline - FAISS unavailable) ⚠️
+INFO:app.main:[MODEL_STATUS] OCR detection: fallback, Face detection: fallback
+INFO:app.main:[SCORING] Raw score: 80.2, Amplified score: 84
+INFO:app.main:[DEBUG] amplified_subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+INFO:app.main:[SCORE] Niche 'tech' - Raw: 80.2 → Final: 84
+INFO:app.main:[SUBS] Sim: 75→82, Power: 50→69, Clarity: 95→92
+INFO:app.main:[DETERMINISTIC] Cached score for niche 'tech'
+[Inference] Prediction completed, subscores keys: ['similarity', 'power_words', 'brain_weighted', 'clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+[Inference] Completed in 4534ms. Winner: thumb3 (84.0%)
+INFO:     127.0.0.1:60822 - "POST /v1/score HTTP/1.1" 200 OK

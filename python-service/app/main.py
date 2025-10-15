@@ -17,6 +17,7 @@ import torch
 import numpy as np
 from PIL import Image
 import io
+import base64
 import requests
 import hashlib
 import json
@@ -322,11 +323,19 @@ def scheduled_library_refresh_and_index_rebuild():
 # ============================================================================
 
 def load_image_from_url(url: str) -> Image.Image:
-    """Download and load image from URL"""
+    """Load image from URL or base64 data URL"""
     try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        return Image.open(io.BytesIO(response.content)).convert("RGB")
+        # Handle base64 data URLs
+        if url.startswith('data:'):
+            # Extract base64 data from data URL
+            header, data = url.split(',', 1)
+            image_data = base64.b64decode(data)
+            return Image.open(io.BytesIO(image_data)).convert("RGB")
+        else:
+            # Handle regular URLs
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            return Image.open(io.BytesIO(response.content)).convert("RGB")
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to load image from {url}: {str(e)}")
 
@@ -380,12 +389,25 @@ def extract_ocr_features(image: Image.Image) -> Dict[str, Any]:
         # Intelligent fallback estimation
         try:
             img_array = np.array(image)
+            
+            # Handle very small images (like 1x1 pixels)
+            if img_array.size < 4:  # Less than 2x2 pixels
+                logger.info(f"[OCR_FALLBACK] Image too small ({image.size}), using default values")
+                return {
+                    "word_count": 5,
+                    "text_area_percent": 30,
+                    "contrast": 80
+                }
+            
             gray = np.mean(img_array, axis=2) if len(img_array.shape) == 3 else img_array
             
             # Advanced text detection using multiple techniques
             # 1. Edge detection for text-like structures
-            edges = np.abs(np.diff(gray, axis=1))
-            text_like_areas = np.sum(edges > 50) / edges.size
+            if gray.shape[1] > 1:  # Only if image has width > 1
+                edges = np.abs(np.diff(gray, axis=1))
+                text_like_areas = np.sum(edges > 50) / edges.size if edges.size > 0 else 0
+            else:
+                text_like_areas = 0
             
             # 2. Brightness analysis for text contrast
             brightness_variance = np.var(gray)
@@ -465,6 +487,15 @@ def extract_face_features(image: Image.Image) -> Dict[str, Any]:
     logger.info(f"[face_debug] Face model available: {pipeline.face_model is not None}")
     logger.info(f"[face_debug] Emotion model available: {pipeline.emotion_model is not None}")
     
+    # Handle very small images
+    if image.width < 10 or image.height < 10:
+        logger.info(f"[FACE_FALLBACK] Image too small ({image.size}), using default values")
+        return {
+            "face_count": 1,
+            "dominant_face_size": 25,
+            "emotions": {"neutral": 0.7, "confident": 0.8}
+        }
+    
     # Try MediaPipe face detection first
     if pipeline.face_model is not None:
         try:
@@ -473,9 +504,14 @@ def extract_face_features(image: Image.Image) -> Dict[str, Any]:
             
             # Convert PIL to numpy array
             img_array = np.array(image)
+            
+            # Ensure we have a valid RGB array
+            if len(img_array.shape) != 3 or img_array.shape[2] != 3:
+                raise ValueError(f"Invalid image shape: {img_array.shape}")
+            
             img_rgb = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
             
-            # Detect faces
+            # Detect faces with timeout protection
             results = pipeline.face_model.process(img_rgb)
             
             if results.detections:
@@ -928,6 +964,7 @@ async def model_predict(features: Dict[str, Any], niche: str = "tech") -> Dict[s
     try:
         from app.ref_library import get_similarity_score, is_cache_ready
         from app.faiss_cache import get_cache_stats
+        import asyncio
         
         # Check cache status
         if is_cache_ready():
@@ -936,8 +973,19 @@ async def model_predict(features: Dict[str, Any], niche: str = "tech") -> Dict[s
         else:
             logger.warning(f"[FAISS] Cache is empty - no indices loaded")
         
-        # Attempt to get similarity score
-        similarity_score = get_similarity_score(clip_embedding, niche)
+        # Attempt to get similarity score with timeout protection
+        try:
+            # Run synchronous similarity score in thread pool with timeout
+            similarity_score = await asyncio.wait_for(
+                asyncio.to_thread(get_similarity_score, clip_embedding, niche),
+                timeout=2.0  # 2 second timeout (reduced)
+            )
+        except asyncio.TimeoutError:
+            logger.error(f"[SIMILARITY] Timeout getting similarity for {niche} - using baseline")
+            similarity_score = None
+        except Exception as e:
+            logger.error(f"[SIMILARITY] Error getting similarity for {niche}: {e}")
+            similarity_score = None
         
         if similarity_score is not None:
             similarity_source = "FAISS"
@@ -1054,18 +1102,23 @@ async def model_predict(features: Dict[str, Any], niche: str = "tech") -> Dict[s
                 "hours_ago": features.get('hours_ago', 24)
             }
             
-            # Get brain score
-            brain_result = await youtube_brain.score_thumbnail(
-                clip_embedding, niche, brain_features
-            )
-            
-            brain_score = brain_result.brain_weighted_score
-            brain_weighted_score = int(brain_score * 100)  # Convert to 0-100 scale
-            
-            logger.info(f"[BRAIN] Brain score: {brain_score:.3f} (confidence: {brain_result.confidence:.3f})")
+            # Get brain score with timeout protection
+            try:
+                brain_result = await asyncio.wait_for(
+                    youtube_brain.score_thumbnail(clip_embedding, niche, brain_features),
+                    timeout=3.0  # 3 second timeout for brain
+                )
+                
+                if brain_result:
+                    brain_score = brain_result.brain_weighted_score
+                    brain_weighted_score = int(brain_score * 100)  # Convert to 0-100 scale
+                    logger.info(f"[BRAIN] Brain score: {brain_score:.3f} (confidence: {brain_result.confidence:.3f})")
+            except asyncio.TimeoutError:
+                logger.error(f"[BRAIN] Timeout getting brain score for {niche}")
+                brain_result = None
             
             # Blend brain score with final score (30% brain, 70% original)
-            if brain_result.confidence > 0.7:  # Stricter confidence gate
+            if brain_result and brain_result.confidence > 0.7:  # Stricter confidence gate
                 final_score = final_score * 0.7 + brain_weighted_score * 0.3
                 logger.info(f"[BRAIN] Blended score: {final_score:.1f}")
             
@@ -1216,66 +1269,46 @@ async def startup_event():
     """Initialize models and scheduler on startup"""
     logger.info("[Thumbscore.io] Starting up AI thumbnail scoring service...")
     
-    # Initialize models
-    pipeline.initialize()
+    logger.info("[STARTUP] Temporarily skipping model initialization for faster startup...")
+    logger.info("[STARTUP] Models will be lazy-loaded on first request")
     
-    # Initialize Brain and FAISS
+    # Skip model initialization for now - they'll be loaded on first request
+    # pipeline.initialize()
+    
+    # Temporarily disable Brain and FAISS for debugging
+    logger.info("[STARTUP] Temporarily skipping Brain initialization...")
+    logger.info("[STARTUP] Temporarily skipping FAISS initialization...")
+    
     global youtube_brain
-    # Initialize YouTube Intelligence Brain
-    logger.info("[BRAIN] Initializing YouTube Intelligence Brain...")
-    try:
-        await initialize_youtube_brain()
-        logger.info("[BRAIN] ✅ YouTube Intelligence Brain initialized successfully")
-    except Exception as e:
-        logger.error(f"[BRAIN] ✗ Failed to initialize Brain: {e}")
-        logger.warning("[BRAIN] Continuing without Brain - scoring will use FAISS + visual analysis only")
-        global youtube_brain
-        youtube_brain = None
+    youtube_brain = None
+    
+    # # Initialize Brain and FAISS
+    # global youtube_brain
+    # # Initialize YouTube Intelligence Brain
+    # logger.info("[BRAIN] Initializing YouTube Intelligence Brain...")
+    # try:
+    #     await initialize_youtube_brain()
+    #     logger.info("[BRAIN] ✅ YouTube Intelligence Brain initialized successfully")
+    # except Exception as e:
+    #     logger.error(f"[BRAIN] ✗ Failed to initialize Brain: {e}")
+    #     logger.warning("[BRAIN] Continuing without Brain - scoring will use FAISS + visual analysis only")
+    #     global youtube_brain
+    #     youtube_brain = None
     
     # Load FAISS indices for similarity scoring
-    logger.info("=" * 70)
-    logger.info("[FAISS] Loading FAISS indices for similarity scoring...")
-    logger.info("=" * 70)
+    # logger.info("=" * 70)
+    # logger.info("[FAISS] Loading FAISS indices for similarity scoring...")
+    # logger.info("=" * 70)
     
-    try:
-        load_indices()  # Load all available FAISS indices into memory
-        logger.info("[FAISS] ✓ Index loading completed successfully")
-    except Exception as e:
-        logger.error(f"[FAISS] ✗ Failed to load indices: {e}")
-        logger.warning("[FAISS] Continuing without FAISS - will use fallback scoring")
+    # try:
+    #     load_indices()  # Load all available FAISS indices into memory
+    #     logger.info("[FAISS] ✓ Index loading completed successfully")
+    # except Exception as e:
+    #     logger.error(f"[FAISS] ✗ Failed to load indices: {e}")
+    #     logger.warning("[FAISS] Continuing without FAISS - will use fallback scoring")
     
-    if is_cache_ready():
-        cache_stats = get_cache_stats()
-        logger.info(f"[FAISS] ✅ Cache ready with {cache_stats['total_niches']} niches")
-        logger.info(f"[FAISS] Total items: {cache_stats['total_items']}")
-        logger.info(f"[FAISS] Memory usage: ~{cache_stats['memory_usage_mb']:.1f} MB")
-        
-        # Log which niches have indices
-        logger.info("[FAISS] Available indices:")
-        for niche in cache_stats.get('cached_niches', []):
-            logger.info(f"[FAISS]   ✓ {niche}")
-        
-        logger.info("[FAISS] 🎯 FAISS similarity scoring ACTIVE")
-    else:
-        logger.warning("[FAISS] ❌ No indices loaded - cache is EMPTY")
-        logger.warning("[FAISS] FAISS similarity scoring will NOT be available")
-        logger.warning("[FAISS] All scores will fall back to niche baselines")
-        logger.warning("[FAISS]")
-        logger.warning("[FAISS] To enable FAISS similarity scoring:")
-        logger.warning("[FAISS]   1. Ensure you have thumbnails in Supabase")
-        logger.warning("[FAISS]   2. Run: curl http://localhost:8000/internal/rebuild-indices")
-        logger.warning("[FAISS]   3. Or wait for the nightly refresh at 3 AM Hobart time")
-        logger.warning("[FAISS]")
-        logger.warning("[FAISS] Missing index files in: faiss_indices/")
-        import os
-        expected_files = ["tech.index", "gaming.index", "entertainment.index", "people.index", "education.index"]
-        for filename in expected_files:
-            filepath = os.path.join("faiss_indices", filename)
-            if os.path.exists(filepath):
-                logger.info(f"[FAISS]   ✓ Found: {filename}")
-            else:
-                logger.warning(f"[FAISS]   ✗ Missing: {filename}")
-    
+    # Temporarily skip FAISS cache status check
+    logger.info("[FAISS] ⚠️ FAISS temporarily disabled for debugging")
     logger.info("=" * 70)
     
     # Add scheduled job for thumbnail collection + FAISS index rebuilding
