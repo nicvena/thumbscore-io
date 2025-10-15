@@ -1190,6 +1190,8 @@ def explain(results: List[ThumbnailScore], winner_id: str) -> str:
     
     score_names = {
         "similarity": "similarity to top performers",
+        "power_words": "power word usage",
+        "brain_weighted": "AI intelligence score",
         "clarity": "text clarity",
         "subject_prominence": "face/subject prominence",
         "contrast_pop": "color contrast",
