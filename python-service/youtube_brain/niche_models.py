@@ -57,7 +57,7 @@ class NicheModelTrainer:
         if niche:
             niches = [niche]
         else:
-            niches = ["tech", "gaming", "education", "entertainment", "people", "music", "sports", "news", "comedy", "howto"]
+            niches = ["tech", "gaming", "education", "entertainment", "people", "business", "music", "sports", "news", "comedy", "howto"]
         
         performance_results = {}
         

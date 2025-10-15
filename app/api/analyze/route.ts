@@ -425,6 +425,7 @@ export async function POST(request: NextRequest) {
 
       const pythonRequest = {
         title: title || 'Sample Video Title',
+        category: niche || 'general',  // ✅ Send niche to Python backend
         thumbnails: pythonThumbnails
       };
 

@@ -44,6 +44,7 @@ NICHES = {
     "education": 27,      # Education
     "entertainment": 24,  # Entertainment
     "people": 22,         # People & Blogs
+    "business": 25,       # News & Politics (closest to business/finance)
     "travel": 19,         # Travel & Events
     "general": 10         # Music (used as general catch-all)
 }

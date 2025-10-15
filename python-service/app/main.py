@@ -135,6 +135,7 @@ class ScoreResponse(BaseModel):
     winner_id: str
     thumbnails: List[ThumbnailScore]
     explanation: str
+    niche: str  # ✅ Add niche to response
     metadata: Optional[Dict[str, Any]] = None
     # Deterministic scoring metadata
     scoring_metadata: Optional[Dict[str, Any]] = None
@@ -1750,6 +1751,7 @@ async def score(req: ScoreRequest):
             winner_id=winner_id,
             thumbnails=results,
             explanation=explanation,
+            niche=niche,  # ✅ Include niche in response
             metadata={
                 "processing_time_ms": round(duration),
                 "model_version": "1.0.0",

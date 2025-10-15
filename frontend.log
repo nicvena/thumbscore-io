@@ -371,3 +371,74 @@ Analyze API called with: {
  ✓ Compiled in 147ms (258 modules)
  GET /results?id=7f5419d1-62a5-4e24-ac55-2c1eb87958ac 200 in 47ms
  GET /results?id=7f5419d1-62a5-4e24-ac55-2c1eb87958ac 200 in 33ms
+ ✓ Compiled in 1215ms (660 modules)
+ GET /results?id=7f5419d1-62a5-4e24-ac55-2c1eb87958ac 200 in 456ms
+ ✓ Compiled in 836ms (258 modules)
+ GET /results?id=7f5419d1-62a5-4e24-ac55-2c1eb87958ac 200 in 157ms
+ ✓ Compiled in 261ms (258 modules)
+ ✓ Compiled in 532ms (258 modules)
+ GET /results?id=7f5419d1-62a5-4e24-ac55-2c1eb87958ac 200 in 819ms
+ ✓ Compiled in 442ms (258 modules)
+ GET /results?id=7f5419d1-62a5-4e24-ac55-2c1eb87958ac 200 in 576ms
+ GET /results?id=7f5419d1-62a5-4e24-ac55-2c1eb87958ac 200 in 94ms
+ ✓ Compiled in 551ms (258 modules)
+ GET /results?id=7f5419d1-62a5-4e24-ac55-2c1eb87958ac 200 in 226ms
+ ✓ Compiled in 532ms (258 modules)
+ ✓ Compiled in 403ms (258 modules)
+ GET /results?id=7f5419d1-62a5-4e24-ac55-2c1eb87958ac 200 in 633ms
+ GET /results?id=7f5419d1-62a5-4e24-ac55-2c1eb87958ac 200 in 157ms
+ ✓ Compiled in 247ms (258 modules)
+ GET /results?id=7f5419d1-62a5-4e24-ac55-2c1eb87958ac 200 in 84ms
+ GET /upload 200 in 86ms
+ ○ Compiling /api/usage ...
+ ✓ Compiled /api/usage in 728ms (422 modules)
+ GET /api/usage 200 in 1141ms
+ GET /api/usage 200 in 26ms
+ GET /api/usage 200 in 21ms
+ GET /api/usage 200 in 21ms
+ ✓ Compiled in 322ms (258 modules)
+ ✓ Compiled in 541ms (258 modules)
+ GET /upload 200 in 581ms
+ GET /upload 200 in 74ms
+ ✓ Compiled in 248ms (258 modules)
+ GET /upload 200 in 119ms
+ ✓ Compiled in 271ms (258 modules)
+ ✓ Compiled in 403ms (258 modules)
+ GET /upload 200 in 437ms
+ GET /upload 200 in 122ms
+ ✓ Compiled in 372ms (258 modules)
+ GET /upload 200 in 129ms
+ ✓ Compiled in 168ms (258 modules)
+ ✓ Compiled in 219ms (258 modules)
+ GET /upload 200 in 236ms
+ GET /upload 200 in 68ms
+ ✓ Compiled in 122ms (258 modules)
+ GET /upload 200 in 51ms
+ ✓ Compiled in 249ms (258 modules)
+ ✓ Compiled in 274ms (258 modules)
+ GET /upload 200 in 397ms
+ GET /upload 200 in 90ms
+ ✓ Compiled in 210ms (258 modules)
+ GET /upload 200 in 97ms
+ ✓ Compiled in 340ms (258 modules)
+ ✓ Compiled in 356ms (258 modules)
+ GET /upload 200 in 358ms
+ GET /upload 200 in 51ms
+ ✓ Compiled in 139ms (258 modules)
+ GET /upload 200 in 102ms
+ ✓ Compiled in 191ms (258 modules)
+ GET /upload 200 in 115ms
+ ✓ Compiled in 203ms (258 modules)
+ ✓ Compiled in 221ms (258 modules)
+ GET /upload 200 in 273ms
+ GET /upload 200 in 109ms
+ ✓ Compiled in 259ms (258 modules)
+ GET /upload 200 in 240ms
+ ✓ Compiled in 169ms (258 modules)
+ ✓ Compiled in 235ms (258 modules)
+ GET /upload 200 in 368ms
+ ✓ Compiled in 298ms (258 modules)
+ GET /upload 200 in 451ms
+ ✓ Compiled in 301ms (258 modules)
+ GET /upload 200 in 242ms
+ GET /upload 200 in 102ms

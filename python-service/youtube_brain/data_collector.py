@@ -49,6 +49,7 @@ class YouTubeDataCollector:
             "education": "27",      # Education
             "entertainment": "24",  # Entertainment
             "people": "22",         # People & Blogs
+            "business": "25",       # News & Politics (closest to business/finance)
             "music": "10",          # Music
             "sports": "17",         # Sports
             "news": "25",          # News & Politics
