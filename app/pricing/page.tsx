@@ -128,10 +128,10 @@ export default function PricingPage() {
             ← Back to Home
           </Link>
           <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-[#6a5af9] via-[#1de9b6] to-[#6a5af9] bg-clip-text text-transparent">
-            Choose Your Plan
+            Simple Pricing. Start Free.
           </h1>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Stop guessing which thumbnails will get clicks. Get data-backed insights instantly.
+            No credit card required. Upgrade when you're ready.
           </p>
 
           {/* Billing Toggle */}
@@ -275,8 +275,8 @@ export default function PricingPage() {
             </div>
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-2 text-cyan-300">How accurate are the predictions?</h3>
-                <p className="text-gray-400">Our AI is trained on 50K+ real YouTube thumbnails with measured performance data, achieving high correlation with actual CTR.</p>
+                <h3 className="text-lg font-semibold mb-2 text-cyan-300">How reliable are the results?</h3>
+                <p className="text-gray-400">Very reliable. ThumbScore provides consistent results - the same thumbnail will score within ±2 points every time, giving you confidence in your decisions.</p>
               </div>
               <div>
                 <h3 className="text-lg font-semibold mb-2 text-cyan-300">Can I upgrade or downgrade?</h3>

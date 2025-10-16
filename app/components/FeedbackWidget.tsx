@@ -63,7 +63,7 @@ export default function FeedbackWidget({ sessionId, winnerId }: FeedbackWidgetPr
 
   return (
     <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg p-6 border border-gray-700">
-      <h3 className="text-lg font-bold text-white mb-4">📝 Was this analysis helpful?</h3>
+      <h3 className="text-lg font-bold text-white mb-4 text-center">📝 Was this analysis helpful?</h3>
       
       {!feedback && (
         <div className="flex gap-4">

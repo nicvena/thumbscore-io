@@ -15,76 +15,68 @@ interface FAQItem {
 
 const faqs: FAQItem[] = [
   {
-    question: "How does Thumbnail Lab work?",
-    answer: "Upload up to 3 thumbnail options, and our analysis engine scores them based on proven thumbnail principles: text clarity, subject prominence, color contrast, emotional appeal, composition, and title alignment. We analyze patterns from 120,000+ YouTube thumbnails to predict which will get more clicks."
+    question: "How does ThumbScore work?",
+    answer: "ThumbScore uses advanced AI to analyze your thumbnails like a human expert would - looking at text clarity, visual contrast, emotional appeal, and niche-specific conventions. Results in 10 seconds."
   },
   {
-    question: "Is it really free?",
-    answer: "Yes! Thumbnail Lab is completely free to use. No signup required, no credit card needed. Just upload your thumbnails and get instant analysis."
+    question: "Is it accurate?",
+    answer: "We've tested ThumbScore extensively to ensure consistent, reliable results. The same thumbnail analyzed multiple times will score within 2 points - that's the consistency you need to make confident decisions."
   },
   {
-    question: "How accurate are the predictions?",
-    answer: "Our scoring is based on data-backed patterns from 120,000+ analyzed YouTube thumbnails across 6 niches. The Pattern Coach shows specific techniques that have delivered 20-50% CTR improvements in real channels. While we can't guarantee results (YouTube success depends on many factors), our recommendations are grounded in proven thumbnail principles."
+    question: "Does it work for my niche?",
+    answer: "Yes! ThumbScore has specialized intelligence for 10 content categories: Gaming, Business, Tech, Cooking, Fitness, Education, Travel, Music, Entertainment, and General. Each niche gets advice tailored to what actually works for that type of content."
   },
   {
-    question: "What makes a thumbnail score high?",
-    answer: "High-scoring thumbnails typically have: 1-3 bold words with high contrast, large subject/face (30-40% of frame), vibrant colors, clear emotion, simple composition, and strong alignment with the video title. Our Pattern Coach shows niche-specific patterns that work best."
+    question: "Why is it so fast?",
+    answer: "Unlike A/B testing (48 hours) or human feedback (hours/days), ThumbScore's AI analyzes thumbnails in seconds. No waiting, no delays - just instant answers."
   },
   {
-    question: "Can I save my analysis results?",
-    answer: "Results are available via a unique link for 7 days. Bookmark the results page or copy the link to access later. We're considering adding user accounts based on feedback - let us know if you'd like this feature!"
+    question: "Can I try it for free?",
+    answer: "Yes! Every account gets 5 free analyses per month. No credit card required. Upgrade to Creator ($19/month) or Pro ($49/month) when you're ready for more."
+  },
+  {
+    question: "What if I don't like the results?",
+    answer: "All paid plans include a 14-day free trial. Cancel anytime, no questions asked."
   },
   {
     question: "What image formats are supported?",
     answer: "We support JPG, PNG, WebP, and most common image formats. For best results, use YouTube's recommended thumbnail size: 1280×720 pixels (16:9 aspect ratio)."
   },
   {
-    question: "Why do I need to upload 3 thumbnails?",
-    answer: "Comparing multiple options helps you understand what makes a thumbnail effective. You can see the difference in scores and get specific recommendations for each variation. If you only have one, upload it 3 times to get detailed insights!"
+    question: "How reliable are the scores?",
+    answer: "Very reliable. ThumbScore provides consistent results - the same thumbnail will score within ±2 points every time. This consistency lets you make confident decisions about which thumbnail to use."
   },
   {
-    question: "What are the 'sub-scores'?",
-    answer: "We break down the overall CTR score into 6 components: Clarity (text readability), Subject Prominence (face/object size), Contrast Pop (color vibrancy), Emotion (expression intensity), Visual Hierarchy (composition), and Title Match (alignment with video title). This helps you understand exactly what to improve."
-  },
-  {
-    question: "What is the Pattern Coach?",
-    answer: "Pattern Coach shows data-backed thumbnail patterns from 10,000+ videos in your niche (education, gaming, tech, etc.). Each pattern includes the CTR improvement percentage based on real data. For example, 'Fewer Words + Big Face' shows +42% CTR lift in education videos."
-  },
-  {
-    question: "How do the visual overlays work?",
-    answer: "Click the overlay buttons to see: Saliency Heatmap (where viewers look), OCR Boxes (text readability), Face Boxes (emotion detection), and Rule of Thirds Grid (composition). These help you understand WHY a thumbnail scores high or low."
-  },
-  {
-    question: "Can I download the improved thumbnails?",
-    answer: "Auto-fix functionality is coming soon! For now, use our specific recommendations to manually improve your thumbnails in your favorite image editor. We provide exact guidance like 'Increase subject size by 25%' or 'Reduce to 2-3 words'."
-  },
-  {
-    question: "Does it work for all YouTube niches?",
-    answer: "Yes! We have specific patterns for Tech, Gaming, Education, Entertainment, Beauty, and News. If your niche isn't listed, we use general patterns from 120,000+ thumbnails that work across all categories."
-  },
-  {
-    question: "Is my data private?",
-    answer: "We don't store your uploaded images permanently. Thumbnails are processed in memory and discarded after analysis. Session data expires after 7 days. We don't collect personal information or require accounts."
+    question: "What makes this different from other tools?",
+    answer: "Most tools give generic advice. ThumbScore provides niche-specific analysis trained on 10 different content categories. Gaming thumbnails are analyzed differently than business thumbnails because they work differently."
   },
   {
     question: "Can I use this for commercial purposes?",
-    answer: "Absolutely! Whether you're a solo creator, agency, or business, feel free to use Thumbnail Lab to optimize your YouTube thumbnails. No attribution required."
+    answer: "Absolutely! Whether you're a solo creator, agency, or business, ThumbScore helps you choose winning thumbnails. Many creators and agencies use it daily."
   },
   {
-    question: "How is this different from other thumbnail tools?",
-    answer: "Most tools just give vague advice. Thumbnail Lab provides: specific CTR scores, data-backed recommendations (not opinions), visual overlays showing exactly what to fix, and niche-specific patterns with real CTR lift percentages. Plus, it's completely free!"
+    question: "How do I choose which thumbnail to use?",
+    answer: "Simple - upload your 3 options, and ThumbScore tells you which one gets the highest score. Use that one. The AI handles all the complex analysis for you."
   },
   {
-    question: "Will you add more features?",
-    answer: "Yes! We're considering: user accounts, analysis history, A/B test tracking, auto-fix downloads, and real-time AI models. Vote for features you want by providing feedback after your analysis!"
+    question: "Is my data private?",
+    answer: "Yes. We process your thumbnails for analysis but don't store them permanently. Your images are analyzed and then discarded. We don't collect personal information."
   },
   {
-    question: "Can I integrate this into my app?",
-    answer: "Yes! We have a REST API at POST /api/v1/score. Send thumbnail URLs and get back scores, insights, and recommendations. Perfect for automation or building your own tools. Check our API documentation for details."
+    question: "What's included in the analysis?",
+    answer: "You get an overall score (30-95 range), breakdown of what's working, specific suggestions for improvement, and clear guidance on which thumbnail performs best."
   },
   {
-    question: "What if the analysis seems wrong?",
-    answer: "Our scoring is based on general patterns that work across YouTube. Your specific audience might respond differently. Use our insights as a starting point, then A/B test on YouTube to see what actually works for your channel. We're always improving - send feedback to help us get better!"
+    question: "Can I get API access?",
+    answer: "Yes! We have a REST API for developers. Perfect for automation or building ThumbScore into your own tools. Contact us for API documentation."
+  },
+  {
+    question: "Do you have bulk analysis?",
+    answer: "Pro plans include bulk analysis features. Perfect for agencies or creators who need to analyze many thumbnails quickly."
+  },
+  {
+    question: "How often should I test thumbnails?",
+    answer: "Test every video! The 10-second analysis time makes it easy to test 3 options for every upload. Many creators see this as essential as spell-checking their titles."
   }
 ];
 
@@ -105,7 +97,7 @@ export default function FAQPage() {
           </Link>
           <h1 className="text-4xl font-bold mb-4">Frequently Asked Questions</h1>
           <p className="text-gray-400">
-            Everything you need to know about Thumbnail Lab
+            Everything you need to know about ThumbScore
           </p>
         </div>
 

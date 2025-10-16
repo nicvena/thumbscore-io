@@ -130,101 +130,137 @@ export default function UploadPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#0a0f25] via-[#0d1229] to-[#0a0f25] flex flex-col items-center justify-center p-24">
+    <main className="min-h-screen bg-gradient-to-br from-[#0a0f25] via-[#0d1229] to-[#0a0f25] flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-4xl">
-        <div className="text-center mb-8">
-          <Link href="/" className="text-blue-400 hover:text-blue-300 text-sm mb-4 inline-block">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <Link href="/" className="text-blue-400 hover:text-blue-300 text-sm mb-6 inline-block transition-colors duration-200">
             ← Back to Home
           </Link>
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-[#6a5af9] via-[#1de9b6] to-[#6a5af9] bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-[#00C8C8] via-[#66B2FF] to-[#00C8C8] bg-clip-text text-transparent">
             Thumbscore.io
           </h1>
-          <p className="text-lg text-gray-300 mb-4">Upload 3 Thumbnails</p>
-        </div>
-        <p className="text-center text-gray-400 mb-8">
-          Upload 3 different thumbnail options to see which will get more clicks on YouTube
-        </p>
-        
-        {/* Usage Tracker */}
-        <div className="mb-6">
-          <UsageTracker />
-        </div>
-        
-        {/* Enhanced Niche Selector */}
-        <NicheSelector 
-          value={selectedNiche}
-          onChange={handleNicheChange}
-        />
-        
-        {/* Video Title Input */}
-        <div className="mb-6">
-          <label htmlFor="video-title" className="block text-sm font-medium text-gray-300 mb-2">
-            Video Title (Optional - for better analysis)
-          </label>
-          <input
-            type="text"
-            id="video-title"
-            value={videoTitle}
-            onChange={handleTitleChange}
-            placeholder="Enter your YouTube video title..."
-            className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Providing the title helps AI analyze title-thumbnail semantic matching
+          <p className="text-xl text-gray-300 mb-6 font-medium">Upload 3 Thumbnails</p>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
+            Upload 3 different thumbnail options to see which will get more clicks on YouTube
           </p>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="border-2 border-dashed border-white rounded-lg p-8 text-center">
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleFileChange}
-              className="hidden"
-              id="file-upload"
+        {/* Usage Tracker */}
+        <div className="mb-8">
+          <UsageTracker />
+        </div>
+        
+        {/* Main Form Container */}
+        <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 shadow-2xl">
+          {/* Enhanced Niche Selector */}
+          <div className="mb-8">
+            <NicheSelector 
+              value={selectedNiche}
+              onChange={handleNicheChange}
             />
-            <label
-              htmlFor="file-upload"
-              className="cursor-pointer text-blue-400 hover:text-blue-300 block"
-            >
-              {files.length === 0 ? 'Choose up to 3 thumbnail files' : `${files.length}/3 thumbnails selected`}
-            </label>
           </div>
+          
+          {/* Video Title Input */}
+          <div className="mb-8">
+            <label htmlFor="video-title" className="block text-lg font-semibold text-white mb-3">
+              Video Title (Optional - for better analysis)
+            </label>
+            <input
+              type="text"
+              id="video-title"
+              value={videoTitle}
+              onChange={handleTitleChange}
+              placeholder="Enter your YouTube video title..."
+              className="w-full px-6 py-4 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 text-lg"
+            />
+            <p className="text-sm text-gray-400 mt-2 flex items-center gap-2">
+              <span className="w-4 h-4 bg-blue-500/20 rounded-full flex items-center justify-center text-xs">i</span>
+              Providing the title helps AI analyze title-thumbnail semantic matching
+            </p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Enhanced File Upload Area */}
+            <div className="relative">
+              <div className="border-2 border-dashed border-gray-500/50 rounded-2xl p-12 text-center hover:border-blue-500/50 transition-all duration-300 bg-gray-700/20">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <label
+                  htmlFor="file-upload"
+                  className="cursor-pointer block"
+                >
+                  <div className="mb-4">
+                    <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
+                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-semibold text-white mb-2">
+                      {files.length === 0 ? 'Choose up to 3 thumbnail files' : `${files.length}/3 thumbnails selected`}
+                    </h3>
+                    <p className="text-gray-400">
+                      {files.length === 0 ? 'Click to browse or drag and drop your images here' : 'Click to change files'}
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
 
-              {files.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {files.map((file, index) => (
-                    <div key={index} className="relative bg-gray-800 rounded-lg p-4">
-                      <div className="w-full h-32 bg-gray-700 rounded mb-2 overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={URL.createObjectURL(file)}
-                          alt={`Thumbnail ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <p className="text-white text-sm truncate">{file.name}</p>
+            {/* Enhanced File Preview Grid */}
+            {files.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {files.map((file, index) => (
+                  <div key={index} className="relative group bg-gray-700/30 rounded-xl p-4 border border-gray-600/30 hover:border-blue-500/50 transition-all duration-200">
+                    <div className="w-full h-40 bg-gray-600/30 rounded-lg mb-3 overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`Thumbnail ${index + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-white text-sm font-medium truncate flex-1">{file.name}</p>
                       <button
                         type="button"
                         onClick={() => removeFile(index)}
-                        className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 text-xs hover:bg-red-700"
+                        className="ml-2 bg-red-600/80 text-white rounded-full w-7 h-7 text-sm hover:bg-red-600 transition-colors duration-200 flex items-center justify-center"
                       >
                         ×
                       </button>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <div className="mt-2 text-xs text-gray-400">
+                      {(file.size / 1024 / 1024).toFixed(1)} MB
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
-          <button
-            type="submit"
-            disabled={files.length === 0 || uploading}
-            className="w-full px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:bg-gray-800 transition-colors"
-          >
-            {uploading ? 'Analyzing Thumbnails...' : `Analyze ${files.length} Thumbnail${files.length !== 1 ? 's' : ''}`}
-          </button>
-        </form>
+            {/* Enhanced Analyze Button */}
+            <button
+              type="submit"
+              disabled={files.length === 0 || uploading}
+              className="w-full px-8 py-4 bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 text-white rounded-xl font-semibold text-lg hover:from-purple-500 hover:via-blue-500 hover:to-teal-500 disabled:from-gray-600 disabled:via-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] disabled:hover:scale-100 shadow-lg hover:shadow-xl"
+            >
+              {uploading ? (
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Analyzing Thumbnails...
+                </div>
+              ) : (
+                `Analyze ${files.length} Thumbnail${files.length !== 1 ? 's' : ''}`
+              )}
+            </button>
+          </form>
+        </div>
       </div>
     </main>
   );

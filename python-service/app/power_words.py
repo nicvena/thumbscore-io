@@ -200,11 +200,25 @@ TIER4_WORDS = {
     "million": 8,  # Large scale - significance
     "billion": 8,  # Massive scale - mind-boggling
     "thousand": 8,  # Mid-scale - achievability
-    "100k": 8,  # Subscriber milestone
+    "100k": 12,  # HIGH VALUE! Money amounts - financial aspiration
+    "$100k": 15,  # EXTREME! Specific high-value amounts
+    "$1m": 15,  # EXTREME! Million dollar amounts
+    "$10k": 10,  # Good money amounts
+    "$50k": 12,  # High money amounts
+    "per month": 10,  # Recurring income - financial stability
+    "monthly": 8,  # Recurring income pattern
     "24 hours": 8,  # Time challenge - endurance
     "24/7": 8,  # Continuous - dedication
     "1m": 8,  # NEW! Abbreviated millions - modern format (Added: 2025-01)
     "10x": 8,  # NEW! Multiplier - exponential growth (Added: 2025-01)
+    
+    # Urgency/Exclusivity (Emotional trigger: FOMO, Scarcity)
+    "once in a lifetime": 15,  # EXTREME! Ultimate scarcity
+    "once in lifetime": 15,  # Variant
+    "never again": 12,  # Final chance
+    "last chance": 12,  # Urgency
+    "limited time": 10,  # Scarcity
+    "exclusive": 10,  # Exclusivity
     
     # Challenges (Emotional trigger: Entertainment, Vicarious experience)
     "challenge": 8,  # Format signal - structured content

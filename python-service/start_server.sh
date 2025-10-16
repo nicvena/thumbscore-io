@@ -6,7 +6,7 @@ cd "/Users/nicvenettacci/Desktop/Thumbnail Lab/thumbnail-lab/python-service"
 # Set environment variables
 export YOUTUBE_API_KEY="AIzaSyCL6s5QZWeLMTqAXxkviGAjSUy4iinRjng"
 export SUPABASE_URL="https://eubfjhegyvivesqgpvlh.supabase.co"
-export SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1YmZqaGVneXZpdmVzcWdwdmxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyMTc3MzIsImV4cCI6MjA3NTc5MzczMn0.FIcWYZgmRtI3HUgbQuILSR9ji2Vp1FTRxiCf36ZKpxI"
+export SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1YmZqaGVneXZpdmVzcWdwdmxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyMTc3MzIsImV4cCI6MjA3NTc5MzczMn0.FIcWYZgmRtI3HUgbQuILSR9ji2Xp1FTRxiCf36ZKpxI"
 
 # Kill any existing server
 pkill -f "uvicorn" || true

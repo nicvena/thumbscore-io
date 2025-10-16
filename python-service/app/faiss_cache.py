@@ -80,6 +80,7 @@ def load_indices(path: str = "faiss_indices") -> None:
 def get_index(niche: str) -> Optional[Tuple[faiss.IndexFlatIP, np.ndarray]]:
     """
     Get cached FAISS index and IDs for a niche.
+    Implements lazy loading to handle uvicorn worker process isolation.
     
     Args:
         niche: The niche name (e.g., "tech", "gaming")
@@ -88,6 +89,11 @@ def get_index(niche: str) -> Optional[Tuple[faiss.IndexFlatIP, np.ndarray]]:
         Tuple of (index, ids) or None if not found
     """
     global INDEX_CACHE, INDEX_IDS_CACHE
+    
+    # Lazy loading: if cache is empty, try to load indices
+    if not INDEX_CACHE:
+        logger.info(f"[FAISS] Cache empty, attempting lazy load for {niche}")
+        load_indices()
     
     if niche not in INDEX_CACHE:
         logger.warning(f"[FAISS] Index for {niche} not found in cache")
@@ -154,10 +160,18 @@ def clear_cache() -> None:
 def is_cache_ready() -> bool:
     """
     Check if the cache is ready with indices loaded.
+    Implements lazy loading to handle uvicorn worker process isolation.
     
     Returns:
         True if cache has indices loaded, False otherwise
     """
+    global INDEX_CACHE
+    
+    # Lazy loading: if cache is empty, try to load indices
+    if not INDEX_CACHE:
+        logger.info("[FAISS] Cache empty, attempting lazy load")
+        load_indices()
+    
     return len(INDEX_CACHE) > 0
 
 def get_available_niches() -> list:

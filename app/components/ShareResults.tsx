@@ -49,7 +49,7 @@ export default function ShareResults({ sessionId, winnerScore, improvement }: Sh
 
   return (
     <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-      <h3 className="text-lg font-bold text-white mb-4">🔗 Share Your Results</h3>
+      <h3 className="text-lg font-bold text-white mb-4 text-center">🔗 Share Your Results</h3>
       
       <div className="space-y-4">
         {/* Copy Link */}

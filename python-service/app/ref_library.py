@@ -95,15 +95,18 @@ def faiss_similarity_percentile(
         try:
             from app.determinism import deterministic_faiss_search
             scores, indices = deterministic_faiss_search(index, query_vec[0], top_k)
+            logger.debug(f"[FAISS] Deterministic search returned {len(scores)} scores: {scores[:5]}")
         except ImportError:
             # Fallback to regular search
             k = min(top_k, index.ntotal)
             scores, indices = index.search(query_vec, k)
             scores = scores[0]
             indices = indices[0]
+            logger.debug(f"[FAISS] Regular search returned {len(scores)} scores: {scores[:5]}")
         
         # Calculate percentile with deterministic averaging
         avg_similarity = float(np.mean(scores))
+        logger.debug(f"[FAISS] Average similarity: {avg_similarity}")
         
         # Convert to percentile (0-100 scale)
         # Similarity scores typically range from -1 to 1 (after normalization)
@@ -249,17 +252,20 @@ def get_similarity_score(
     """
     # Try FAISS first
     score = faiss_similarity_percentile(upload_vec, niche, top_k)
+    logger.debug(f"[SIMILARITY] FAISS result for {niche}: {score}")
     
     # Fallback to Supabase if FAISS not available
     if score is None:
         logger.info(f"FAISS not available for {niche}, using Supabase fallback")
         score = fallback_supabase_similarity(upload_vec, niche, top_k)
+        logger.debug(f"[SIMILARITY] Supabase result for {niche}: {score}")
     
     # Return None if all methods fail (let caller decide default)
     if score is None:
         logger.warning(f"All similarity methods failed for {niche}, returning None for caller handling")
         return None
     
+    logger.debug(f"[SIMILARITY] Final result for {niche}: {score} (type: {type(score)})")
     return score
 
 

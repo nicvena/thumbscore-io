@@ -4,7 +4,6 @@ import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
 import InsightsPanel from '../components/InsightsPanel';
-import VisualOverlays from '../components/VisualOverlays';
 import FeedbackWidget from '../components/FeedbackWidget';
 import ShareResults from '../components/ShareResults';
 import { UsageTracker } from '../components/UsageTracker';
@@ -277,6 +276,7 @@ function ResultsContent() {
         try {
           // Get data from session storage (set during upload)
           const title = sessionStorage.getItem('videoTitle') || '';
+          const niche = sessionStorage.getItem('selectedNiche') || 'business';
           const thumbnailsJson = sessionStorage.getItem('thumbnails');
           const thumbnails = thumbnailsJson ? JSON.parse(thumbnailsJson) : [];
           
@@ -285,7 +285,7 @@ function ResultsContent() {
           const storedImageUrls = imageUrlsJson ? JSON.parse(imageUrlsJson) : [];
           setImageUrls(storedImageUrls);
           
-          console.log('Fetching analysis with:', { sessionId, title, thumbnails: thumbnails.length });
+          console.log('Fetching analysis with:', { sessionId, title, niche, thumbnails: thumbnails.length });
         
         // Call analyze API
         const response = await fetch('/api/analyze', {
@@ -294,7 +294,8 @@ function ResultsContent() {
           body: JSON.stringify({
             sessionId,
             thumbnails: thumbnails.length > 0 ? thumbnails : [],
-            title
+            title,
+            niche: niche
           })
         });
 
@@ -613,10 +614,22 @@ function ResultsContent() {
             }`}>
               {/* Best Choice Badge - Only for Winner */}
               {isWinner && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-20">
-                  <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-2 rounded-full text-sm font-bold uppercase tracking-wide shadow-lg shadow-green-500/50 animate-pulse-slow">
-                    🎯 Best Choice
-                  </span>
+                <div className="absolute -top-2 left-4 z-20">
+                  <div className="relative">
+                    {/* Main Badge */}
+                    <div className="bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 text-white px-4 py-2 rounded-xl text-sm font-bold uppercase tracking-wide shadow-xl shadow-emerald-500/40 border border-emerald-400/30 backdrop-blur-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-white/20 rounded-full flex items-center justify-center">
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <span>Best</span>
+                      </div>
+                    </div>
+                    {/* Subtle Glow Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 rounded-xl blur-sm opacity-40 -z-10"></div>
+                  </div>
                 </div>
               )}
               
@@ -640,24 +653,6 @@ function ResultsContent() {
                       {/* Interactive Overlays - Only for Winner */}
                       {isWinner && (
                         <>
-                          <div className="absolute inset-0 group-hover:opacity-100 opacity-0 transition-opacity duration-300">
-                            <VisualOverlays
-                              thumbnailId={analysis.thumbnailId}
-                              fileName={analysis.fileName}
-                              imageUrl={imageUrls[analysis.thumbnailId - 1]}
-                              width={320}
-                              height={128}
-                              heatmapData={analysis.heatmapData || []}
-                              ocrBoxes={analysis.ocrHighlights || []}
-                              faceBoxes={analysis.faceBoxes || []}
-                            />
-                          </div>
-                          {/* Hover Indicator */}
-                          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div className="bg-blue-500/80 backdrop-blur-sm rounded-full p-1.5">
-                              <span className="text-white text-xs">👁️</span>
-                            </div>
-                          </div>
                         </>
                       )}
                     </>
@@ -766,7 +761,7 @@ function ResultsContent() {
         {/* Simplified Insights - Winner Only */}
         <div className={`mb-12 transition-all duration-700 delay-200 ${sectionsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent text-center">
               🔬 Quick Improvements for Thumbnail {winner.thumbnailId}
             </h2>
             <p className="text-gray-300 max-w-xl mx-auto">
@@ -820,10 +815,10 @@ function ResultsContent() {
         <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 transition-all duration-700 delay-400 ${sectionsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           {/* Winner Analysis */}
           <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-xl font-bold mb-4">🏆 Winner Analysis</h3>
+            <h3 className="text-xl font-bold mb-4 text-center">🏆 Winner Analysis</h3>
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold mb-2">Top Recommendations for Thumbnail {winner.thumbnailId}</h4>
+                <h4 className="font-semibold mb-2 text-center">Top Recommendations for Thumbnail {winner.thumbnailId}</h4>
                 <div className="space-y-3">
                   {winner.recommendations.slice(0, 3).map((rec, index) => (
                     <div key={index} className="border-l-4 border-yellow-500 pl-4">
@@ -848,116 +843,99 @@ function ResultsContent() {
 
           {/* AI Detection Results */}
           <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-xl font-bold mb-4">
+            <h3 className="text-xl font-bold mb-4 text-center">
               🔍 AI Detection Results
-              <span className="text-sm font-normal text-gray-400 ml-2">
-                💡 Hover over the winning thumbnail to see overlays
-              </span>
             </h3>
-            <div className="space-y-4">
+            <p className="text-gray-400 text-sm mb-6 text-center">
+              Here's what our AI found in your winning thumbnail:
+            </p>
+            <div className="space-y-6">
               <div>
-                <h4 className="font-semibold mb-2">Face & Emotion Analysis</h4>
-                <div className="space-y-2">
-                  {winner.faceBoxes.map((face, index) => (
-                    <div key={index} className="bg-gray-700 rounded p-3">
-                      <div className="flex justify-between text-sm">
-                        <span>Emotion: <span className="font-semibold">{face.emotion}</span></span>
-                        <span>Confidence: <span className="font-semibold">{Math.round(face.confidence * 100)}%</span></span>
+                <h4 className="font-semibold mb-3 text-blue-300 text-center">👤 Face & Emotion Analysis</h4>
+                <div className="space-y-3">
+                  {winner.faceBoxes && winner.faceBoxes.length > 0 ? (
+                    winner.faceBoxes.map((face, index) => (
+                      <div key={index} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600/30">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-300">Emotion detected:</span>
+                            <span className="font-semibold text-white capitalize">{face.emotion}</span>
+                          </div>
+                          <div className="bg-green-500/20 text-green-300 px-2 py-1 rounded-full text-xs font-medium">
+                            {Math.round(face.confidence * 100)}% confident
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {face.age} {face.gender} • Face detected in thumbnail
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        {face.age} {face.gender} • Bounding box: [{face.bbox.join(', ')}]
-                      </div>
+                    ))
+                  ) : (
+                    <div className="bg-gray-700/30 rounded-lg p-4 text-center text-gray-400">
+                      <span className="text-sm">No faces detected in this thumbnail</span>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
               
               <div>
-                <h4 className="font-semibold mb-2">Text Recognition (OCR)</h4>
-                <div className="space-y-2">
-                  {winner.ocrHighlights.map((text, index) => (
-                    <div key={index} className="bg-gray-700 rounded p-3">
-                      <div className="flex justify-between text-sm">
-                        <span>Text: <span className="font-semibold">&quot;{text.text}&quot;</span></span>
-                        <span>Confidence: <span className="font-semibold">{Math.round(text.confidence * 100)}%</span></span>
+                <h4 className="font-semibold mb-3 text-green-300 text-center">📝 Text Recognition</h4>
+                <div className="space-y-3">
+                  {winner.ocrHighlights && winner.ocrHighlights.length > 0 ? (
+                    winner.ocrHighlights.map((text, index) => (
+                      <div key={index} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600/30">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-300">Text found:</span>
+                            <span className="font-semibold text-white">&quot;{text.text}&quot;</span>
+                          </div>
+                          <div className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full text-xs font-medium">
+                            {Math.round(text.confidence * 100)}% readable
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          Text color: {text.color} • Positioned in thumbnail
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        Position: [{text.bbox.join(', ')}] • Color: {text.color}
-                      </div>
+                    ))
+                  ) : (
+                    <div className="bg-gray-700/30 rounded-lg p-4 text-center text-gray-400">
+                      <span className="text-sm">No text detected in this thumbnail</span>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">Attention Heatmap</h4>
-                <div className="space-y-2">
-                  {winner.heatmapData.map((hotspot, index) => (
-                    <div key={index} className="bg-gray-700 rounded p-3">
-                      <div className="flex justify-between text-sm">
-                        <span>{hotspot.label}</span>
-                        <span>Intensity: <span className="font-semibold">{Math.round(hotspot.intensity * 100)}%</span></span>
+                <h4 className="font-semibold mb-3 text-purple-300 text-center">👁️ Visual Attention Areas</h4>
+                <div className="space-y-3">
+                  {winner.heatmapData && winner.heatmapData.length > 0 ? (
+                    winner.heatmapData.map((hotspot, index) => (
+                      <div key={index} className="bg-gray-700/50 rounded-lg p-4 border border-gray-600/30">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-300">{hotspot.label}</span>
+                          </div>
+                          <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            hotspot.intensity > 0.7 ? 'bg-red-500/20 text-red-300' :
+                            hotspot.intensity > 0.5 ? 'bg-yellow-500/20 text-yellow-300' :
+                            'bg-blue-500/20 text-blue-300'
+                          }`}>
+                            {Math.round(hotspot.intensity * 100)}% attention
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          Located at {hotspot.x}%, {hotspot.y}% of thumbnail
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        Position: ({hotspot.x}%, {hotspot.y}%)
-                      </div>
+                    ))
+                  ) : (
+                    <div className="bg-gray-700/30 rounded-lg p-4 text-center text-gray-400">
+                      <span className="text-sm">No specific attention areas detected</span>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Real Examples Section */}
-        <div className={`mb-12 transition-all duration-700 delay-400 ${sectionsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="bg-gray-800/30 rounded-xl p-8">
-            <h3 className="text-2xl font-bold mb-6 text-center">🎯 Real YouTube Success Stories</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-gray-700/30 rounded-lg p-4 border border-green-500/30">
-                <div className="text-center mb-3">
-                  <div className="w-full h-24 bg-gradient-to-r from-red-500 to-orange-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-                    MrBeast Style Thumbnail
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-400">94/100</div>
-                  <div className="text-sm text-gray-300">ThumbScore™</div>
-                  <div className="text-xs text-gray-500 mt-2">Real result: 47M views</div>
-                  <div className="text-xs text-gray-400 mt-1">Features: Bold text, high contrast, emotion</div>
-                </div>
-              </div>
-              
-              <div className="bg-gray-700/30 rounded-lg p-4 border border-blue-500/30">
-                <div className="text-center mb-3">
-                  <div className="w-full h-24 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-                    Tech Review Thumbnail
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-400">89/100</div>
-                  <div className="text-sm text-gray-300">ThumbScore™</div>
-                  <div className="text-xs text-gray-500 mt-2">Real result: 12M views</div>
-                  <div className="text-xs text-gray-400 mt-1">Features: Product focus, clean text, curiosity</div>
-                </div>
-              </div>
-              
-              <div className="bg-gray-700/30 rounded-lg p-4 border border-yellow-500/30">
-                <div className="text-center mb-3">
-                  <div className="w-full h-24 bg-gradient-to-r from-yellow-500 to-red-500 rounded-lg flex items-center justify-center text-white font-bold text-xs">
-                    Gaming Thumbnail
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-yellow-400">76/100</div>
-                  <div className="text-sm text-gray-300">ThumbScore™</div>
-                  <div className="text-xs text-gray-500 mt-2">Real result: 8.3M views</div>
-                  <div className="text-xs text-gray-400 mt-1">Features: Action scene, character focus</div>
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 text-center text-sm text-gray-400">
-              <p>Scores based on our analysis of trending YouTube thumbnails. Results may vary by niche and audience.</p>
             </div>
           </div>
         </div>
@@ -981,34 +959,34 @@ function ResultsContent() {
             <h3 className="text-2xl font-bold mb-6 text-center">🔬 Scientific Methodology</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <h4 className="text-lg font-semibold mb-3 text-blue-300">Data Collection</h4>
+                <h4 className="text-lg font-semibold mb-3 text-blue-300 text-center">AI Analysis Engine</h4>
                 <ul className="space-y-2 text-sm text-gray-300">
-                  <li>• <strong>50,000+ thumbnails</strong> from trending YouTube videos</li>
-                  <li>• <strong>Cross-validation</strong> across 50+ content niches</li>
-                  <li>• <strong>Performance metrics:</strong> CTR, views, engagement</li>
-                  <li>• <strong>Continuous updates:</strong> Fresh data every 24 hours</li>
+                  <li>• <strong>GPT-4 Vision API:</strong> Advanced image understanding</li>
+                  <li>• <strong>Deterministic numeric core:</strong> OCR, color analysis, subject detection</li>
+                  <li>• <strong>Hybrid scoring:</strong> 55% AI rubric + 45% technical metrics</li>
+                  <li>• <strong>Niche-specific analysis:</strong> Tailored prompts for different content types</li>
                 </ul>
               </div>
               <div>
-                <h4 className="text-lg font-semibold mb-3 text-green-300">Model Architecture</h4>
+                <h4 className="text-lg font-semibold mb-3 text-green-300 text-center">Technical Components</h4>
                 <ul className="space-y-2 text-sm text-gray-300">
-                  <li>• <strong>CLIP ViT-L/14:</strong> State-of-the-art vision transformer</li>
-                  <li>• <strong>FAISS similarity:</strong> Sub-millisecond matching</li>
-                  <li>• <strong>Hybrid scoring:</strong> 6-component weighted system</li>
-                  <li>• <strong>Validation:</strong> A/B testing framework planned</li>
+                  <li>• <strong>Text Clarity:</strong> OCR confidence + luminance contrast</li>
+                  <li>• <strong>Subject Size:</strong> MediaPipe face detection + OpenCV saliency</li>
+                  <li>• <strong>Color Analysis:</strong> WCAG-like contrast + HSV spread</li>
+                  <li>• <strong>Title Alignment:</strong> GPT-4 Vision semantic matching</li>
                 </ul>
               </div>
             </div>
             <div className="mt-8 p-4 bg-blue-900/20 rounded-lg border border-blue-500/30">
               <div className="text-center">
-                <div className="text-sm font-semibold text-blue-300 mb-2">🧪 Beta Validation Program</div>
+                <div className="text-sm font-semibold text-blue-300 mb-2 text-center">🎯 Real-Time Analysis</div>
                 <div className="text-xs text-gray-300">
-                  Help us validate our 89% accuracy claim! Use ThumbScore™ for your next 5 videos, 
-                  then report your actual CTR results. First 100 participants get free access for life.
+                  Each thumbnail is analyzed using a combination of AI vision models and computer vision techniques. 
+                  Scores are generated dynamically based on actual image content and title relevance.
                 </div>
                 <div className="mt-3">
                   <span className="inline-block bg-blue-600/20 border border-blue-500/50 px-4 py-2 rounded-full text-xs">
-                    📊 Current validation: 23/100 participants
+                    ✅ Deterministic scoring ensures consistent results
                   </span>
                 </div>
               </div>

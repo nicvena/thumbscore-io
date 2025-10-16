@@ -231,20 +231,25 @@ def deterministic_faiss_search(index, query_vector: np.ndarray, k: int = 200) ->
         k: Number of neighbors to return
         
     Returns:
-        Tuple of (distances, indices) with consistent ordering
+        Tuple of (similarity_scores, indices) with consistent ordering
     """
     # Ensure query vector is normalized and deterministic
     query_vector = query_vector.astype(np.float32)
     query_vector = query_vector / np.linalg.norm(query_vector)
     
     # Perform search
-    distances, indices = index.search(query_vector.reshape(1, -1), k)
+    scores, indices = index.search(query_vector.reshape(1, -1), k)
     
-    # Sort results by distance for deterministic ordering
-    # When distances are equal, sort by index for consistency
-    sort_indices = np.lexsort((indices[0], distances[0]))
+    # Filter out invalid scores (FAISS returns -inf or min float32 for invalid results)
+    valid_mask = np.isfinite(scores[0]) & (scores[0] > -1e10)  # Filter out invalid values
+    valid_scores = scores[0][valid_mask]
+    valid_indices = indices[0][valid_mask]
     
-    return distances[0][sort_indices], indices[0][sort_indices]
+    # Sort results by score for deterministic ordering
+    # When scores are equal, sort by index for consistency
+    sort_indices = np.lexsort((valid_indices, -valid_scores))  # Negative for descending order
+    
+    return valid_scores[sort_indices], valid_indices[sort_indices]
 
 # ============================================================================
 # GLOBAL NORMALIZATION

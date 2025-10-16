@@ -1,0 +1,955 @@
+INFO:     Will watch for changes in these directories: ['/Users/nicvenettacci/Desktop/Thumbnail Lab/thumbnail-lab/python-service']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [46485] using WatchFiles
+INFO:faiss.loader:Loading faiss with AVX2 support.
+INFO:faiss.loader:Successfully loaded faiss with AVX2 support.
+INFO:app.determinism:[DETERMINISTIC] Initializing deterministic mode
+INFO:app.determinism:[DETERMINISTIC] Setting seeds to 42
+INFO:app.determinism:[DETERMINISTIC] PyTorch seeds set
+INFO:app.determinism:[DETERMINISTIC] Cache initialized at deterministic_cache
+INFO:app.determinism:[DETERMINISTIC] Global normalizer initialized
+INFO:app.main:[DETERMINISTIC] Mode: ENABLED
+INFO:app.main:[DETERMINISTIC] Score version: v1.4-faiss-hybrid
+INFO:app.main:[DETERMINISTIC] Model version: clip-vit-l14-v1.4-faiss-hybrid
+INFO:     Started server process [46488]
+INFO:     Waiting for application startup.
+INFO:app.main:[Thumbscore.io] Starting up AI thumbnail scoring service...
+INFO:app.main:[STARTUP] Temporarily skipping model initialization for faster startup...
+INFO:app.main:[STARTUP] Models will be lazy-loaded on first request
+INFO:app.main:[BRAIN] Initializing YouTube Intelligence Brain...
+INFO:app.main:[BRAIN] YouTube Intelligence Brain created, starting initialization...
+INFO:youtube_brain.brain:[BRAIN] Initializing YouTube Intelligence Brain...
+INFO:youtube_brain.brain:[BRAIN] Step 1: Collecting YouTube data...
+INFO:youtube_brain.data_collector:[BRAIN] Starting data collection for 11 niches
+INFO:youtube_brain.data_collector:[BRAIN] Collecting tech videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 118 videos for tech
+INFO:youtube_brain.data_collector:[BRAIN] Collecting gaming videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 110 videos for gaming
+INFO:youtube_brain.data_collector:[BRAIN] Collecting education videos...
+WARNING:youtube_brain.data_collector:[BRAIN] API error: 404
+INFO:youtube_brain.data_collector:[BRAIN] Collected 10 videos for education
+INFO:youtube_brain.data_collector:[BRAIN] Collecting entertainment videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 110 videos for entertainment
+INFO:youtube_brain.data_collector:[BRAIN] Collecting people videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for people
+INFO:youtube_brain.data_collector:[BRAIN] Collecting business videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for business
+INFO:youtube_brain.data_collector:[BRAIN] Collecting music videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 30 videos for music
+INFO:youtube_brain.data_collector:[BRAIN] Collecting sports videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for sports
+INFO:youtube_brain.data_collector:[BRAIN] Collecting news videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for news
+INFO:youtube_brain.data_collector:[BRAIN] Collecting comedy videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for comedy
+INFO:youtube_brain.data_collector:[BRAIN] Collecting howto videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for howto
+INFO:youtube_brain.data_collector:[BRAIN] Storing collected data in database...
+INFO:youtube_brain.brain:[BRAIN] Step 2: Mining visual patterns...
+INFO:youtube_brain.pattern_miner:[PATTERN_MINER] Starting pattern mining for niche: all
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&order=views_per_hour.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.pattern_miner:[PATTERN_MINER] Error fetching videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.pattern_miner:[PATTERN_MINER] No videos found for pattern mining
+INFO:youtube_brain.brain:[BRAIN] Step 3: Training niche models...
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for niche: all
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for tech
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.tech "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for tech: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for tech: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for gaming
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.gaming "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for gaming: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for gaming: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for education
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.education "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for education: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for education: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for entertainment
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.entertainment "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for entertainment: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for entertainment: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for people
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.people "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for people: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for people: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for business
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.business "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for business: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for business: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for music
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.music "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for music: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for music: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for sports
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.sports "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for sports: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for sports: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for news
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.news "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for news: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for news: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for comedy
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.comedy "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for comedy: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for comedy: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for howto
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.howto "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for howto: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for howto: 0 samples
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/model_performance?on_conflict=niche "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error storing model performance: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.model_performance' in the schema cache"}
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Completed training for 11 niches
+INFO:youtube_brain.brain:[BRAIN] Step 4: Detecting trends...
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Detecting trends for niche: all, days_back: 30
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for tech
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.tech&published_at=gte.2025-09-16T09%3A51%3A23.522303&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for tech: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for gaming
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.gaming&published_at=gte.2025-09-16T09%3A51%3A23.607561&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for gaming: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for education
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.education&published_at=gte.2025-09-16T09%3A51%3A23.738295&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for education: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for entertainment
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.entertainment&published_at=gte.2025-09-16T09%3A51%3A23.868076&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for entertainment: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for people
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.people&published_at=gte.2025-09-16T09%3A51%3A23.962744&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for people: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for music
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.music&published_at=gte.2025-09-16T09%3A51%3A24.208190&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for music: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for sports
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.sports&published_at=gte.2025-09-16T09%3A51%3A24.322312&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for sports: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for news
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.news&published_at=gte.2025-09-16T09%3A51%3A24.403409&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for news: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for comedy
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.comedy&published_at=gte.2025-09-16T09%3A51%3A24.485448&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for comedy: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for howto
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.howto&published_at=gte.2025-09-16T09%3A51%3A24.603685&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for howto: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Detected trends for 10 niches
+INFO:youtube_brain.brain:[BRAIN] Step 5: Generating creator insights...
+INFO:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Generating insights for channel: all
+ERROR:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Error fetching active channels: 'SyncSelectRequestBuilder' object has no attribute 'distinct'
+INFO:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Generated insights for 0 creators
+INFO:youtube_brain.brain:[BRAIN] ✅ YouTube Intelligence Brain initialized successfully!
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/visual_patterns?select=pattern_id&limit=1 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.brain:[BRAIN] Error getting status: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.visual_patterns' in the schema cache"}
+INFO:app.main:[BRAIN] ✅ Brain initialization complete!
+INFO:app.main:[BRAIN] Status: BrainStatus(data_collector_ready=False, pattern_miner_ready=False, niche_models_ready=False, trend_detector_ready=False, insights_engine_ready=False, last_data_update=None, total_patterns=0, total_trends=0, trained_niches=[])
+INFO:app.main:[BRAIN] ✅ YouTube Intelligence Brain initialized successfully
+INFO:app.main:======================================================================
+INFO:app.main:[FAISS] Loading FAISS indices for similarity scoring...
+INFO:app.main:======================================================================
+INFO:app.faiss_cache:[FAISS] Loading indices from faiss_indices
+INFO:app.faiss_cache:[FAISS] Loaded index for tech (171 items)
+INFO:app.faiss_cache:[FAISS] Loaded index for business (171 items)
+INFO:app.faiss_cache:[FAISS] Cache ready with 2 niches (342 total items)
+INFO:app.faiss_cache:[FAISS] Memory usage: ~0.7 MB
+INFO:app.main:[FAISS] ✓ Index loading completed successfully
+INFO:app.main:======================================================================
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Collect thumbnails and rebuild FAISS indices" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:Scheduler started:
+INFO:app.main:  - Library refresh + FAISS index rebuilding: 3:00 AM Hobart time daily
+INFO:     Application startup complete.
+[ModelPipeline] Initializing on device: cpu
+INFO:     127.0.0.1:58290 - "GET /health HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'app/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.main:[Thumbscore.io] Shutting down AI thumbnail scoring service...
+INFO:apscheduler.scheduler:Scheduler has been shut down
+INFO:     Application shutdown complete.
+INFO:     Finished server process [46488]
+INFO:faiss.loader:Loading faiss with AVX2 support.
+INFO:faiss.loader:Successfully loaded faiss with AVX2 support.
+INFO:app.determinism:[DETERMINISTIC] Initializing deterministic mode
+INFO:app.determinism:[DETERMINISTIC] Setting seeds to 42
+INFO:app.determinism:[DETERMINISTIC] PyTorch seeds set
+INFO:app.determinism:[DETERMINISTIC] Cache initialized at deterministic_cache
+INFO:app.determinism:[DETERMINISTIC] Global normalizer initialized
+INFO:app.main:[DETERMINISTIC] Mode: ENABLED
+INFO:app.main:[DETERMINISTIC] Score version: v1.4-faiss-hybrid
+INFO:app.main:[DETERMINISTIC] Model version: clip-vit-l14-v1.4-faiss-hybrid
+INFO:     Started server process [46843]
+INFO:     Waiting for application startup.
+INFO:app.main:[Thumbscore.io] Starting up AI thumbnail scoring service...
+INFO:app.main:[STARTUP] Temporarily skipping model initialization for faster startup...
+INFO:app.main:[STARTUP] Models will be lazy-loaded on first request
+INFO:app.main:[BRAIN] Initializing YouTube Intelligence Brain...
+INFO:app.main:[BRAIN] YouTube Intelligence Brain created, starting initialization...
+INFO:youtube_brain.brain:[BRAIN] Initializing YouTube Intelligence Brain...
+INFO:youtube_brain.brain:[BRAIN] Step 1: Collecting YouTube data...
+INFO:youtube_brain.data_collector:[BRAIN] Starting data collection for 11 niches
+INFO:youtube_brain.data_collector:[BRAIN] Collecting tech videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 118 videos for tech
+WARNING:  WatchFiles detected changes in 'app/main.py'. Reloading...
+INFO:youtube_brain.data_collector:[BRAIN] Collecting gaming videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 110 videos for gaming
+INFO:youtube_brain.data_collector:[BRAIN] Collecting education videos...
+WARNING:youtube_brain.data_collector:[BRAIN] API error: 404
+INFO:youtube_brain.data_collector:[BRAIN] Collected 10 videos for education
+INFO:youtube_brain.data_collector:[BRAIN] Collecting entertainment videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 110 videos for entertainment
+INFO:youtube_brain.data_collector:[BRAIN] Collecting people videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for people
+INFO:youtube_brain.data_collector:[BRAIN] Collecting business videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for business
+INFO:youtube_brain.data_collector:[BRAIN] Collecting music videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 30 videos for music
+INFO:youtube_brain.data_collector:[BRAIN] Collecting sports videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for sports
+INFO:youtube_brain.data_collector:[BRAIN] Collecting news videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for news
+INFO:youtube_brain.data_collector:[BRAIN] Collecting comedy videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for comedy
+INFO:youtube_brain.data_collector:[BRAIN] Collecting howto videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for howto
+INFO:youtube_brain.data_collector:[BRAIN] Storing collected data in database...
+INFO:youtube_brain.brain:[BRAIN] Step 2: Mining visual patterns...
+INFO:youtube_brain.pattern_miner:[PATTERN_MINER] Starting pattern mining for niche: all
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&order=views_per_hour.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.pattern_miner:[PATTERN_MINER] Error fetching videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.pattern_miner:[PATTERN_MINER] No videos found for pattern mining
+INFO:youtube_brain.brain:[BRAIN] Step 3: Training niche models...
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for niche: all
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for tech
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.tech "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for tech: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for tech: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for gaming
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.gaming "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for gaming: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for gaming: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for education
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.education "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for education: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for education: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for entertainment
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.entertainment "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for entertainment: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for entertainment: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for people
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.people "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for people: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for people: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for business
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.business "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for business: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for business: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for music
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.music "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for music: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for music: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for sports
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.sports "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for sports: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for sports: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for news
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.news "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for news: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for news: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for comedy
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.comedy "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for comedy: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for comedy: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for howto
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.howto "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for howto: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for howto: 0 samples
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/model_performance?on_conflict=niche "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error storing model performance: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.model_performance' in the schema cache"}
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Completed training for 11 niches
+INFO:youtube_brain.brain:[BRAIN] Step 4: Detecting trends...
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Detecting trends for niche: all, days_back: 30
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for tech
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.tech&published_at=gte.2025-09-16T09%3A54%3A57.704061&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for tech: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for gaming
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.gaming&published_at=gte.2025-09-16T09%3A54%3A57.778897&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for gaming: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for education
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.education&published_at=gte.2025-09-16T09%3A54%3A57.846898&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for education: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for entertainment
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.entertainment&published_at=gte.2025-09-16T09%3A54%3A57.947613&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for entertainment: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for people
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.people&published_at=gte.2025-09-16T09%3A54%3A58.068515&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for people: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for music
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.music&published_at=gte.2025-09-16T09%3A54%3A58.872761&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for music: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for sports
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.sports&published_at=gte.2025-09-16T09%3A54%3A58.999667&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for sports: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for news
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.news&published_at=gte.2025-09-16T09%3A54%3A59.176879&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for news: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for comedy
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.comedy&published_at=gte.2025-09-16T09%3A54%3A59.240428&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for comedy: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for howto
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.howto&published_at=gte.2025-09-16T09%3A54%3A59.305213&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for howto: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Detected trends for 10 niches
+INFO:youtube_brain.brain:[BRAIN] Step 5: Generating creator insights...
+INFO:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Generating insights for channel: all
+ERROR:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Error fetching active channels: 'SyncSelectRequestBuilder' object has no attribute 'distinct'
+INFO:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Generated insights for 0 creators
+INFO:youtube_brain.brain:[BRAIN] ✅ YouTube Intelligence Brain initialized successfully!
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/visual_patterns?select=pattern_id&limit=1 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.brain:[BRAIN] Error getting status: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.visual_patterns' in the schema cache"}
+INFO:app.main:[BRAIN] ✅ Brain initialization complete!
+INFO:app.main:[BRAIN] Status: BrainStatus(data_collector_ready=False, pattern_miner_ready=False, niche_models_ready=False, trend_detector_ready=False, insights_engine_ready=False, last_data_update=None, total_patterns=0, total_trends=0, trained_niches=[])
+INFO:app.main:[BRAIN] ✅ YouTube Intelligence Brain initialized successfully
+INFO:app.main:======================================================================
+INFO:app.main:[FAISS] Loading FAISS indices for similarity scoring...
+INFO:app.main:======================================================================
+INFO:app.faiss_cache:[FAISS] Loading indices from faiss_indices
+INFO:app.faiss_cache:[FAISS] Loaded index for tech (171 items)
+INFO:app.faiss_cache:[FAISS] Loaded index for business (171 items)
+INFO:app.faiss_cache:[FAISS] Cache ready with 2 niches (342 total items)
+INFO:app.faiss_cache:[FAISS] Memory usage: ~0.7 MB
+INFO:app.main:[FAISS] ✓ Index loading completed successfully
+INFO:app.main:======================================================================
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Collect thumbnails and rebuild FAISS indices" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:Scheduler started:
+INFO:app.main:  - Library refresh + FAISS index rebuilding: 3:00 AM Hobart time daily
+INFO:     Application startup complete.
+INFO:app.main:[Thumbscore.io] Shutting down AI thumbnail scoring service...
+ERROR:    Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 747, in lifespan
+    await receive()
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/lifespan/on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+INFO:apscheduler.scheduler:Scheduler has been shut down
+[ModelPipeline] Initializing on device: cpu
+WARNING:  WatchFiles detected changes in 'app/main.py'. Reloading...
+INFO:faiss.loader:Loading faiss with AVX2 support.
+INFO:faiss.loader:Successfully loaded faiss with AVX2 support.
+INFO:app.determinism:[DETERMINISTIC] Initializing deterministic mode
+INFO:app.determinism:[DETERMINISTIC] Setting seeds to 42
+INFO:app.determinism:[DETERMINISTIC] PyTorch seeds set
+INFO:app.determinism:[DETERMINISTIC] Cache initialized at deterministic_cache
+INFO:app.determinism:[DETERMINISTIC] Global normalizer initialized
+INFO:app.main:[DETERMINISTIC] Mode: ENABLED
+INFO:app.main:[DETERMINISTIC] Score version: v1.4-faiss-hybrid
+INFO:app.main:[DETERMINISTIC] Model version: clip-vit-l14-v1.4-faiss-hybrid
+INFO:     Started server process [46913]
+INFO:     Waiting for application startup.
+INFO:app.main:[Thumbscore.io] Starting up AI thumbnail scoring service...
+INFO:app.main:[STARTUP] Temporarily skipping model initialization for faster startup...
+INFO:app.main:[STARTUP] Models will be lazy-loaded on first request
+INFO:app.main:[BRAIN] Initializing YouTube Intelligence Brain...
+INFO:app.main:[BRAIN] YouTube Intelligence Brain created, starting initialization...
+INFO:youtube_brain.brain:[BRAIN] Initializing YouTube Intelligence Brain...
+INFO:youtube_brain.brain:[BRAIN] Step 1: Collecting YouTube data...
+INFO:youtube_brain.data_collector:[BRAIN] Starting data collection for 11 niches
+INFO:youtube_brain.data_collector:[BRAIN] Collecting tech videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 118 videos for tech
+INFO:youtube_brain.data_collector:[BRAIN] Collecting gaming videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 110 videos for gaming
+WARNING:  WatchFiles detected changes in 'app/main.py'. Reloading...
+INFO:youtube_brain.data_collector:[BRAIN] Collecting education videos...
+WARNING:youtube_brain.data_collector:[BRAIN] API error: 404
+INFO:youtube_brain.data_collector:[BRAIN] Collected 10 videos for education
+INFO:youtube_brain.data_collector:[BRAIN] Collecting entertainment videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 110 videos for entertainment
+INFO:youtube_brain.data_collector:[BRAIN] Collecting people videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for people
+INFO:youtube_brain.data_collector:[BRAIN] Collecting business videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for business
+INFO:youtube_brain.data_collector:[BRAIN] Collecting music videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 30 videos for music
+INFO:youtube_brain.data_collector:[BRAIN] Collecting sports videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for sports
+INFO:youtube_brain.data_collector:[BRAIN] Collecting news videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for news
+INFO:youtube_brain.data_collector:[BRAIN] Collecting comedy videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for comedy
+INFO:youtube_brain.data_collector:[BRAIN] Collecting howto videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for howto
+INFO:youtube_brain.data_collector:[BRAIN] Storing collected data in database...
+INFO:youtube_brain.brain:[BRAIN] Step 2: Mining visual patterns...
+INFO:youtube_brain.pattern_miner:[PATTERN_MINER] Starting pattern mining for niche: all
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&order=views_per_hour.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.pattern_miner:[PATTERN_MINER] Error fetching videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.pattern_miner:[PATTERN_MINER] No videos found for pattern mining
+INFO:youtube_brain.brain:[BRAIN] Step 3: Training niche models...
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for niche: all
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for tech
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.tech "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for tech: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for tech: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for gaming
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.gaming "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for gaming: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for gaming: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for education
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.education "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for education: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for education: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for entertainment
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.entertainment "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for entertainment: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for entertainment: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for people
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.people "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for people: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for people: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for business
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.business "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for business: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for business: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for music
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.music "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for music: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for music: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for sports
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.sports "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for sports: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for sports: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for news
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.news "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for news: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for news: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for comedy
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.comedy "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for comedy: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for comedy: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for howto
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.howto "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for howto: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for howto: 0 samples
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/model_performance?on_conflict=niche "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error storing model performance: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.model_performance' in the schema cache"}
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Completed training for 11 niches
+INFO:youtube_brain.brain:[BRAIN] Step 4: Detecting trends...
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Detecting trends for niche: all, days_back: 30
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for tech
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.tech&published_at=gte.2025-09-16T09%3A55%3A33.648808&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for tech: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for gaming
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.gaming&published_at=gte.2025-09-16T09%3A55%3A33.728981&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for gaming: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for education
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.education&published_at=gte.2025-09-16T09%3A55%3A33.801280&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for education: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for entertainment
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.entertainment&published_at=gte.2025-09-16T09%3A55%3A33.881478&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for entertainment: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for people
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.people&published_at=gte.2025-09-16T09%3A55%3A33.961970&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for people: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for music
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.music&published_at=gte.2025-09-16T09%3A55%3A34.347602&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for music: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for sports
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.sports&published_at=gte.2025-09-16T09%3A55%3A34.425421&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for sports: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for news
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.news&published_at=gte.2025-09-16T09%3A55%3A34.498994&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for news: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for comedy
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.comedy&published_at=gte.2025-09-16T09%3A55%3A34.568066&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for comedy: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for howto
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.howto&published_at=gte.2025-09-16T09%3A55%3A34.664750&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for howto: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Detected trends for 10 niches
+INFO:youtube_brain.brain:[BRAIN] Step 5: Generating creator insights...
+INFO:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Generating insights for channel: all
+ERROR:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Error fetching active channels: 'SyncSelectRequestBuilder' object has no attribute 'distinct'
+INFO:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Generated insights for 0 creators
+INFO:youtube_brain.brain:[BRAIN] ✅ YouTube Intelligence Brain initialized successfully!
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/visual_patterns?select=pattern_id&limit=1 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.brain:[BRAIN] Error getting status: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.visual_patterns' in the schema cache"}
+INFO:app.main:[BRAIN] ✅ Brain initialization complete!
+INFO:app.main:[BRAIN] Status: BrainStatus(data_collector_ready=False, pattern_miner_ready=False, niche_models_ready=False, trend_detector_ready=False, insights_engine_ready=False, last_data_update=None, total_patterns=0, total_trends=0, trained_niches=[])
+INFO:app.main:[BRAIN] ✅ YouTube Intelligence Brain initialized successfully
+INFO:app.main:======================================================================
+INFO:app.main:[FAISS] Loading FAISS indices for similarity scoring...
+INFO:app.main:======================================================================
+INFO:app.faiss_cache:[FAISS] Loading indices from faiss_indices
+INFO:app.faiss_cache:[FAISS] Loaded index for tech (171 items)
+INFO:app.faiss_cache:[FAISS] Loaded index for business (171 items)
+INFO:app.faiss_cache:[FAISS] Cache ready with 2 niches (342 total items)
+INFO:app.faiss_cache:[FAISS] Memory usage: ~0.7 MB
+INFO:app.main:[FAISS] ✓ Index loading completed successfully
+INFO:app.main:======================================================================
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Collect thumbnails and rebuild FAISS indices" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:Scheduler started:
+INFO:app.main:  - Library refresh + FAISS index rebuilding: 3:00 AM Hobart time daily
+INFO:     Application startup complete.
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py", line 419, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 84, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/applications.py", line 123, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/cors.py", line 83, in __call__
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 762, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 782, in app
+    await route.handle(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 297, in handle
+    await self.app(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 77, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/usr/local/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 72, in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 294, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/fastapi/routing.py", line 193, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/starlette/concurrency.py", line 40, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2434, in run_sync_in_worker_thread
+    await cls.checkpoint()
+  File "/usr/local/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2341, in checkpoint
+    await sleep(0)
+  File "/usr/local/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/tasks.py", line 640, in sleep
+    await __sleep0()
+  File "/usr/local/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/tasks.py", line 634, in __sleep0
+    yield
+asyncio.exceptions.CancelledError
+[ModelPipeline] Initializing on device: cpu
+INFO:     127.0.0.1:59372 - "GET /internal/faiss-status HTTP/1.1" 500 Internal Server Error
+INFO:app.main:[Thumbscore.io] Shutting down AI thumbnail scoring service...
+ERROR:    Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 747, in lifespan
+    await receive()
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/lifespan/on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+INFO:apscheduler.scheduler:Scheduler has been shut down
+INFO:faiss.loader:Loading faiss with AVX2 support.
+INFO:faiss.loader:Successfully loaded faiss with AVX2 support.
+INFO:app.determinism:[DETERMINISTIC] Initializing deterministic mode
+INFO:app.determinism:[DETERMINISTIC] Setting seeds to 42
+INFO:app.determinism:[DETERMINISTIC] PyTorch seeds set
+INFO:app.determinism:[DETERMINISTIC] Cache initialized at deterministic_cache
+INFO:app.determinism:[DETERMINISTIC] Global normalizer initialized
+INFO:app.main:[DETERMINISTIC] Mode: ENABLED
+INFO:app.main:[DETERMINISTIC] Score version: v1.4-faiss-hybrid
+INFO:app.main:[DETERMINISTIC] Model version: clip-vit-l14-v1.4-faiss-hybrid
+INFO:     Started server process [47018]
+INFO:     Waiting for application startup.
+INFO:app.main:[Thumbscore.io] Starting up AI thumbnail scoring service...
+INFO:app.main:[STARTUP] Temporarily skipping model initialization for faster startup...
+INFO:app.main:[STARTUP] Models will be lazy-loaded on first request
+INFO:app.main:[BRAIN] Initializing YouTube Intelligence Brain...
+INFO:app.main:[BRAIN] YouTube Intelligence Brain created, starting initialization...
+INFO:youtube_brain.brain:[BRAIN] Initializing YouTube Intelligence Brain...
+INFO:youtube_brain.brain:[BRAIN] Step 1: Collecting YouTube data...
+INFO:youtube_brain.data_collector:[BRAIN] Starting data collection for 11 niches
+INFO:youtube_brain.data_collector:[BRAIN] Collecting tech videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 117 videos for tech
+INFO:youtube_brain.data_collector:[BRAIN] Collecting gaming videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 110 videos for gaming
+INFO:youtube_brain.data_collector:[BRAIN] Collecting education videos...
+WARNING:youtube_brain.data_collector:[BRAIN] API error: 404
+INFO:youtube_brain.data_collector:[BRAIN] Collected 10 videos for education
+INFO:youtube_brain.data_collector:[BRAIN] Collecting entertainment videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 110 videos for entertainment
+INFO:youtube_brain.data_collector:[BRAIN] Collecting people videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for people
+INFO:youtube_brain.data_collector:[BRAIN] Collecting business videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for business
+INFO:youtube_brain.data_collector:[BRAIN] Collecting music videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 30 videos for music
+INFO:youtube_brain.data_collector:[BRAIN] Collecting sports videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for sports
+INFO:youtube_brain.data_collector:[BRAIN] Collecting news videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for news
+INFO:youtube_brain.data_collector:[BRAIN] Collecting comedy videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for comedy
+INFO:youtube_brain.data_collector:[BRAIN] Collecting howto videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for howto
+INFO:youtube_brain.data_collector:[BRAIN] Storing collected data in database...
+INFO:youtube_brain.brain:[BRAIN] Step 2: Mining visual patterns...
+INFO:youtube_brain.pattern_miner:[PATTERN_MINER] Starting pattern mining for niche: all
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&order=views_per_hour.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.pattern_miner:[PATTERN_MINER] Error fetching videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.pattern_miner:[PATTERN_MINER] No videos found for pattern mining
+INFO:youtube_brain.brain:[BRAIN] Step 3: Training niche models...
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for niche: all
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for tech
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.tech "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for tech: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for tech: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for gaming
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.gaming "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for gaming: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for gaming: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for education
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.education "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for education: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for education: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for entertainment
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.entertainment "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for entertainment: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for entertainment: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for people
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.people "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for people: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for people: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for business
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.business "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for business: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for business: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for music
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.music "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for music: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for music: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for sports
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.sports "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for sports: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for sports: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for news
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.news "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for news: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for news: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for comedy
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.comedy "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for comedy: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for comedy: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for howto
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.howto "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for howto: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for howto: 0 samples
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/model_performance?on_conflict=niche "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error storing model performance: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.model_performance' in the schema cache"}
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Completed training for 11 niches
+INFO:youtube_brain.brain:[BRAIN] Step 4: Detecting trends...
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Detecting trends for niche: all, days_back: 30
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for tech
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.tech&published_at=gte.2025-09-16T09%3A56%3A09.364357&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for tech: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for gaming
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.gaming&published_at=gte.2025-09-16T09%3A56%3A09.447610&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for gaming: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for education
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.education&published_at=gte.2025-09-16T09%3A56%3A09.535034&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for education: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for entertainment
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.entertainment&published_at=gte.2025-09-16T09%3A56%3A09.612617&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for entertainment: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for people
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.people&published_at=gte.2025-09-16T09%3A56%3A09.699728&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for people: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for music
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.music&published_at=gte.2025-09-16T09%3A56%3A10.111861&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for music: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for sports
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.sports&published_at=gte.2025-09-16T09%3A56%3A10.212471&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for sports: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for news
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.news&published_at=gte.2025-09-16T09%3A56%3A10.299749&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for news: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for comedy
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.comedy&published_at=gte.2025-09-16T09%3A56%3A10.514773&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for comedy: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for howto
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.howto&published_at=gte.2025-09-16T09%3A56%3A10.607359&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for howto: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Detected trends for 10 niches
+INFO:youtube_brain.brain:[BRAIN] Step 5: Generating creator insights...
+INFO:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Generating insights for channel: all
+ERROR:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Error fetching active channels: 'SyncSelectRequestBuilder' object has no attribute 'distinct'
+INFO:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Generated insights for 0 creators
+INFO:youtube_brain.brain:[BRAIN] ✅ YouTube Intelligence Brain initialized successfully!
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/visual_patterns?select=pattern_id&limit=1 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.brain:[BRAIN] Error getting status: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.visual_patterns' in the schema cache"}
+INFO:app.main:[BRAIN] ✅ Brain initialization complete!
+INFO:app.main:[BRAIN] Status: BrainStatus(data_collector_ready=False, pattern_miner_ready=False, niche_models_ready=False, trend_detector_ready=False, insights_engine_ready=False, last_data_update=None, total_patterns=0, total_trends=0, trained_niches=[])
+INFO:app.main:[BRAIN] ✅ YouTube Intelligence Brain initialized successfully
+INFO:app.main:======================================================================
+INFO:app.main:[FAISS] Loading FAISS indices for similarity scoring...
+INFO:app.main:======================================================================
+INFO:app.faiss_cache:[FAISS] Loading indices from faiss_indices
+INFO:app.faiss_cache:[FAISS] Loaded index for tech (171 items)
+INFO:app.faiss_cache:[FAISS] Loaded index for business (171 items)
+INFO:app.faiss_cache:[FAISS] Cache ready with 2 niches (342 total items)
+INFO:app.faiss_cache:[FAISS] Memory usage: ~0.7 MB
+INFO:app.main:[FAISS] ✓ Index loading completed successfully
+INFO:app.main:======================================================================
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Collect thumbnails and rebuild FAISS indices" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:Scheduler started:
+INFO:app.main:  - Library refresh + FAISS index rebuilding: 3:00 AM Hobart time daily
+INFO:     Application startup complete.
+[ModelPipeline] Initializing on device: cpu
+INFO:     127.0.0.1:59594 - "GET / HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'app/main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.main:[Thumbscore.io] Shutting down AI thumbnail scoring service...
+INFO:apscheduler.scheduler:Scheduler has been shut down
+INFO:     Application shutdown complete.
+INFO:     Finished server process [47018]
+WARNING:  WatchFiles detected changes in 'app/main.py'. Reloading...
+INFO:faiss.loader:Loading faiss with AVX2 support.
+INFO:faiss.loader:Successfully loaded faiss with AVX2 support.
+INFO:app.determinism:[DETERMINISTIC] Initializing deterministic mode
+INFO:app.determinism:[DETERMINISTIC] Setting seeds to 42
+INFO:app.determinism:[DETERMINISTIC] PyTorch seeds set
+INFO:app.determinism:[DETERMINISTIC] Cache initialized at deterministic_cache
+INFO:app.determinism:[DETERMINISTIC] Global normalizer initialized
+INFO:app.main:[DETERMINISTIC] Mode: ENABLED
+INFO:app.main:[DETERMINISTIC] Score version: v1.4-faiss-hybrid
+INFO:app.main:[DETERMINISTIC] Model version: clip-vit-l14-v1.4-faiss-hybrid
+INFO:     Started server process [47221]
+INFO:     Waiting for application startup.
+INFO:app.main:[Thumbscore.io] Starting up AI thumbnail scoring service...
+INFO:app.main:[STARTUP] Temporarily skipping model initialization for faster startup...
+INFO:app.main:[STARTUP] Models will be lazy-loaded on first request
+INFO:app.main:[BRAIN] Initializing YouTube Intelligence Brain...
+INFO:app.main:[BRAIN] YouTube Intelligence Brain created, starting initialization...
+INFO:youtube_brain.brain:[BRAIN] Initializing YouTube Intelligence Brain...
+INFO:youtube_brain.brain:[BRAIN] Step 1: Collecting YouTube data...
+INFO:youtube_brain.data_collector:[BRAIN] Starting data collection for 11 niches
+INFO:youtube_brain.data_collector:[BRAIN] Collecting tech videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 118 videos for tech
+INFO:youtube_brain.data_collector:[BRAIN] Collecting gaming videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 110 videos for gaming
+INFO:youtube_brain.data_collector:[BRAIN] Collecting education videos...
+WARNING:youtube_brain.data_collector:[BRAIN] API error: 404
+INFO:youtube_brain.data_collector:[BRAIN] Collected 15 videos for education
+INFO:youtube_brain.data_collector:[BRAIN] Collecting entertainment videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 110 videos for entertainment
+INFO:youtube_brain.data_collector:[BRAIN] Collecting people videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for people
+INFO:youtube_brain.data_collector:[BRAIN] Collecting business videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for business
+INFO:youtube_brain.data_collector:[BRAIN] Collecting music videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 30 videos for music
+INFO:youtube_brain.data_collector:[BRAIN] Collecting sports videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for sports
+INFO:youtube_brain.data_collector:[BRAIN] Collecting news videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for news
+INFO:youtube_brain.data_collector:[BRAIN] Collecting comedy videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for comedy
+INFO:youtube_brain.data_collector:[BRAIN] Collecting howto videos...
+INFO:youtube_brain.data_collector:[BRAIN] Collected 100 videos for howto
+INFO:youtube_brain.data_collector:[BRAIN] Storing collected data in database...
+INFO:youtube_brain.brain:[BRAIN] Step 2: Mining visual patterns...
+INFO:youtube_brain.pattern_miner:[PATTERN_MINER] Starting pattern mining for niche: all
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&order=views_per_hour.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.pattern_miner:[PATTERN_MINER] Error fetching videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.pattern_miner:[PATTERN_MINER] No videos found for pattern mining
+INFO:youtube_brain.brain:[BRAIN] Step 3: Training niche models...
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for niche: all
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for tech
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.tech "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for tech: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for tech: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for gaming
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.gaming "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for gaming: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for gaming: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for education
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.education "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for education: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for education: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for entertainment
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.entertainment "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for entertainment: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for entertainment: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for people
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.people "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for people: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for people: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for business
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.business "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for business: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for business: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for music
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.music "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for music: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for music: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for sports
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.sports "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for sports: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for sports: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for news
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.news "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for news: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for news: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for comedy
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.comedy "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for comedy: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for comedy: 0 samples
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Training models for howto
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.howto "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error preparing training data for howto: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.niche_models:[NICHE_MODELS] Insufficient data for howto: 0 samples
+INFO:httpx:HTTP Request: POST https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/model_performance?on_conflict=niche "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.niche_models:[NICHE_MODELS] Error storing model performance: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.model_performance' in the schema cache"}
+INFO:youtube_brain.niche_models:[NICHE_MODELS] Completed training for 11 niches
+INFO:youtube_brain.brain:[BRAIN] Step 4: Detecting trends...
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Detecting trends for niche: all, days_back: 30
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for tech
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.tech&published_at=gte.2025-09-16T09%3A58%3A48.238271&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for tech: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for gaming
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.gaming&published_at=gte.2025-09-16T09%3A58%3A48.310307&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for gaming: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for education
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.education&published_at=gte.2025-09-16T09%3A58%3A48.393645&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for education: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for entertainment
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.entertainment&published_at=gte.2025-09-16T09%3A58%3A48.454265&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for entertainment: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for people
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.people&published_at=gte.2025-09-16T09%3A58%3A48.521686&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for people: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for music
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.music&published_at=gte.2025-09-16T09%3A58%3A48.843502&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for music: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for sports
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.sports&published_at=gte.2025-09-16T09%3A58%3A48.903799&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for sports: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for news
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.news&published_at=gte.2025-09-16T09%3A58%3A48.961838&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for news: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for comedy
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.comedy&published_at=gte.2025-09-16T09%3A58%3A49.023967&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for comedy: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Analyzing trends for howto
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/youtube_videos?select=%2A&niche=eq.howto&published_at=gte.2025-09-16T09%3A58%3A49.088620&order=published_at.desc&limit=1000 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.trend_detector:[TREND_DETECTOR] Error fetching recent videos: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.youtube_videos' in the schema cache"}
+WARNING:youtube_brain.trend_detector:[TREND_DETECTOR] Insufficient data for howto: 0 videos
+INFO:youtube_brain.trend_detector:[TREND_DETECTOR] Detected trends for 10 niches
+INFO:youtube_brain.brain:[BRAIN] Step 5: Generating creator insights...
+INFO:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Generating insights for channel: all
+ERROR:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Error fetching active channels: 'SyncSelectRequestBuilder' object has no attribute 'distinct'
+INFO:youtube_brain.insights_engine:[INSIGHTS_ENGINE] Generated insights for 0 creators
+INFO:youtube_brain.brain:[BRAIN] ✅ YouTube Intelligence Brain initialized successfully!
+INFO:httpx:HTTP Request: GET https://eubfjhegyvivesqgpvlh.supabase.co/rest/v1/visual_patterns?select=pattern_id&limit=1 "HTTP/1.1 404 Not Found"
+ERROR:youtube_brain.brain:[BRAIN] Error getting status: {'code': 'PGRST205', 'details': None, 'hint': None, 'message': "Could not find the table 'public.visual_patterns' in the schema cache"}
+INFO:app.main:[BRAIN] ✅ Brain initialization complete!
+INFO:app.main:[BRAIN] Status: BrainStatus(data_collector_ready=False, pattern_miner_ready=False, niche_models_ready=False, trend_detector_ready=False, insights_engine_ready=False, last_data_update=None, total_patterns=0, total_trends=0, trained_niches=[])
+INFO:app.main:[BRAIN] ✅ YouTube Intelligence Brain initialized successfully
+INFO:app.main:======================================================================
+INFO:app.main:[FAISS] Loading FAISS indices for similarity scoring...
+INFO:app.main:======================================================================
+INFO:app.faiss_cache:[FAISS] Loading indices from faiss_indices
+INFO:app.faiss_cache:[FAISS] Loaded index for tech (171 items)
+INFO:app.faiss_cache:[FAISS] Loaded index for business (171 items)
+INFO:app.faiss_cache:[FAISS] Cache ready with 2 niches (342 total items)
+INFO:app.faiss_cache:[FAISS] Memory usage: ~0.7 MB
+INFO:app.main:[FAISS] ✓ Index loading completed successfully
+INFO:app.main:======================================================================
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Collect thumbnails and rebuild FAISS indices" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:Scheduler started:
+INFO:app.main:  - Library refresh + FAISS index rebuilding: 3:00 AM Hobart time daily
+INFO:     Application startup complete.
+INFO:app.main:[Thumbscore.io] Shutting down AI thumbnail scoring service...
+ERROR:    Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/starlette/routing.py", line 747, in lifespan
+    await receive()
+  File "/usr/local/lib/python3.11/site-packages/uvicorn/lifespan/on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/Cellar/python@3.11/3.11.13/Frameworks/Python.framework/Versions/3.11/lib/python3.11/asyncio/queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+INFO:apscheduler.scheduler:Scheduler has been shut down
+[ModelPipeline] Initializing on device: cpu
+INFO:     Stopping reloader process [46485]
