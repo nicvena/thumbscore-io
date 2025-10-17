@@ -180,7 +180,7 @@ export function useUsageTracking() {
 
   useEffect(() => {
     refreshUsage();
-  }, []);
+  }, []); // Remove refreshUsage dependency to prevent infinite re-renders
 
   return {
     usage,

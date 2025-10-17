@@ -20,8 +20,12 @@ export default function UploadPage() {
 
   useEffect(() => {
     // Track form start
-    formAnalytics.trackFormStart();
-  }, [formAnalytics]);
+    try {
+      formAnalytics.trackFormStart();
+    } catch (error) {
+      console.warn('Analytics error:', error);
+    }
+  }, []); // Remove formAnalytics dependency to prevent infinite re-renders
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -29,27 +33,43 @@ export default function UploadPage() {
       setFiles(newFiles);
       
       // Track file selection
-      const totalSize = newFiles.reduce((sum, file) => sum + file.size, 0);
-      uploadAnalytics.trackFileSelection(newFiles.length, totalSize);
-      
-      // Track niche selection
-      formAnalytics.trackFormFieldInteraction('file_upload', 'files_selected');
+      try {
+        const totalSize = newFiles.reduce((sum, file) => sum + file.size, 0);
+        uploadAnalytics.trackFileSelection(newFiles.length, totalSize);
+        
+        // Track niche selection
+        formAnalytics.trackFormFieldInteraction('file_upload', 'files_selected');
+      } catch (error) {
+        console.warn('Analytics error:', error);
+      }
     }
   };
 
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index));
-    formAnalytics.trackFormFieldInteraction('file_upload', 'file_removed');
+    try {
+      formAnalytics.trackFormFieldInteraction('file_upload', 'file_removed');
+    } catch (error) {
+      console.warn('Analytics error:', error);
+    }
   };
 
   const handleNicheChange = (niche: string) => {
     setSelectedNiche(niche);
-    formAnalytics.trackFormFieldInteraction('niche_selector', niche);
+    try {
+      formAnalytics.trackFormFieldInteraction('niche_selector', niche);
+    } catch (error) {
+      console.warn('Analytics error:', error);
+    }
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setVideoTitle(e.target.value);
-    formAnalytics.trackFormFieldInteraction('video_title', 'title_entered');
+    try {
+      formAnalytics.trackFormFieldInteraction('video_title', 'title_entered');
+    } catch (error) {
+      console.warn('Analytics error:', error);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,8 +105,12 @@ export default function UploadPage() {
       
       if (response.ok) {
         // Track successful upload
-        const fileSizes = files.map(file => file.size);
-        formAnalytics.trackFormSubmit(true);
+        try {
+          const fileSizes = files.map(file => file.size);
+          formAnalytics.trackFormSubmit(true);
+        } catch (error) {
+          console.warn('Analytics error:', error);
+        }
         
         // Store upload data in session storage for analysis
         if (videoTitle) {
@@ -114,15 +138,23 @@ export default function UploadPage() {
         router.push(`/results?id=${data.sessionId}`);
       } else {
         // Track upload error
-        formAnalytics.trackFormSubmit(false, data.error);
-        uploadAnalytics.trackUploadError(data.error);
+        try {
+          formAnalytics.trackFormSubmit(false, data.error);
+          uploadAnalytics.trackUploadError(data.error);
+        } catch (analyticsError) {
+          console.warn('Analytics error:', analyticsError);
+        }
         alert('Upload failed: ' + data.error);
       }
     } catch (error) {
       // Track upload error
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      formAnalytics.trackFormSubmit(false, errorMessage);
-      uploadAnalytics.trackUploadError(errorMessage);
+      try {
+        formAnalytics.trackFormSubmit(false, errorMessage);
+        uploadAnalytics.trackUploadError(errorMessage);
+      } catch (analyticsError) {
+        console.warn('Analytics error:', analyticsError);
+      }
       alert('Upload failed: ' + error);
     } finally {
       setUploading(false);
@@ -140,9 +172,9 @@ export default function UploadPage() {
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-[#00C8C8] via-[#66B2FF] to-[#00C8C8] bg-clip-text text-transparent">
             Thumbscore.io
           </h1>
-          <p className="text-xl text-gray-300 mb-6 font-medium">Upload 3 Thumbnails</p>
+          <p className="text-xl text-gray-300 mb-6 font-medium">Upload 3 YouTube Thumbnails</p>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
-            Upload 3 different thumbnail options to see which will get more clicks on YouTube
+            Upload 3 different thumbnail options to see which will optimize your YouTube click-through rate
           </p>
         </div>
         

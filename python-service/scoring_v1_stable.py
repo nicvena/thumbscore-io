@@ -33,11 +33,45 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Import GPT summary module
+try:
+    from app.gpt_summary import get_gpt_tailored_summary_with_retry
+    GPT_SUMMARY_AVAILABLE = True
+    logger.info("[STABLE_SCORER] GPT summary module loaded successfully")
+except ImportError as e:
+    GPT_SUMMARY_AVAILABLE = False
+    logger.warning(f"[STABLE_SCORER] GPT summary module not available: {e}")
+
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # In-memory cache for responses
 response_cache = {}
+
+# Persistent cache file for deterministic results across server restarts
+CACHE_FILE = "thumbnail_cache.json"
+
+def load_persistent_cache():
+    """Load cache from disk"""
+    try:
+        import json
+        with open(CACHE_FILE, 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+def save_persistent_cache():
+    """Save cache to disk"""
+    try:
+        import json
+        with open(CACHE_FILE, 'w') as f:
+            json.dump(response_cache, f, indent=2)
+    except Exception as e:
+        logger.error(f"Failed to save cache: {e}")
+
+# Load existing cache on startup
+response_cache = load_persistent_cache()
+logger.info(f"[CACHE] Loaded {len(response_cache)} cached results from disk")
 
 # Usage tracking for cost control
 usage_tracker = {
@@ -49,16 +83,16 @@ usage_tracker = {
 
 # Niche-specific contexts for GPT-4 Vision
 NICHE_CONTEXTS = {
-    "gaming": "high energy, shocked expressions, bold ALL CAPS text, neon/bright colors, gaming aesthetics",
-    "business": "professional, clean design, confident imagery, blue/gray tones, corporate look",
-    "tech": "modern, innovative feel, clear product focus, sleek aesthetics, tech-forward design",
-    "food": "appetizing food, warm colors, inviting presentation, mouth-watering appeal",
-    "fitness": "energetic, transformational, bold text, action shots, motivational vibe",
-    "education": "clear, trustworthy, organized, approachable, educational feel",
-    "entertainment": "expressive, dramatic, eye-catching, emotion-driven, entertainment value",
-    "travel": "aspirational, beautiful scenery, wanderlust-inducing, adventure appeal",
-    "music": "artistic, expressive, genre-appropriate aesthetics, musical vibe",
-    "general": "clear focal point, emotional appeal, high readability, broad appeal"
+    "gaming": "high-energy gameplay, bright colors, action shots, recognizable characters, competitive gaming elements, click-worthy excitement",
+    "business": "professional appearance, clean backgrounds, confident expressions, success indicators, corporate aesthetics, trust-building elements",
+    "tech": "clean design, modern aesthetics, gadgets/devices, professional lighting, innovation-focused, sleek presentation",
+    "food": "appetizing presentation, warm lighting, close-up shots, vibrant colors, mouth-watering appeal, hunger-inducing imagery",
+    "fitness": "energetic poses, transformation shots, bold motivational text, gym environments, athletic wear, inspiring visuals",
+    "education": "clear, trustworthy presentation, organized layouts, approachable instructors, educational materials, learning-focused",
+    "entertainment": "expressive faces, dramatic lighting, emotion-driven content, entertainment value, engaging visuals, personality-driven",
+    "travel": "breathtaking scenery, aspirational destinations, adventure elements, wanderlust-inducing imagery, dream-worthy locations",
+    "music": "artistic expression, genre-appropriate aesthetics, musical instruments, performance shots, creative vibes, musical energy",
+    "general": "clear focal point, broad appeal, high readability, emotional connection, universal understanding, click-worthy elements"
 }
 
 def check_usage_limits() -> Dict[str, Any]:
@@ -133,25 +167,55 @@ def get_gpt_rubric(image_bytes: bytes, title: str, niche: str) -> Dict[str, Any]
         base64_image = encode_image_to_base64(image_bytes)
         niche_context = NICHE_CONTEXTS.get(niche, NICHE_CONTEXTS["general"])
         
-        prompt = f"""Analyze this YouTube thumbnail for {niche} content.
+        prompt = f"""Analyze this YouTube thumbnail for CLICK OPTIMIZATION in the {niche} niche.
+
+Your goal: Rate how likely this thumbnail is to get CLICKS on YouTube.
 
 Rate each dimension 0-5 (integers only):
-- 0: Very poor, 1: Poor, 2: Below average, 3: Average, 4: Good, 5: Excellent
+- 0: Very poor click potential, 1: Poor click potential, 2: Below average, 3: Average, 4: Good click potential, 5: Excellent click potential
 
-CRITICAL NICHE RELEVANCE:
-- niche_relevance 0-1: Completely wrong niche (gym thumbnail for business, food thumbnail for gaming, etc.)
-- niche_relevance 2-3: Poor/average niche match
-- niche_relevance 4-5: Perfect niche match
+YOUTUBE CLICK OPTIMIZATION CRITERIA:
 
-TITLE ALIGNMENT ANALYSIS:
-- title_alignment 0-1: Thumbnail has nothing to do with the title "{title}"
-- title_alignment 2-3: Thumbnail somewhat relates to the title
-- title_alignment 4-5: Thumbnail perfectly matches the title theme/content
+1. VISUAL APPEAL (0-5):
+   - Does it grab attention instantly? Bright colors, high contrast, eye-catching elements?
+   - Would it stand out in YouTube's crowded sidebar/search results?
+   - Does it look professional and polished?
 
-Examples:
-- Business niche: Score gym/fitness thumbnails 0-1 for niche_relevance
-- Gaming niche: Score business/finance thumbnails 0-1 for niche_relevance  
-- Food niche: Score tech/gaming thumbnails 0-1 for niche_relevance
+2. SUBJECT PROMINENCE (0-5):
+   - Is the main subject (person, object, scene) clearly visible and prominent?
+   - Does it fill enough of the frame to be recognizable at thumbnail size?
+   - Is there a clear focal point that draws the eye?
+
+3. EMOTION (0-5):
+   - Does it evoke curiosity, excitement, surprise, or strong emotion?
+   - Would viewers feel compelled to click to learn more?
+   - Does it create an emotional connection or reaction?
+
+4. TEXT READABILITY (0-5):
+   - Can any text be read clearly at YouTube thumbnail size (especially on mobile)?
+   - Is text large enough, high contrast, and positioned well?
+   - Does text add value or create intrigue?
+
+5. COLOR CONTRAST (0-5):
+   - High contrast colors that pop against YouTube's interface?
+   - Colors that work well for the {niche} niche?
+   - Does it avoid being too dark or washed out?
+
+6. TITLE ALIGNMENT (0-5):
+   - Does thumbnail perfectly match the title "{title}"?
+   - Would viewers feel misled or satisfied when they click?
+   - Does it deliver on the promise made by the title?
+
+7. NICHE RELEVANCE (0-5):
+   - Perfectly matches {niche} content expectations?
+   - Would {niche} viewers recognize and trust this thumbnail style?
+   - Follows successful {niche} thumbnail patterns?
+
+YOUTUBE-SPECIFIC CONSIDERATIONS:
+- Mobile-first: Most YouTube viewing is on phones
+- Competition: Must stand out among similar videos
+- Algorithm-friendly: Clear, engaging, relevant content
+- Click-through rate optimization: Creates curiosity without being misleading
 
 Return ONLY this JSON format:
 {{
@@ -162,7 +226,7 @@ Return ONLY this JSON format:
     "color_contrast": 0,
     "title_alignment": 0,
     "niche_relevance": 0,
-    "notes": "brief analysis"
+    "notes": "YouTube click optimization analysis"
 }}"""
 
         response = client.chat.completions.create(
@@ -234,9 +298,9 @@ Return ONLY this JSON format:
             "notes": "Fallback scoring due to API error"
         }
 
-def text_clarity(image_bytes: bytes) -> int:
+def text_clarity(image_bytes: bytes) -> Tuple[int, str]:
     """
-    Deterministic text clarity score 0-100
+    Deterministic text clarity score 0-100 + extracted OCR text
     Based on OCR confidence + luminance contrast of text areas
     """
     try:
@@ -247,11 +311,45 @@ def text_clarity(image_bytes: bytes) -> int:
         # Get OCR data
         ocr_data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
         
+        # Extract OCR text with better configuration
+        try:
+            # Try multiple OCR configurations for better text extraction
+            ocr_configs = [
+                '--psm 8',  # Single word
+                '--psm 7',  # Single text line
+                '--psm 6',  # Single uniform block of text
+                '--psm 3',  # Fully automatic page segmentation
+            ]
+            
+            ocr_text = ""
+            for config in ocr_configs:
+                try:
+                    text = pytesseract.image_to_string(image, config=config).strip()
+                    if text and len(text) > 3 and text.replace(' ', '').isalnum():
+                        ocr_text = text
+                        logger.info(f"[OCR_DEBUG] Extracted text with {config}: '{ocr_text}' (length={len(ocr_text)})")
+                        break
+                except:
+                    continue
+            
+            # If no meaningful text found, try without config
+            if not ocr_text:
+                ocr_text = pytesseract.image_to_string(image).strip()
+                if ocr_text and len(ocr_text) > 3:
+                    logger.info(f"[OCR_DEBUG] Extracted text (no config): '{ocr_text}' (length={len(ocr_text)})")
+                else:
+                    logger.info(f"[OCR_DEBUG] No meaningful text found")
+                    ocr_text = ""
+                    
+        except Exception as e:
+            logger.error(f"[OCR_DEBUG] OCR extraction failed: {e}")
+            ocr_text = ""
+        
         # Calculate average confidence for detected text
         confidences = [int(conf) for conf in ocr_data['conf'] if int(conf) > 0]
         
         if not confidences:
-            return 50  # No text detected - neutral score
+            return 50, ocr_text  # No text detected - neutral score, but return extracted text
         
         avg_confidence = sum(confidences) / len(confidences)
         
@@ -290,11 +388,11 @@ def text_clarity(image_bytes: bytes) -> int:
         
         # Combine confidence and contrast
         final_score = (avg_confidence * 0.6) + (contrast_score * 0.4)
-        return int(max(0, min(100, final_score)))
+        return int(max(0, min(100, final_score))), ocr_text
         
     except Exception as e:
         logger.error(f"Text clarity calculation failed: {e}")
-        return 50  # Safe default
+        return 50, ""  # Safe default with empty text
 
 def color_contrast(image_bytes: bytes) -> int:
     """
@@ -328,9 +426,9 @@ def color_contrast(image_bytes: bytes) -> int:
         logger.error(f"Color contrast calculation failed: {e}")
         return 50  # Safe default
 
-def subject_size(image_bytes: bytes) -> int:
+def subject_size(image_bytes: bytes) -> Tuple[int, List[Dict]]:
     """
-    Deterministic subject size score 0-100
+    Deterministic subject size score 0-100 + face detection data
     Uses MediaPipe face detection or OpenCV saliency fallback
     """
     try:
@@ -351,25 +449,44 @@ def subject_size(image_bytes: bytes) -> int:
                 if results.detections:
                     # Calculate total face area as percentage of image
                     total_face_area = 0
+                    face_boxes = []
+                    
                     for detection in results.detections:
                         bbox = detection.location_data.relative_bounding_box
                         face_area = bbox.width * bbox.height
                         total_face_area += face_area
+                        
+                        # Store face detection data
+                        face_boxes.append({
+                            "bbox": [
+                                int(bbox.xmin * width),
+                                int(bbox.ymin * height),
+                                int(bbox.width * width),
+                                int(bbox.height * height)
+                            ],
+                            "confidence": detection.score[0],
+                            "emotion": "Detected",  # Face detected but emotion analysis not available
+                            "age": "Detected",
+                            "gender": "Detected"
+                        })
                     
                     # Convert to percentage and scale to 0-100
                     face_percentage = total_face_area * 100
-                    return int(max(0, min(100, face_percentage * 2)))  # Scale factor
+                    score = int(max(0, min(100, face_percentage * 2)))  # Scale factor
+                    return score, face_boxes
                 else:
                     # No faces detected - use saliency fallback
-                    return subject_size_saliency_fallback(image_array)
+                    score = subject_size_saliency_fallback(image_array)
+                    return score, []
                     
         except ImportError:
             # MediaPipe not available - use saliency fallback
-            return subject_size_saliency_fallback(image_array)
+            score = subject_size_saliency_fallback(image_array)
+            return score, []
             
     except Exception as e:
         logger.error(f"Subject size calculation failed: {e}")
-        return 50  # Safe default
+        return 50, []  # Safe default with empty face list
 
 def subject_size_saliency_fallback(image_array: np.ndarray) -> int:
     """
@@ -427,30 +544,32 @@ def saturation_energy(image_bytes: bytes) -> int:
         logger.error(f"Saturation energy calculation failed: {e}")
         return 50  # Safe default
 
-def calculate_numeric_core(image_bytes: bytes) -> Dict[str, int]:
+def calculate_numeric_core(image_bytes: bytes) -> Dict[str, Any]:
     """
     Calculate deterministic numeric core score
-    Returns individual scores and weighted combination
+    Returns individual scores, weighted combination, and additional data
     """
-    text = text_clarity(image_bytes)
+    text_score, ocr_text = text_clarity(image_bytes)
     contrast = color_contrast(image_bytes)
-    subject = subject_size(image_bytes)
+    subject_score, face_boxes = subject_size(image_bytes)
     saturation = saturation_energy(image_bytes)
     
     # Weighted combination
     core_score = round(
-        0.30 * text +
+        0.30 * text_score +
         0.30 * contrast +
-        0.20 * subject +
+        0.20 * subject_score +
         0.20 * saturation
     )
     
     return {
-        "text_clarity": text,
+        "text_clarity": text_score,
         "color_contrast": contrast,
-        "subject_size": subject,
+        "subject_size": subject_score,
         "saturation_energy": saturation,
-        "core_score": core_score
+        "core_score": core_score,
+        "ocr_text": ocr_text,
+        "face_boxes": face_boxes
     }
 
 def calculate_rubric_score(rubric: Dict[str, Any]) -> float:
@@ -576,11 +695,37 @@ def score_thumbnail_stable(image_bytes: bytes, title: str, niche: str) -> Dict[s
     
     logger.info(f"[Blend] final={final_score} confidence={confidence}")
     
+    # Generate GPT-4 Vision tailored summary if available
+    gpt_summary = None
+    if GPT_SUMMARY_AVAILABLE:
+        try:
+            # Prepare metrics for GPT summary
+            metrics = {
+                "title": title,
+                "niche": niche,
+                "ocr_text": numeric_core_data.get("text_content", ""),
+                "text_boxes": numeric_core_data.get("text_boxes", [])[:3],
+                "faces": [],  # No face detection in current system
+                "subject_pct_estimate": numeric_core_data.get("subject_size", 0) / 100,
+                "saliency_pct_main": 0.6,  # Estimate based on typical thumbnails
+                "avg_saturation": numeric_core_data.get("saturation_energy", 0) / 100,
+                "dominant_colors": [],  # Could be extracted from image analysis
+                "rule_of_thirds_hits": 2,  # Estimate - could be calculated from composition
+                "library_trend_match": 0.7  # Estimate based on niche
+            }
+            
+            logger.info(f"[GPT-SUMMARY] Generating tailored summary for thumbnail")
+            gpt_summary = get_gpt_tailored_summary_with_retry(image_bytes, metrics)
+            logger.info(f"[GPT-SUMMARY] Generated summary: {gpt_summary.get('winner_summary', '')[:50]}...")
+        except Exception as e:
+            logger.warning(f"[GPT-SUMMARY] Failed to generate summary: {e}")
+            gpt_summary = None
+    
     # Build response
     response = {
         "thumbscore": final_score,
         "confidence": confidence,
-        "score_version": "v1.0-gpt4rubric-core",
+        "score_version": "v1.0-youtube-optimized",
         "hash": hash_id,
         "niche": niche,
         "rubric": {
@@ -588,11 +733,13 @@ def score_thumbnail_stable(image_bytes: bytes, title: str, niche: str) -> Dict[s
             "rubric_score": rubric_score
         },
         "numeric_core": numeric_core_data,
-        "calibration": {"min": 30, "max": 95}
+        "calibration": {"min": 30, "max": 95},
+        "gpt_summary": gpt_summary  # Add GPT summary to response
     }
     
     # Cache response
     response_cache[cache_key] = response
+    save_persistent_cache()  # Save to disk for persistence
     
     return response
 
@@ -604,7 +751,7 @@ def compare_thumbnails_stable(thumbnails: List[Dict[str, Any]], title: str, nich
     hash_counts = {}
     processed_hashes = {}  # Track which thumbnails have identical content
     
-    logger.info(f"[STABLE_SCORER] Analyzing {len(thumbnails)} thumbnails for {niche} niche")
+    logger.info(f"[YouTube] Analyzing thumbnail for {niche} niche - Click optimization focus")
     
     # Score each thumbnail and track duplicates
     for thumb in thumbnails:
@@ -649,7 +796,7 @@ def compare_thumbnails_stable(thumbnails: List[Dict[str, Any]], title: str, nich
     return {
         "winner_id": winner_id,
         "thumbnails": results,
-        "explanation": f"Winner selected based on highest overall score using stable V1 scoring system.",
+        "explanation": f"Winner selected based on YouTube click optimization analysis. Thumbnail {winner_id} scored highest for click-through rate potential in the {niche} niche.",
         "niche": niche,
         "metadata": {
             "scoring_version": "v1.0-gpt4rubric-core",

@@ -48,7 +48,7 @@ export default function Home() {
             Thumbscore.io
           </h1>
           <p className="text-2xl font-semibold text-white mb-8">
-            AI Thumbnail Scoring
+            YouTube Click Optimization
           </p>
           
           {/* Feature Tags */}
@@ -60,12 +60,12 @@ export default function Home() {
           
           {/* Main Headline */}
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-            Stop Guessing Which Thumbnail Wins
+            Optimize Your YouTube Thumbnails for Maximum Clicks
           </h2>
           
           {/* Description */}
           <p className="text-xl text-cyan-300 font-semibold mb-6 max-w-3xl mx-auto">
-            Upload 3 options. Our AI tells you which one gets the most clicks. Results in 10 seconds.
+            Upload 3 thumbnail options. Our AI analyzes them specifically for YouTube click-through rates. Get results in 10 seconds.
           </p>
           
           {/* Pricing Info */}
@@ -81,15 +81,15 @@ export default function Home() {
               className="px-10 py-5 bg-gradient-to-r from-[#6a5af9] to-[#1de9b6] text-white rounded-xl hover:shadow-xl hover:shadow-cyan-500/50 transition-all text-xl font-semibold transform hover:scale-105"
             >
               Analyze 3 Thumbnails Free →
-            </a>
-            <a
+          </a>
+          <a
               href="/pricing"
               onClick={handlePricingClick}
               className="px-8 py-5 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-colors text-lg font-semibold backdrop-blur-sm border border-white/20"
             >
               Pricing
-            </a>
-            <a
+        </a>
+        <a
               href="/faq"
               onClick={handleFaqClick}
               className="px-8 py-5 bg-white/10 text-white rounded-xl hover:bg-white/20 transition-colors text-lg font-semibold backdrop-blur-sm border border-white/20"
@@ -230,7 +230,7 @@ export default function Home() {
         <div className="text-center text-sm text-gray-500 pb-8">
           <p>© 2025 Thumbscore.io — AI-powered thumbnail scoring engine</p>
         </div>
-      </div>
+    </div>
     </main>
   );
 }

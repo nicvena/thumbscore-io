@@ -59,30 +59,34 @@ def get_ai_analysis(image_data: bytes, niche: str) -> Dict[str, Any]:
 
 Context for {niche} thumbnails: {niche_context}
 
-Rate this thumbnail on a scale of 30-95 based on:
-1. Visual appeal and composition (40%)
-2. Subject prominence and clarity (30%) 
-3. Emotional impact and engagement (30%)
+Analyze this thumbnail and provide detailed component scores (30-95 range for each):
 
-Consider:
-- How eye-catching is it in a crowded feed?
-- Does it match successful {niche} thumbnail patterns?
-- Would viewers click on this?
-- Is the focal point clear?
-- Does it convey the video's value?
+1. SIMILARITY (how well it matches successful {niche} patterns): 30-95
+2. POWER_WORDS (effectiveness of text/language): 0-95 [IMPORTANT: If NO text visible, score 0-5. If weak text, score 20-40. Only high-impact text gets 60+]
+3. CLARITY (text readability and simplicity): 0-95 [IMPORTANT: If NO text visible, score 0-5]
+4. SUBJECT_PROMINENCE (size and positioning of main subject/face): 30-95
+5. CONTRAST_POP (color contrast and visual impact): 30-95
+6. EMOTION (emotional expression and energy): 30-95
+7. HIERARCHY (visual composition and layout): 30-95
+8. TITLE_MATCH (how well it represents the content): 30-95
 
 Return ONLY a JSON object with this exact format:
 {{
-    "score": 78,
-    "visual_appeal": 82,
-    "subject_clarity": 75,
-    "emotional_impact": 77,
+    "overall_score": 72,
+    "similarity": 75,
+    "power_words": 68,
+    "clarity": 82,
+    "subject_prominence": 70,
+    "contrast_pop": 78,
+    "emotion": 65,
+    "hierarchy": 74,
+    "title_match": 71,
     "strengths": ["High contrast", "Clear subject"],
-    "weaknesses": ["Text could be larger", "Background distracting"],
+    "weaknesses": ["Text could be larger", "Needs more emotion"],
     "explanation": "This thumbnail has strong visual appeal with good contrast..."
 }}
 
-Score range: 30-95. Be realistic - most thumbnails should score 50-80."""
+Be realistic - most scores should be 45-85. For thumbnails with NO visible text, power_words and clarity should be 0-5. Provide varied, realistic scores for each component."""
 
         response = client.chat.completions.create(
             model="gpt-4o",  # Latest GPT-4 with vision
@@ -114,8 +118,16 @@ Score range: 30-95. Be realistic - most thumbnails should score 50-80."""
             
         analysis = json.loads(content)
         
-        # Ensure score is in valid range
-        analysis["score"] = max(30, min(95, analysis["score"]))
+        # Ensure scores are in valid range
+        analysis["overall_score"] = max(30, min(95, analysis.get("overall_score", 65)))
+        for component in ["similarity", "subject_prominence", "contrast_pop", "emotion", "hierarchy", "title_match"]:
+            if component in analysis:
+                analysis[component] = max(30, min(95, analysis[component]))
+        
+        # Special handling for text-based components (can be 0 for no text)
+        for component in ["power_words", "clarity"]:
+            if component in analysis:
+                analysis[component] = max(0, min(95, analysis[component]))
         
         return analysis
         
@@ -123,10 +135,15 @@ Score range: 30-95. Be realistic - most thumbnails should score 50-80."""
         logger.error(f"GPT-4 Vision analysis failed: {e}")
         # Return fallback analysis
         return {
-            "score": 65,
-            "visual_appeal": 65,
-            "subject_clarity": 65,
-            "emotional_impact": 65,
+            "overall_score": 65,
+            "similarity": 65,
+            "power_words": 30,  # Lower fallback for power words
+            "clarity": 30,      # Lower fallback for clarity
+            "subject_prominence": 65,
+            "contrast_pop": 65,
+            "emotion": 65,
+            "hierarchy": 65,
+            "title_match": 65,
             "strengths": ["Analyzed with fallback system"],
             "weaknesses": ["Could not perform full AI analysis"],
             "explanation": "Fallback scoring due to API error. Score based on basic visual assessment."
@@ -246,12 +263,8 @@ def score_thumbnail(image_data: bytes, niche: str) -> Dict[str, Any]:
         text_analysis = check_text_clarity(image_data)
         contrast_analysis = check_color_contrast(image_data)
         
-        # Calculate weighted final score
-        final_score = (
-            ai_analysis["score"] * 0.60 +      # 60% GPT-4 Vision
-            text_analysis["score"] * 0.25 +    # 25% Text clarity
-            contrast_analysis["score"] * 0.15  # 15% Color contrast
-        )
+        # Use overall score from AI analysis as primary score
+        final_score = ai_analysis.get("overall_score", 65)
         
         # Ensure score is in valid range and round
         final_score = round(max(30, min(95, final_score)))
@@ -271,21 +284,24 @@ def score_thumbnail(image_data: bytes, niche: str) -> Dict[str, Any]:
         for weakness in weaknesses[:2]:  # Max 2 from AI
             suggestions.append(f"Consider: {weakness}")
         
+        # Determine tier based on score
+        if final_score >= 85:
+            tier = "excellent"
+        elif final_score >= 75:
+            tier = "strong"
+        elif final_score >= 60:
+            tier = "good"
+        elif final_score >= 45:
+            tier = "needs_work"
+        else:
+            tier = "weak"
+        
         return {
             "score": final_score,
-            "breakdown": {
-                "visual_quality": ai_analysis["score"],
-                "text_clarity": text_analysis["score"],
-                "color_contrast": contrast_analysis["score"]
-            },
-            "explanation": ai_analysis.get("explanation", "Thumbnail analyzed with simplified scoring system."),
+            "tier": tier,
+            "summary": ai_analysis.get("explanation", "Thumbnail analyzed with simplified scoring system."),
             "strengths": strengths[:3],  # Top 3 strengths
-            "suggestions": suggestions[:3],  # Top 3 suggestions
-            "details": {
-                "ai_analysis": ai_analysis,
-                "text_analysis": text_analysis,
-                "contrast_analysis": contrast_analysis
-            },
+            "improvements": suggestions[:3],  # Top 3 improvement suggestions
             "version": "v1.0-simple",
             "is_winner": False  # Will be set by compare_thumbnails
         }
@@ -295,15 +311,10 @@ def score_thumbnail(image_data: bytes, niche: str) -> Dict[str, Any]:
         # Return fallback score
         return {
             "score": 60,
-            "breakdown": {
-                "visual_quality": 60,
-                "text_clarity": 60,
-                "color_contrast": 60
-            },
-            "explanation": "Fallback scoring due to analysis error.",
+            "tier": "good",
+            "summary": "Fallback scoring due to analysis error. Score based on basic visual assessment.",
             "strengths": ["Analysis attempted"],
-            "suggestions": ["Try re-uploading the image"],
-            "details": {},
+            "improvements": ["Try re-uploading the image"],
             "version": "v1.0-simple-fallback",
             "is_winner": False
         }

@@ -89,7 +89,7 @@ export const usePageAnalytics = (pageName: string) => {
       event_label: pageName,
       ...data,
     });
-  }, [analytics, pageName]);
+  }, [pageName]); // Remove analytics dependency
 
   return {
     ...analytics,
@@ -106,7 +106,7 @@ export const useFormAnalytics = (formName: string) => {
       event_category: 'form_interaction',
       event_label: formName,
     });
-  }, [analytics, formName]);
+  }, [formName]); // Remove analytics dependency
 
   const trackFormSubmit = useCallback((success: boolean, errorMessage?: string) => {
     analytics.trackEvent('form_submit', {
@@ -115,7 +115,7 @@ export const useFormAnalytics = (formName: string) => {
       custom_parameter_1: success ? 'success' : 'error',
       custom_parameter_2: errorMessage,
     });
-  }, [analytics, formName]);
+  }, [formName]); // Remove analytics dependency
 
   const trackFormFieldInteraction = useCallback((fieldName: string, action: string) => {
     analytics.trackEvent('form_field_interaction', {
@@ -124,7 +124,7 @@ export const useFormAnalytics = (formName: string) => {
       custom_parameter_1: fieldName,
       custom_parameter_2: action,
     });
-  }, [analytics, formName]);
+  }, [formName]); // Remove analytics dependency
 
   return {
     trackFormStart,
@@ -143,7 +143,7 @@ export const useUploadAnalytics = () => {
       custom_parameter_1: fileCount,
       custom_parameter_2: Math.round(totalSize / 1024 / 1024), // MB
     });
-  }, [analytics]);
+  }, []); // Remove analytics dependency
 
   const trackUploadProgress = useCallback((progress: number, fileCount: number) => {
     analytics.trackEvent('upload_progress', {
@@ -151,11 +151,11 @@ export const useUploadAnalytics = () => {
       custom_parameter_1: fileCount,
       value: Math.round(progress),
     });
-  }, [analytics]);
+  }, []); // Remove analytics dependency
 
   const trackUploadError = useCallback((error: string, fileType?: string) => {
     analytics.trackError('upload_error', error, fileType);
-  }, [analytics]);
+  }, []); // Remove analytics dependency
 
   return {
     trackFileSelection,
