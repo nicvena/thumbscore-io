@@ -9,37 +9,77 @@ import ShareResults from '../components/ShareResults';
 import { UsageTracker } from '../components/UsageTracker';
 import { AdvancedScoringGate, ABTestingGate, TrendAnalysisGate } from '../components/FeatureGate';
 
-// ThumbScore Quality Labels Helper
+// Helper to highlight metrics in AI summary text
+function highlightMetrics(text: string) {
+  if (!text) return text;
+  
+  // Highlight percentages and numbers
+  return text
+    .replace(/(\d+(?:\.\d+)?%)/g, '<span class="font-bold text-blue-400">$1</span>')
+    .replace(/(\d+(?:\.\d+)?\/100)/g, '<span class="font-bold text-green-400">$1</span>')
+    .replace(/(\d+-\d+)/g, '<span class="font-bold text-yellow-400">$1</span>')
+    .replace(/(\d+(?:\.\d+)?)\s*(points?|words?)/g, '<span class="font-bold text-purple-400">$1</span> $2');
+}
+
+// Tier-based border styling helper
+function getTierBorderStyle(analysis: ThumbnailAnalysis, isWinner: boolean) {
+  const score = analysis.clickScore;
+  const tier = analysis.tier || getQualityLabel(score).label.toLowerCase();
+  
+  if (isWinner) {
+    return 'group transform md:scale-105 md:hover:scale-106 scale-100 hover:scale-[1.02] z-10 border-green-500 bg-green-500/5 shadow-[0_0_40px_rgba(34,197,94,0.25)] shadow-2xl md:mr-4 mr-0 border-l-8 animate-border-pulse';
+  }
+  
+  // Tier-based borders for non-winners
+  if (score >= 86) { // Excellent
+    return 'scale-100 hover:scale-[1.02] border-green-500/70 bg-green-500/5 border-l-4 shadow-lg';
+  } else if (score >= 76) { // Strong  
+    return 'scale-100 hover:scale-[1.02] border-green-500/50 bg-green-500/5 border-l-4 shadow-lg';
+  } else if (score >= 66) { // Good
+    return 'scale-100 hover:scale-[1.02] border-yellow-500/50 bg-yellow-500/5 border-l-4 shadow-lg';
+  } else if (score >= 51) { // Fair
+    return 'scale-100 hover:scale-[1.02] border-orange-500/50 bg-orange-500/5 border-l-4 shadow-lg';
+  } else { // Needs Work
+    return 'scale-100 hover:scale-[1.02] border-red-500/50 bg-red-500/5 border-l-4 shadow-lg';
+  }
+}
+
+// ThumbScore Quality Labels Helper (Updated for v1.1 realistic scoring)
 function getQualityLabel(score: number) {
-  if (score >= 85) return {
+  if (score >= 86) return {
     label: "Excellent",
     description: "Significantly above average click potential",
     color: "text-green-400",
+    icon: "🟢",
     message: "🔥 Outstanding! This thumbnail has excellent click potential"
   };
-  if (score >= 70) return {
+  if (score >= 76) return {
     label: "Strong", 
     description: "Above average click potential",
-    color: "text-blue-400",
+    color: "text-green-400",
+    icon: "🟢",
     message: "✅ Great choice! This thumbnail should perform well"
   };
-  if (score >= 55) return {
+  if (score >= 66) return {
     label: "Good",
-    description: "Average click potential",
+    description: "Solid fundamentals, competitive option",
     color: "text-yellow-400",
-    message: "👍 Good option - consider the recommendations below"
+    icon: "🟡",
+    message: "👍 Good option - solid fundamentals with room to optimize"
   };
-  if (score >= 40) return {
+  if (score >= 51) return {
     label: "Fair",
-    description: "Room for improvement",
+    description: "Has potential, needs optimization",
     color: "text-orange-400",
-    message: "⚠️ This will work, but improvements recommended"
+    icon: "🟠",
+    message: "⚠️ Fair thumbnail - has potential with some improvements"
   };
   return {
     label: "Needs Work",
-    description: "Optimize before publishing",
+    description: "Significant improvements needed",
     color: "text-red-400",
-    message: "❌ Weak thumbnail - review critical issues below"
+    icon: "🔴",
+    message: "❌ Needs work - significant improvements recommended"
   };
 }
 
@@ -49,7 +89,19 @@ interface ThumbnailAnalysis {
   fileName: string;
   clickScore: number;
   ranking: number;
-  tier: string; // excellent/strong/good/needs_work/weak
+  tier: string; // excellent/strong/good/fair/needs_work
+  tier_icon?: string; // 🟢/🟡/🟠/🔴
+  tier_color?: string; // green/yellow/orange/red
+  ctr_prediction?: {
+    ctr_min: number;
+    ctr_max: number;
+    ctr_range: string;
+    performance: string;
+    comparison: string;
+    benchmark_average: number;
+    stars: number;
+    confidence: number;
+  };
   subScores: {
     clarity: number;
     subjectProminence: number;
@@ -621,11 +673,7 @@ function ResultsContent() {
             const isExpanded = expandedCards[analysis.thumbnailId] || isWinner; // Winner always expanded
             
             return (
-            <div key={analysis.thumbnailId} className={`relative rounded-2xl p-8 border-2 transition-all duration-300 ${
-              isWinner ? 'group transform md:scale-105 md:hover:scale-106 scale-100 hover:scale-[1.02] z-10 border-green-500 bg-green-500/5 shadow-[0_0_40px_rgba(34,197,94,0.25)] shadow-2xl md:mr-4 mr-0 border-l-8 animate-border-pulse' :
-              analysis.ranking === 2 ? 'scale-100 hover:scale-[1.02] border-yellow-500/50 bg-yellow-500/5 border-l-4 shadow-lg border-gray-700' :
-              'scale-100 hover:scale-[1.02] border-red-500/50 bg-red-500/5 border-l-4 shadow-lg border-gray-700'
-            }`}>
+            <div key={analysis.thumbnailId} className={`relative rounded-2xl p-8 border-2 transition-all duration-300 ${getTierBorderStyle(analysis, isWinner)}`}>
               {/* Best Choice Badge - Only for Winner */}
               {isWinner && (
                 <div className="absolute -top-2 left-4 z-20">
@@ -697,21 +745,28 @@ function ResultsContent() {
                   <div className="text-xs text-gray-500 mt-1">
                     Score: {analysis.clickScore}/100
                   </div>
-                  <div className={`text-sm font-medium ${getQualityLabel(analysis.clickScore).color}`}>
-                    {getQualityLabel(analysis.clickScore).label}
+                  <div className={`text-sm font-medium flex items-center justify-center gap-2 ${getQualityLabel(analysis.clickScore).color}`}>
+                    <span className="text-lg">{analysis.tier_icon || getQualityLabel(analysis.clickScore).icon}</span>
+                    <span>{analysis.tier || getQualityLabel(analysis.clickScore).label}</span>
                   </div>
                   <div className="text-xs text-gray-500">
                     Confidence: {analysis.ranking === 1 ? 'High (92%)' : analysis.ranking === 2 ? 'High (88%)' : 'Medium (79%)'}
                   </div>
                 </div>
                 
-                {/* Status Badge */}
+                {/* Status Badge - Based on Tier */}
                 <div className={`inline-block px-4 py-2 rounded-lg font-semibold text-sm mb-4 ${
                   isWinner ? 'bg-green-600 text-white' :
-                  analysis.ranking === 2 ? 'bg-blue-600 text-white' :
-                  'bg-yellow-600 text-white'
+                  analysis.clickScore >= 76 ? 'bg-green-600 text-white' :
+                  analysis.clickScore >= 66 ? 'bg-blue-600 text-white' :
+                  analysis.clickScore >= 51 ? 'bg-yellow-600 text-white' :
+                  'bg-orange-600 text-white'
                 }`}>
-                  {isWinner ? '✅ Use This' : analysis.ranking === 2 ? '✅ Strong Option' : '👍 Good Option'}
+                  {isWinner ? '✅ Use This' :
+                   analysis.clickScore >= 76 ? '✅ Strong Option' :
+                   analysis.clickScore >= 66 ? '👍 Good Option' :
+                   analysis.clickScore >= 51 ? '⚠️ Fair Option' :
+                   '🔧 Needs Work'}
                 </div>
               </div>
 
@@ -733,9 +788,11 @@ function ResultsContent() {
         {/* Enhanced Winner Analysis - Full Width */}
         <div className={`mb-12 transition-all duration-700 delay-400 ${sectionsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="bg-gradient-to-br from-gray-800 via-gray-800 to-gray-900 rounded-2xl p-8 border border-gray-700 shadow-2xl">
-            <h3 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent">
-              🏆 Winner Analysis - Thumbnail {winner.thumbnailId}
-            </h3>
+            <div className="text-center">
+              <h3 className="text-3xl font-bold mb-6 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent">
+                🏆 Winner Analysis - Thumbnail {winner.thumbnailId}
+              </h3>
+            </div>
             
             {/* Score Overview */}
             <div className="bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-xl p-6 mb-8 border border-green-500/30">
@@ -751,12 +808,16 @@ function ResultsContent() {
             {/* Detailed AI Analysis */}
             {winner.explanation && (
               <div className="bg-white/5 rounded-xl p-6 mb-8 border border-white/10">
-                <h4 className="text-2xl font-bold mb-4 text-center text-blue-300">🤖 AI Analysis & Judging Criteria</h4>
+                <div className="text-center">
+                  <h4 className="text-2xl font-bold mb-4 text-blue-300">🤖 AI Analysis & Judging Criteria</h4>
+                </div>
                 <div className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 border border-blue-500/20">
                   
                   {/* Personalized Thumbnail Description */}
                   <div className="mb-6 bg-gradient-to-r from-green-900/30 to-blue-900/30 rounded-lg p-5 border border-green-500/20">
-                    <h5 className="text-xl font-semibold mb-3 text-center text-green-300">📸 Thumbnail Analysis</h5>
+                    <div className="text-center">
+                      <h5 className="text-xl font-semibold mb-3 text-green-300">📸 Thumbnail Analysis</h5>
+                    </div>
                     <div className="text-gray-200 leading-relaxed text-lg">
                       <p className="mb-4">
                         <strong className="text-green-400">Thumbnail {winner.thumbnailId} achieved a score of {winner.clickScore}/100</strong> through a combination of strategic visual elements that align with proven YouTube performance patterns.
@@ -789,34 +850,54 @@ function ResultsContent() {
 
                   {/* Original AI Explanation */}
                   <div className="mb-6">
-                    <h5 className="text-lg font-semibold mb-3 text-center text-blue-300">🧠 AI Reasoning</h5>
+                    <div className="text-center">
+                      <h5 className="text-lg font-semibold mb-3 text-blue-300">🧠 AI Reasoning</h5>
+                    </div>
                     <p className="text-gray-200 leading-relaxed text-lg mb-4">
                       {winner.explanation}
                     </p>
                     
                     {/* GPT Summary Winner Explanation - FORCE DISPLAY */}
                     <div className="mt-6 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg p-4 border border-purple-500/20">
-                      <h6 className="font-semibold text-purple-300 mb-3">🎯 AI Winner Analysis</h6>
+                      <div className="text-center">
+                        <h6 className="font-semibold text-purple-300 mb-3">🎯 AI Winner Analysis</h6>
+                      </div>
                       
                       {/* Force display GPT summary if available */}
                       {winner.gptSummary && winner.gptSummary.winner_summary && (
-                        <div className="text-gray-300 text-sm mb-4">
-                          <strong>GPT Summary:</strong> {winner.gptSummary.winner_summary}
+                        <div className="bg-gradient-to-r from-blue-900/40 to-purple-900/40 rounded-lg p-4 mb-6 border border-blue-500/30">
+                          <div className="text-center mb-3">
+                            <h6 className="font-semibold text-blue-300 text-sm">🎯 AI Performance Analysis</h6>
+                          </div>
+                          <div 
+                            className="text-gray-200 text-base leading-relaxed"
+                            dangerouslySetInnerHTML={{ 
+                              __html: highlightMetrics(winner.gptSummary.winner_summary) 
+                            }}
+                          />
                         </div>
                       )}
                       
                       {/* Force display GPT insights if available */}
                       {winner.gptSummary && winner.gptSummary.insights && winner.gptSummary.insights.length > 0 && (
                         <div className="space-y-3">
-                          <h6 className="font-semibold text-purple-300 mb-3">🔍 Detailed Visual Analysis</h6>
+                          <div className="text-center">
+                            <h6 className="font-semibold text-purple-300 mb-3">🔍 Detailed Visual Analysis</h6>
+                          </div>
                           {winner.gptSummary.insights.map((insight: any, index: number) => (
-                            <div key={index} className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
-                              <div className="font-medium text-blue-300 text-sm mb-1">
-                                {insight.label || `Insight ${index + 1}`}
+                            <div key={index} className="bg-gray-800/70 rounded-lg p-4 border border-gray-600/70 hover:border-blue-500/30 transition-colors">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                                <div className="font-semibold text-blue-300 text-sm">
+                                  {insight.label || `Technical Insight ${index + 1}`}
+                                </div>
                               </div>
-                              <div className="text-gray-300 text-sm">
-                                {insight.evidence || insight}
-                              </div>
+                              <div 
+                                className="text-gray-300 text-sm leading-relaxed pl-4"
+                                dangerouslySetInnerHTML={{ 
+                                  __html: highlightMetrics(insight.evidence || insight) 
+                                }}
+                              />
                             </div>
                           ))}
                         </div>
@@ -825,7 +906,9 @@ function ResultsContent() {
                       {/* Fallback to insights if no GPT summary */}
                       {(!winner.gptSummary || !winner.gptSummary.winner_summary) && winner.insights.gptInsights && winner.insights.gptInsights.length > 0 && (
                         <div className="space-y-3">
-                          <h6 className="font-semibold text-purple-300 mb-3">🔍 Detailed Visual Analysis</h6>
+                          <div className="text-center">
+                            <h6 className="font-semibold text-purple-300 mb-3">🔍 Detailed Visual Analysis</h6>
+                          </div>
                           {winner.insights.gptInsights.map((insight: any, index: number) => (
                             <div key={index} className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
                               <div className="font-medium text-blue-300 text-sm mb-1">
@@ -839,22 +922,14 @@ function ResultsContent() {
                         </div>
                       )}
                       
-                      {/* Debug info */}
-                      <div className="mt-4 p-3 bg-gray-800/30 rounded border border-gray-600">
-                        <h6 className="font-semibold text-yellow-300 mb-2">🔧 Debug Info</h6>
-                        <div className="text-gray-300 text-xs">
-                          <p>GPT Summary exists: {winner.gptSummary ? 'Yes' : 'No'}</p>
-                          <p>GPT Summary content: {winner.gptSummary ? JSON.stringify(winner.gptSummary) : 'None'}</p>
-                          <p>GPT Insights count: {winner.insights?.gptInsights?.length || 0}</p>
-                          <p>Winner explanation: {winner.explanation || 'None'}</p>
-                        </div>
-                      </div>
                     </div>
                     </div>
                   
                   {/* AI Judging Criteria Breakdown */}
                   <div className="mt-6">
-                    <h5 className="text-xl font-semibold mb-4 text-center text-green-300">📊 Scoring Breakdown</h5>
+                    <div className="text-center">
+                      <h5 className="text-xl font-semibold mb-4 text-green-300">📊 Scoring Breakdown</h5>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-600">
                         <h6 className="font-semibold text-blue-300 mb-2">🎯 Visual Appeal (GPT-4 Vision)</h6>
@@ -887,20 +962,60 @@ function ResultsContent() {
                     </div>
                   )}
 
-            {/* Performance Prediction */}
+            {/* Enhanced Performance Prediction with Context */}
             <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-xl p-6 border border-purple-500/30">
-              <h4 className="text-xl font-bold mb-4 text-center text-purple-300">🎯 YouTube Performance Prediction</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                <div className="bg-gray-800/50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-purple-400 mb-1">2-4%</div>
-                  <div className="text-sm text-gray-400">Expected CTR</div>
+              <div className="text-center">
+                <h4 className="text-xl font-bold mb-6 text-purple-300">🎯 YouTube Performance Prediction</h4>
+              </div>
+              
+              {/* Main CTR Prediction */}
+              <div className="text-center mb-6">
+                <div className="bg-gray-800/50 rounded-lg p-6 max-w-md mx-auto">
+                  <div className="text-4xl font-bold text-purple-400 mb-2">
+                    {winner.ctr_prediction?.ctr_range || '2-4%'}
+                    <span className="ml-3 text-2xl">
+                      {'⭐'.repeat(winner.ctr_prediction?.stars || 3)}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-400 mb-3">Expected CTR</div>
+                  
+                  {/* Performance Badge */}
+                  <div className={`inline-block px-4 py-2 rounded-full text-sm font-semibold mb-2 ${
+                    (winner.ctr_prediction?.stars || 3) >= 4 ? 'bg-green-600 text-white' :
+                    (winner.ctr_prediction?.stars || 3) === 3 ? 'bg-yellow-600 text-white' :
+                    (winner.ctr_prediction?.stars || 3) === 2 ? 'bg-orange-600 text-white' :
+                    'bg-red-600 text-white'
+                  }`}>
+                    {winner.ctr_prediction?.performance || 'Good'}
+                  </div>
+                  
+                  {/* Comparison Text */}
+                  <div className="text-xs text-gray-400">
+                    {winner.ctr_prediction?.comparison || 'Average performance expected'}
+                  </div>
+                  
+                  {/* Benchmark Reference */}
+                  {winner.ctr_prediction?.benchmark_average && (
+                    <div className="text-xs text-gray-500 mt-2 border-t border-gray-600 pt-2">
+                      Average for {results.summary.niche || 'this niche'}: {winner.ctr_prediction.benchmark_average}%
+                    </div>
+                  )}
                 </div>
+              </div>
+              
+              {/* Additional Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
                 <div className="bg-gray-800/50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-blue-400 mb-1">85%</div>
+                  <div className="text-2xl font-bold text-blue-400 mb-1">
+                    {winner.ctr_prediction?.confidence || 85}%
+                  </div>
                   <div className="text-sm text-gray-400">Confidence Score</div>
                 </div>
                 <div className="bg-gray-800/50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-green-400 mb-1">High</div>
+                  <div className="text-2xl font-bold text-green-400 mb-1">
+                    {(winner.ctr_prediction?.stars || 3) >= 4 ? 'High' : 
+                     (winner.ctr_prediction?.stars || 3) === 3 ? 'Medium' : 'Low'}
+                  </div>
                   <div className="text-sm text-gray-400">Engagement Potential</div>
                 </div>
               </div>
