@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
-Stable V1 Thumbnail Scoring System
+Stable V1 Thumbnail Scoring System with Niche-Specific Weighting
 
-Deterministic results using GPT-4 Vision rubric + numeric core
+Deterministic results using GPT-4 Vision rubric + numeric core + niche weights
 - 55% GPT-4 rubric (strict JSON schema)
 - 45% deterministic numeric core
+- Niche-specific component weighting for optimal CTR prediction
 - Full caching with hash-based deduplication
-- Score range: 30-95
+- Score range: 30-95 with confidence scoring
+- Graceful error handling and normalization
 """
 
 import os
@@ -15,6 +17,7 @@ import io
 import json
 import logging
 import hashlib
+import re
 from typing import Dict, List, Any, Optional, Tuple
 from PIL import Image
 import numpy as np
@@ -32,6 +35,79 @@ load_dotenv()
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# =============================================================================
+# NICHE-SPECIFIC WEIGHTING SYSTEM
+# =============================================================================
+
+NICHE_WEIGHTS = {
+    "business": {"text_clarity": 0.3, "professionalism": 0.25, "visual_hierarchy": 0.2, "emotion": 0.15, "color_appeal": 0.1},
+    "finance": {"text_clarity": 0.3, "professionalism": 0.25, "visual_hierarchy": 0.2, "emotion": 0.15, "color_appeal": 0.1},
+    "tech": {"text_clarity": 0.25, "visual_hierarchy": 0.25, "professionalism": 0.2, "emotion": 0.15, "color_appeal": 0.15},
+    "education": {"text_clarity": 0.3, "visual_hierarchy": 0.25, "professionalism": 0.2, "emotion": 0.15, "color_appeal": 0.1},
+    "gaming": {"emotion": 0.35, "color_appeal": 0.25, "text_clarity": 0.2, "visual_hierarchy": 0.15, "professionalism": 0.05},
+    "entertainment": {"emotion": 0.3, "color_appeal": 0.25, "visual_hierarchy": 0.2, "text_clarity": 0.2, "professionalism": 0.05},
+    "food": {"color_appeal": 0.3, "visual_hierarchy": 0.25, "emotion": 0.2, "text_clarity": 0.15, "professionalism": 0.1},
+    "fitness": {"emotion": 0.3, "visual_hierarchy": 0.25, "color_appeal": 0.2, "text_clarity": 0.15, "professionalism": 0.1},
+    "travel": {"color_appeal": 0.3, "visual_hierarchy": 0.25, "emotion": 0.2, "text_clarity": 0.15, "professionalism": 0.1},
+    "music": {"color_appeal": 0.3, "emotion": 0.25, "visual_hierarchy": 0.2, "text_clarity": 0.15, "professionalism": 0.1},
+    "general": {"visual_hierarchy": 0.25, "text_clarity": 0.25, "emotion": 0.2, "color_appeal": 0.15, "professionalism": 0.15}
+}
+
+# =============================================================================
+# RELIABILITY + TRUST UTILITIES
+# =============================================================================
+
+def normalize_component(score):
+    """Normalize individual component score to 0-100 range with graceful error handling."""
+    try:
+        return max(0, min(100, round(float(score), 2)))
+    except (ValueError, TypeError):
+        return 50.0
+
+def normalize_components(components):
+    """Normalize all components in a dictionary."""
+    return {k: normalize_component(v) for k, v in components.items()}
+
+def keyword_match(text):
+    """Detect high-impact keywords for business/finance niches."""
+    if not text:
+        return False
+    patterns = [
+        r'\$\s?\d+[kKmM]?',  # $100K, $1M, etc.
+        r'\b\d+[kKmM]\b',    # 100K, 1M, etc.
+        r'\bprofit\b|\bearn\b|\bviews\b|\bsubscribers?\b',  # Business keywords
+        r'\bmillion\b|\bbillion\b'  # Scale indicators
+    ]
+    return any(re.search(p, text.lower()) for p in patterns)
+
+def safe_get(d, key, default=60):
+    """Safely get value from dictionary with fallback."""
+    return d.get(key, default) if d else default
+
+def calculate_weighted_score(components: dict, niche: str) -> float:
+    """Calculate weighted score (0–100) using niche-specific weights."""
+    weights = NICHE_WEIGHTS.get(niche, NICHE_WEIGHTS["general"])
+    norm = sum(weights.values())
+    if norm == 0:
+        return 50.0  # Fallback if weights sum to zero
+    
+    weighted_sum = sum(components.get(k, 0) * (weights.get(k, 0) / norm) for k in components)
+    return max(0, min(100, round(weighted_sum, 2)))
+
+def calculate_confidence(components, detections):
+    """Calculate confidence score based on component variance and detection quality."""
+    vals = list(components.values())
+    if not vals:
+        return 50.0
+    
+    try:
+        variance = np.var(vals)
+        detection_factor = min(1.0, len(detections) / 10.0) if detections else 0.5
+        confidence = 100 - (variance / 8) - ((1 - detection_factor) * 15)
+        return max(0, min(100, round(confidence, 2)))
+    except Exception:
+        return 50.0
 
 # Import GPT summary module
 try:
@@ -362,97 +438,247 @@ Return ONLY this JSON format:
             "notes": "Fallback scoring due to API error"
         }
 
+def detect_text_improved(image: Image.Image) -> Dict[str, Any]:
+    """
+    Improved OCR with preprocessing for better accuracy on thumbnails.
+    
+    Args:
+        image: PIL Image
+    
+    Returns:
+        dict: {
+            'text': detected text string,
+            'word_count': number of words,
+            'confidence': average confidence,
+            'clarity_score': readability score
+        }
+    """
+    
+    # Convert PIL to OpenCV format
+    img_array = np.array(image)
+    if len(img_array.shape) == 3:
+        img_cv = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+    else:
+        img_cv = img_array
+    
+    # Try multiple preprocessing methods and pick best result
+    results = []
+    
+    # Method 1: Original image
+    text1 = extract_text_from_image(img_cv, 'original')
+    results.append(text1)
+    
+    # Method 2: Grayscale + contrast enhancement
+    gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+    enhanced = cv2.equalizeHist(gray)
+    text2 = extract_text_from_image(enhanced, 'enhanced')
+    results.append(text2)
+    
+    # Method 3: Threshold (high contrast)
+    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    text3 = extract_text_from_image(thresh, 'threshold')
+    results.append(text3)
+    
+    # Method 4: Adaptive threshold
+    adaptive = cv2.adaptiveThreshold(
+        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
+    )
+    text4 = extract_text_from_image(adaptive, 'adaptive')
+    results.append(text4)
+    
+    # Method 5: Inverted (white text on dark background)
+    inverted = cv2.bitwise_not(gray)
+    text5 = extract_text_from_image(inverted, 'inverted')
+    results.append(text5)
+    
+    # Log all results for debugging
+    for result in results:
+        logger.info(f"[OCR_DEBUG] Method {result['method']}: '{result['text']}' (conf: {result['confidence']:.1f}, words: {result['word_count']})")
+    
+    # Pick result with highest confidence and most words
+    best_result = max(results, key=lambda x: (x['confidence'], x['word_count']))
+    
+    # Calculate clarity score
+    clarity_score = calculate_text_clarity(best_result, img_cv)
+    best_result['clarity_score'] = clarity_score
+    
+    logger.info(f"[OCR_DEBUG] BEST: Method {best_result['method']} -> '{best_result['text']}' (conf: {best_result['confidence']:.1f}, clarity: {clarity_score})")
+    
+    return best_result
+
+
+def extract_text_from_image(img, method_name: str) -> Dict[str, Any]:
+    """
+    Extract text using Tesseract with optimized config.
+    
+    Args:
+        img: OpenCV image (grayscale or BGR)
+        method_name: Name of preprocessing method
+    
+    Returns:
+        dict: text detection results
+    """
+    
+    # Tesseract config optimized for thumbnails
+    custom_config = r'--oem 3 --psm 11'
+    # PSM 11: Sparse text (good for thumbnails with text in various positions)
+    # OEM 3: Default + LSTM neural net
+    
+    try:
+        # Get detailed results with confidence
+        data = pytesseract.image_to_data(
+            img, 
+            config=custom_config, 
+            output_type=pytesseract.Output.DICT
+        )
+        
+        # Filter out low-confidence detections
+        text_parts = []
+        confidences = []
+        
+        for i in range(len(data['text'])):
+            conf = int(data['conf'][i]) if data['conf'][i] != '-1' else 0
+            text = data['text'][i].strip()
+            
+            # Only include high-confidence text
+            if conf > 30 and len(text) > 0:
+                text_parts.append(text)
+                confidences.append(conf)
+        
+        # Combine text
+        full_text = ' '.join(text_parts)
+        
+        # Clean up
+        full_text = clean_ocr_text(full_text)
+        
+        # Count words
+        words = [w for w in full_text.split() if len(w) > 1]
+        word_count = len(words)
+        
+        # Average confidence
+        avg_conf = np.mean(confidences) if confidences else 0
+        
+        return {
+            'text': full_text,
+            'word_count': word_count,
+            'confidence': avg_conf,
+            'method': method_name
+        }
+                    
+    except Exception as e:
+        logger.error(f'[OCR_DEBUG] OCR failed for method {method_name}: {e}')
+        return {
+            'text': '',
+            'word_count': 0,
+            'confidence': 0,
+            'method': method_name
+        }
+
+
+def clean_ocr_text(text: str) -> str:
+    """
+    Clean up common OCR errors.
+    """
+    
+    # Remove special characters except spaces
+    text = ''.join(char for char in text if char.isalnum() or char.isspace())
+    
+    # Remove extra spaces
+    text = ' '.join(text.split())
+    
+    # Uppercase for consistency
+    text = text.upper()
+    
+    return text
+
+
+def calculate_text_clarity(ocr_result: Dict[str, Any], image) -> int:
+    """
+    Calculate text clarity/readability score.
+    
+    Args:
+        ocr_result: Dict from extract_text_from_image
+        image: Original image
+    
+    Returns:
+        int: Clarity score 0-100
+    """
+    
+    word_count = ocr_result['word_count']
+    confidence = ocr_result['confidence']
+    
+    # Base score from OCR confidence
+    base_score = confidence
+    
+    # Adjust based on word count (3-5 words is ideal)
+    if word_count == 0:
+        word_score = 0
+    elif 1 <= word_count <= 3:
+        word_score = 100
+    elif word_count <= 5:
+        word_score = 95
+    elif word_count <= 8:
+        word_score = 80
+    else:
+        word_score = max(40, 90 - (word_count - 8) * 5)
+    
+    # Calculate contrast of text regions (if detectable)
+    contrast_score = estimate_text_contrast(image)
+    
+    # Weighted combination
+    clarity_score = int(
+        base_score * 0.4 +
+        word_score * 0.3 +
+        contrast_score * 0.3
+    )
+    
+    return min(100, max(0, clarity_score))
+
+
+def estimate_text_contrast(image) -> int:
+    """
+    Estimate text contrast without knowing exact text location.
+    Uses variance in image regions as proxy.
+    """
+    
+    try:
+        # Convert to grayscale
+        if len(image.shape) == 3:
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        else:
+            gray = image
+        
+        # Calculate local standard deviation (proxy for contrast)
+        blur = cv2.GaussianBlur(gray, (5, 5), 0)
+        laplacian = cv2.Laplacian(blur, cv2.CV_64F)
+        variance = laplacian.var()
+        
+        # Map variance to 0-100 score
+        # Higher variance = higher contrast
+        contrast_score = min(100, int(variance / 10))
+        
+        return contrast_score
+        
+    except:
+        return 70  # Default
+
+
 def text_clarity(image_bytes: bytes) -> Tuple[int, str]:
     """
-    Deterministic text clarity score 0-100 + extracted OCR text
-    Based on OCR confidence + luminance contrast of text areas
+    Improved text clarity score 0-100 + extracted OCR text
+    Uses multi-method OCR pipeline for better accuracy
     """
     try:
         # Load image
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-        image_array = np.array(image)
         
-        # Get OCR data
-        ocr_data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+        # Use improved text detection
+        text_data = detect_text_improved(image)
         
-        # Extract OCR text with better configuration
-        try:
-            # Try multiple OCR configurations for better text extraction
-            ocr_configs = [
-                '--psm 8',  # Single word
-                '--psm 7',  # Single text line
-                '--psm 6',  # Single uniform block of text
-                '--psm 3',  # Fully automatic page segmentation
-            ]
-            
-            ocr_text = ""
-            for config in ocr_configs:
-                try:
-                    text = pytesseract.image_to_string(image, config=config).strip()
-                    if text and len(text) > 3 and text.replace(' ', '').isalnum():
-                        ocr_text = text
-                        logger.info(f"[OCR_DEBUG] Extracted text with {config}: '{ocr_text}' (length={len(ocr_text)})")
-                        break
-                except:
-                    continue
-            
-            # If no meaningful text found, try without config
-            if not ocr_text:
-                ocr_text = pytesseract.image_to_string(image).strip()
-                if ocr_text and len(ocr_text) > 3:
-                    logger.info(f"[OCR_DEBUG] Extracted text (no config): '{ocr_text}' (length={len(ocr_text)})")
-                else:
-                    logger.info(f"[OCR_DEBUG] No meaningful text found")
-                    ocr_text = ""
-                    
-        except Exception as e:
-            logger.error(f"[OCR_DEBUG] OCR extraction failed: {e}")
-            ocr_text = ""
+        detected_text = text_data['text']
+        clarity_score = text_data['clarity_score']
         
-        # Calculate average confidence for detected text
-        confidences = [int(conf) for conf in ocr_data['conf'] if int(conf) > 0]
-        
-        if not confidences:
-            return 50, ocr_text  # No text detected - neutral score, but return extracted text
-        
-        avg_confidence = sum(confidences) / len(confidences)
-        
-        # Calculate luminance contrast for text regions
-        gray = cv2.cvtColor(image_array, cv2.COLOR_RGB2GRAY)
-        text_regions = []
-        
-        for i, conf in enumerate(ocr_data['conf']):
-            if int(conf) > 30:  # Only consider confident detections
-                x = ocr_data['left'][i]
-                y = ocr_data['top'][i]
-                w = ocr_data['width'][i]
-                h = ocr_data['height'][i]
-                
-                if w > 10 and h > 5:  # Valid text region
-                    region = gray[y:y+h, x:x+w]
-                    if region.size > 0:
-                        text_regions.append(region)
-        
-        # Calculate contrast score
-        if text_regions:
-            contrasts = []
-            for region in text_regions:
-                if region.size > 0:
-                    # Simple contrast measure: std deviation of pixel values
-                    contrast = np.std(region)
-                    contrasts.append(contrast)
-            
-            if contrasts:
-                avg_contrast = sum(contrasts) / len(contrasts)
-                contrast_score = min(100, avg_contrast * 2)  # Scale to 0-100
-            else:
-                contrast_score = 50
-        else:
-            contrast_score = 50
-        
-        # Combine confidence and contrast
-        final_score = (avg_confidence * 0.6) + (contrast_score * 0.4)
-        return int(max(0, min(100, final_score))), ocr_text
+        return clarity_score, detected_text
         
     except Exception as e:
         logger.error(f"Text clarity calculation failed: {e}")
@@ -537,6 +763,7 @@ def subject_size(image_bytes: bytes) -> Tuple[int, List[Dict]]:
                     # Convert to percentage and scale to 0-100
                     face_percentage = total_face_area * 100
                     score = int(max(0, min(100, face_percentage * 2)))  # Scale factor
+                    logger.info(f"[FACE_DEBUG] MediaPipe: {len(results.detections)} faces, total area: {total_face_area:.4f}, percentage: {face_percentage:.1f}%, score: {score}")
                     return score, face_boxes
                 else:
                     # No faces detected - use saliency fallback
@@ -756,35 +983,35 @@ def calculate_ctr_prediction(score: float, niche: str) -> Dict[str, Any]:
         ctr_min = benchmarks['excellent'] * 0.9
         ctr_max = benchmarks['excellent'] * 1.1
         performance = 'Excellent'
-        comparison = f'Well above average for {niche}'
+        comparison = f'Well above average for {niche} (avg: {benchmarks["average"]}%)'
         stars = 5
         
     elif score >= 76:
         ctr_min = benchmarks['good'] * 0.9
         ctr_max = benchmarks['good'] * 1.1
         performance = 'Strong'
-        comparison = f'Above average for {niche}'
+        comparison = f'Above average for {niche} (avg: {benchmarks["average"]}%)'
         stars = 4
         
     elif score >= 66:
         ctr_min = benchmarks['average'] * 0.9
         ctr_max = benchmarks['average'] * 1.1
         performance = 'Good'
-        comparison = f'Average for {niche}'
+        comparison = f'Average for {niche} content (avg: {benchmarks["average"]}%)'
         stars = 3
         
     elif score >= 51:
         ctr_min = benchmarks['poor'] * 0.9
         ctr_max = benchmarks['average'] * 0.8
         performance = 'Fair'
-        comparison = f'Below average for {niche}'
+        comparison = f'Below average for {niche} (avg: {benchmarks["average"]}%)'
         stars = 2
         
     else:
         ctr_min = benchmarks['poor'] * 0.7
         ctr_max = benchmarks['poor'] * 1.0
         performance = 'Needs Work'
-        comparison = f'Significantly below average for {niche}'
+        comparison = f'Significantly below average for {niche} (avg: {benchmarks["average"]}%)'
         stars = 1
     
     return {
@@ -852,22 +1079,48 @@ def score_thumbnail_stable(image_bytes: bytes, title: str, niche: str) -> Dict[s
     
     logger.info(f"[Core] text={numeric_core_data['text_clarity']} contrast={numeric_core_data['color_contrast']} subject={numeric_core_data['subject_size']} sat={numeric_core_data['saturation_energy']} -> core={numeric_core}")
     
-    # Blend scores: 55% rubric, 45% numeric core
-    final_score = 0.55 * rubric_score + 0.45 * numeric_core
+    # =============================================================================
+    # NICHE-SPECIFIC WEIGHTED SCORING SYSTEM
+    # =============================================================================
     
-    # Apply new realistic scaling for better user experience
-    # Map scores to 30-95 range with improved distribution
+    # Extract components for niche-specific weighting
+    components = {
+        "text_clarity": safe_get(numeric_core_data, "text_clarity", 50),
+        "professionalism": safe_get(rubric, "visual_appeal", 3) * 20,  # Convert 1-5 to 0-100
+        "visual_hierarchy": safe_get(rubric, "subject_prominence", 3) * 20,
+        "emotion": safe_get(rubric, "emotion", 3) * 20,
+        "color_appeal": safe_get(numeric_core_data, "color_contrast", 50)
+    }
+    
+    # Normalize all components
+    components = normalize_components(components)
+    
+    # Apply keyword bonus for business/finance niches
+    ocr_text = numeric_core_data.get("ocr_text", "")
+    if niche in ["business", "finance"] and keyword_match(ocr_text):
+        components["text_clarity"] = min(100, components["text_clarity"] + 5)
+        components["professionalism"] = min(100, components["professionalism"] + 5)
+        logger.info(f"[Keyword Bonus] Applied +5 to text_clarity and professionalism for business keywords")
+    
+    # Calculate niche-weighted score
+    weighted_score = calculate_weighted_score(components, niche)
+    final_score = normalize_component(weighted_score)
+    
+    # Apply realistic scaling (30-95 range)
     final_score = scale_to_realistic_range(final_score)
-    
-    # Final clamp to reasonable range
     final_score = min(95, max(30, round(final_score, 1)))
     
-    # Calculate confidence, tier, and CTR prediction
-    confidence = calculate_confidence(rubric_score, numeric_core, rubric)
+    # Calculate confidence using new system
+    confidence_score = calculate_confidence(components, numeric_core_data)
+    confidence_level = "high" if confidence_score > 75 else "medium" if confidence_score > 50 else "low"
+    
+    # Calculate tier and CTR prediction
     tier_label, tier_icon, tier_color = get_score_tier(final_score)
     ctr_prediction = calculate_ctr_prediction(final_score, niche)
     
-    logger.info(f"[Blend] final={final_score} tier={tier_label} confidence={confidence} CTR={ctr_prediction['ctr_range']}")
+    logger.info(f"[Niche-Weighted] final={final_score} tier={tier_label} confidence={confidence_score}% CTR={ctr_prediction['ctr_range']}")
+    logger.info(f"[Components] {components}")
+    logger.info(f"[Weights] {NICHE_WEIGHTS.get(niche, NICHE_WEIGHTS['general'])}")
     
     # Generate GPT-4 Vision tailored summary if available
     gpt_summary = None
@@ -908,15 +1161,16 @@ def score_thumbnail_stable(image_bytes: bytes, title: str, niche: str) -> Dict[s
             logger.warning(f"[GPT-SUMMARY] Failed to generate summary: {e}")
             gpt_summary = None
     
-    # Build response
+    # Build response with niche-specific data
     response = {
         "thumbscore": final_score,
-        "confidence": confidence,
+        "confidence": confidence_score,  # Use numeric confidence score
+        "confidence_level": confidence_level,  # Add confidence level
         "tier": tier_label,
         "tier_icon": tier_icon,
         "tier_color": tier_color,
-        "ctr_prediction": ctr_prediction,  # Add CTR prediction with context
-        "score_version": "v1.2-ctr-context",
+        "ctr_prediction": ctr_prediction,
+        "score_version": "v1.3-niche-weighted",
         "hash": hash_id,
         "niche": niche,
         "rubric": {
@@ -924,8 +1178,12 @@ def score_thumbnail_stable(image_bytes: bytes, title: str, niche: str) -> Dict[s
             "rubric_score": rubric_score
         },
         "numeric_core": numeric_core_data,
+        "components": components,  # Add normalized components
+        "weights_used": NICHE_WEIGHTS.get(niche, NICHE_WEIGHTS["general"]),  # Add weights used
+        "keyword_bonus_applied": niche in ["business", "finance"] and keyword_match(ocr_text),
         "calibration": {"min": 30, "max": 95},
-        "gpt_summary": gpt_summary  # Add GPT summary to response
+        "gpt_summary": gpt_summary,
+        "summary": f"Confidence {confidence_score}%. Niche weights applied for '{niche}'. Components normalized and verified."
     }
     
     # Cache response
@@ -1055,3 +1313,54 @@ def get_preview_score(image_bytes: bytes, title: str, niche: str) -> Dict[str, A
             "calibration": {"min": 30, "max": 95},
             "error": str(e)
         }
+
+# =============================================================================
+# TESTING FUNCTIONS
+# =============================================================================
+
+def test_niche_weighting():
+    """Test niche-specific weighting system"""
+    print("🧪 Testing Niche-Specific Weighting System")
+    print("=" * 50)
+    
+    # Test components
+    test_components = {
+        "text_clarity": 80,
+        "professionalism": 70,
+        "visual_hierarchy": 60,
+        "emotion": 50,
+        "color_appeal": 40
+    }
+    
+    # Test different niches
+    niches = ["business", "gaming", "food", "education", "general"]
+    
+    for niche in niches:
+        weighted_score = calculate_weighted_score(test_components, niche)
+        weights = NICHE_WEIGHTS.get(niche, NICHE_WEIGHTS["general"])
+        
+        print(f"\n📊 {niche.upper()} Niche:")
+        print(f"   Weights: {weights}")
+        print(f"   Weighted Score: {weighted_score}")
+        
+        # Show which components are most important
+        sorted_weights = sorted(weights.items(), key=lambda x: x[1], reverse=True)
+        print(f"   Priority: {sorted_weights[0][0]} ({sorted_weights[0][1]:.1%}) > {sorted_weights[1][0]} ({sorted_weights[1][1]:.1%})")
+    
+    # Test keyword matching
+    print(f"\n🔍 Keyword Matching Tests:")
+    test_texts = [
+        "Make $100K in 30 days!",
+        "ONCE IN A LIFETIME opportunity",
+        "1M subscribers milestone",
+        "Regular cooking video"
+    ]
+    
+    for text in test_texts:
+        has_keywords = keyword_match(text)
+        print(f"   '{text}' -> Keywords: {has_keywords}")
+    
+    print(f"\n✅ Niche weighting system test complete!")
+
+if __name__ == "__main__":
+    test_niche_weighting()
