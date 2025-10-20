@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { getStripeCustomerByEmail } from '@/lib/auth';
+import { userStore, upgradeTier } from '@/lib/user-management';
 // Env: Next.js automatically loads .env.local/.env into process.env for API routes.
 // getOpenAIKey() also attempts to read python-service/.env if the key is missing.
 function getOpenAIKey(): string | undefined {
@@ -476,6 +478,60 @@ export async function POST(request: NextRequest) {
         { error: 'Missing sessionId' },
         { status: 400 }
       );
+    }
+
+    // Check authentication and subscription status
+    const sessionToken = request.headers.get('x-session-token');
+    let hasUnlimitedAccess = false;
+    let userTier: 'free' | 'creator' | 'pro' = 'free';
+
+    if (sessionToken) {
+      try {
+        // Verify session and get user info
+        const verifyResponse = await fetch(`${request.nextUrl.origin}/api/auth/verify-session`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionToken })
+        });
+
+        if (verifyResponse.ok) {
+          const sessionData = await verifyResponse.json();
+          const email = sessionData.email;
+          
+          // Check Stripe subscription status
+          const stripeData = await getStripeCustomerByEmail(email);
+          
+          if (stripeData && stripeData.status === 'active') {
+            userTier = stripeData.plan as 'creator' | 'pro';
+            hasUnlimitedAccess = true;
+            
+            // Update user in our system if they have a subscription
+            const userId = `user_${email}`;
+            const existingUser = userStore.getUser(userId);
+            
+            if (!existingUser || existingUser.tier !== userTier) {
+              upgradeTier(userId, userTier, {
+                customerId: stripeData.customerId,
+                subscriptionId: stripeData.subscriptionId || ''
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.log('Session verification failed, checking free usage');
+      }
+    }
+
+    // Check free usage limit only for non-subscribers
+    if (!hasUnlimitedAccess) {
+      const freeUsageHeader = request.headers.get('x-free-usage');
+      if (freeUsageHeader === 'used') {
+        return NextResponse.json({
+          error: 'Free analysis limit reached',
+          upgrade: true,
+          message: 'You\'ve used your free test. Upgrade to continue.'
+        }, { status: 403 });
+      }
     }
 
     // PROXY TO FIXED PYTHON SERVER

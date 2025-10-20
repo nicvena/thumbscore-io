@@ -8,6 +8,7 @@ interface UsageInfo {
   currentUsage: number;
   monthlyLimit: number;
   canAnalyze: boolean;
+  subscriptionStatus: 'active' | 'cancelled' | 'trial' | 'none';
 }
 
 interface UsageTrackerProps {
@@ -24,26 +25,67 @@ export function UsageTracker({ className = '' }: UsageTrackerProps) {
 
   const fetchUsageInfo = async () => {
     try {
-      // Get usage info from API (we'll create this endpoint)
-      const response = await fetch('/api/usage', {
-        headers: {
-          'X-Session-Id': getSessionId(),
-        },
-      });
+      const sessionToken = localStorage.getItem('thumbscore_user_session');
+      const sessionId = getSessionId();
+      
+      const headers: Record<string, string> = {
+        'X-Session-Id': sessionId,
+      };
+      
+      if (sessionToken) {
+        headers['X-Session-Token'] = sessionToken;
+      }
+
+      const response = await fetch('/api/usage', { headers });
       
       if (response.ok) {
         const data = await response.json();
         setUsage(data);
+      } else {
+        console.warn(`Usage API returned ${response.status}, using default limits`);
+        // Fallback to default usage to prevent blocking the app
+        setUsage({
+          tier: 'free',
+          currentUsage: 0,
+          monthlyLimit: 3,
+          canAnalyze: true,
+          features: {
+            basicScoring: true,
+            advancedScoring: false,
+            abTestingHistory: false,
+            trendAnalysis: false,
+            competitorBenchmarking: false,
+            customNicheTraining: false,
+            apiAccess: false
+          },
+          subscriptionStatus: 'none'
+        });
       }
     } catch (error) {
-      console.error('Failed to fetch usage info:', error);
+      console.warn('Failed to fetch usage info, using fallback:', error);
+      // Fallback to default usage to prevent blocking the app
+      setUsage({
+        tier: 'free',
+        currentUsage: 0,
+        monthlyLimit: 3,
+        canAnalyze: true,
+        features: {
+          basicScoring: true,
+          advancedScoring: false,
+          abTestingHistory: false,
+          trendAnalysis: false,
+          competitorBenchmarking: false,
+          customNicheTraining: false,
+          apiAccess: false
+        },
+        subscriptionStatus: 'none'
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const getSessionId = () => {
-    // Simple session ID generation for demo
     let sessionId = localStorage.getItem('session-id');
     if (!sessionId) {
       sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -89,61 +131,55 @@ export function UsageTracker({ className = '' }: UsageTrackerProps) {
   if (!usage) return null;
 
   return (
-    <div className={`bg-white/5 rounded-lg p-4 backdrop-blur-sm border border-white/10 ${className}`}>
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold text-white">
-          {usage.tier.charAt(0).toUpperCase() + usage.tier.slice(1)} Plan
-        </h3>
-        {usage.tier === 'free' && (
-          <Link href="/pricing" className="text-xs text-blue-400 hover:text-blue-300">
-            Upgrade
-          </Link>
+    <div className={`bg-gradient-to-r from-gray-800/50 to-gray-900/50 rounded-xl p-6 border border-gray-700/50 ${className}`}>
+      <div className="text-center">
+        <div className="flex items-center justify-center mb-3">
+          <div className="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center mr-3">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-white">
+            {usage.tier.charAt(0).toUpperCase() + usage.tier.slice(1)} Plan
+          </h3>
+        </div>
+        
+        {usage.monthlyLimit === -1 ? (
+          <div className="text-green-400 font-medium">
+            ✓ Unlimited analyses
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="text-2xl font-bold text-white">
+              {usage.currentUsage} / {usage.monthlyLimit}
+            </div>
+            <div className="text-sm text-gray-400">analyses this month</div>
+            
+            {/* Simplified Progress Bar */}
+            <div className="w-full bg-gray-700 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full transition-all duration-500 ${getUsageBarColor()}`}
+                style={{ width: `${getProgressPercentage()}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
+        {/* Upgrade prompt for free users */}
+        {usage.tier === 'free' && usage.subscriptionStatus === 'none' && (
+          <div className="mt-4 pt-4 border-t border-gray-600">
+            <p className="text-sm text-gray-300 mb-3">
+              Want more analyses?
+            </p>
+            <Link
+              href="/pricing"
+              className="inline-block px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-semibold text-sm transition-all duration-200"
+            >
+              Upgrade to Creator
+            </Link>
+          </div>
         )}
       </div>
-      
-      {usage.monthlyLimit === -1 ? (
-        <div className="text-sm text-green-400">
-          ✓ Unlimited analyses
-        </div>
-      ) : (
-        <>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm text-gray-300">Monthly Usage</span>
-            <span className={`text-sm font-medium ${getUsageColor()}`}>
-              {usage.currentUsage} / {usage.monthlyLimit}
-            </span>
-          </div>
-          
-          {/* Progress Bar */}
-          <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
-            <div 
-              className={`h-2 rounded-full transition-all duration-300 ${getUsageBarColor()}`}
-              style={{ width: `${getProgressPercentage()}%` }}
-            ></div>
-          </div>
-          
-          {!usage.canAnalyze && (
-            <div className="text-xs text-red-400 mb-2">
-              ⚠️ Monthly limit reached
-            </div>
-          )}
-          
-          {usage.tier === 'free' && usage.currentUsage >= usage.monthlyLimit * 0.8 && (
-            <div className="text-xs text-yellow-400 mb-2">
-              ⚡ Running low on analyses
-            </div>
-          )}
-        </>
-      )}
-      
-      {usage.tier === 'free' && (
-        <Link 
-          href="/pricing" 
-          className="block text-center text-xs bg-gradient-to-r from-[#6a5af9] to-[#1de9b6] text-white py-2 px-3 rounded mt-2 hover:opacity-90 transition-opacity"
-        >
-          Get More Analyses
-        </Link>
-      )}
     </div>
   );
 }
@@ -154,22 +190,29 @@ export function useUsageTracking() {
 
   const refreshUsage = async () => {
     try {
+      const sessionToken = localStorage.getItem('thumbscore_user_session');
       const sessionId = localStorage.getItem('session-id') || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       localStorage.setItem('session-id', sessionId);
       
-      const response = await fetch('/api/usage', {
-        headers: {
-          'X-Session-Id': sessionId,
-        },
-      });
+      const headers: Record<string, string> = {
+        'X-Session-Id': sessionId,
+      };
+      
+      if (sessionToken) {
+        headers['X-Session-Token'] = sessionToken;
+      }
+
+      const response = await fetch('/api/usage', { headers });
       
       if (response.ok) {
         const data = await response.json();
         setUsage(data);
         return data;
+      } else {
+        console.warn(`Usage refresh failed with ${response.status}, keeping current state`);
       }
     } catch (error) {
-      console.error('Failed to refresh usage:', error);
+      console.warn('Failed to refresh usage, keeping current state:', error);
     }
     return null;
   };

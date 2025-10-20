@@ -35,7 +35,7 @@ export interface TierLimits {
 
 export const TIER_LIMITS: Record<User['tier'], TierLimits> = {
   free: {
-    monthlyAnalyses: 5,
+    monthlyAnalyses: 1,
     features: {
       basicScoring: true,
       advancedScoring: false,
@@ -49,21 +49,21 @@ export const TIER_LIMITS: Record<User['tier'], TierLimits> = {
     }
   },
   creator: {
-    monthlyAnalyses: 100,
+    monthlyAnalyses: 25,
     features: {
       basicScoring: true,
       advancedScoring: true,
-      abTestingHistory: true,
+      abTestingHistory: false,
       trendAnalysis: true,
       competitorBenchmarking: false,
       customNicheTraining: false,
       apiAccess: false,
       whiteLabelReports: false,
-      prioritySupport: false,
+      prioritySupport: true,
     }
   },
   pro: {
-    monthlyAnalyses: -1, // Unlimited
+    monthlyAnalyses: 100,
     features: {
       basicScoring: true,
       advancedScoring: true,

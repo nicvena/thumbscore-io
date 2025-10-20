@@ -11,7 +11,7 @@ export const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GA_ID || 'G-XXXXXXXXXX';
 
 // Initialize Google Analytics
 export const initGA = () => {
-  if (typeof window !== 'undefined' && GA_TRACKING_ID !== 'G-XXXXXXXXXX') {
+  if (typeof window !== 'undefined' && GA_TRACKING_ID !== 'G-XXXXXXXXXX' && GA_TRACKING_ID !== 'G-DISABLED-DEV') {
     try {
       // Load Google Analytics script
       const script = document.createElement('script');

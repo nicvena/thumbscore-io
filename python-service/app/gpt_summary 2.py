@@ -147,13 +147,17 @@ def get_gpt_tailored_summary(image_bytes: bytes, metrics: Dict[str, Any]) -> Dic
         final_score = metrics.get("final_score", 70)  # Use actual final score
         face_detected = len(metrics.get("faces", [])) > 0
         face_size_pct = int(metrics.get("subject_pct_estimate", 0) * 100)
+        word_count = len(metrics.get("ocr_text", "").split()) if metrics.get("ocr_text") else 0
         detected_text = metrics.get("ocr_text", "").strip()
-        word_count = len(detected_text.split()) if detected_text else 0
         saturation = round(metrics.get("avg_saturation", 0), 3)
         text_clarity = metrics.get("text_clarity_score", 50)
         color_contrast = metrics.get("color_contrast_score", 50)
         
-        # Niche-specific performance data (moved up to fix scope issue)
+        # Extract emotion from rubric scores
+        emotion_score = metrics.get("rubric_scores", {}).get("emotion", 3)
+        emotion_desc = "neutral" if emotion_score <= 2 else "engaged" if emotion_score <= 3 else "excited"
+        
+        # Niche-specific performance data
         niche_data = {
             "gaming": {"optimal_face": "40-50%", "optimal_text": "2-4 words", "emotion_boost": "23%", "color_pref": "bright/saturated"},
             "business": {"optimal_face": "35-45%", "optimal_text": "3-5 words", "emotion_boost": "12%", "color_pref": "professional/clean"},
@@ -166,33 +170,15 @@ def get_gpt_tailored_summary(image_bytes: bytes, metrics: Dict[str, Any]) -> Dic
         
         current_niche = niche_data.get(niche, niche_data["general"])
         
-        # Extract emotion from rubric scores (after niche_data is defined)
-        emotion_score = metrics.get("rubric_scores", {}).get("emotion", 3)
-        emotion_desc = "neutral" if emotion_score <= 2 else "engaged" if emotion_score <= 3 else "excited"
-        
-        # Now update text_analysis with correct current_niche reference
-        if word_count == 0 or not detected_text:
-            text_analysis = f"No text detected - {niche} thumbnails with {current_niche['optimal_text']} score 12% higher"
-        else:
-            text_analysis = f"{word_count}-word text '{detected_text}' with {text_clarity}/100 clarity - {niche} performs best with {current_niche['optimal_text']}"
-        
-        # Log face detection data for debugging
-        faces_data = metrics.get("faces", [])
-        logger.info(f"[FACE_DEBUG] Detected {len(faces_data)} faces: {faces_data}")
-        logger.info(f"[FACE_DEBUG] Calculated face size: {face_size_pct}% of frame")
-        if faces_data:
-            for i, face in enumerate(faces_data):
-                logger.info(f"[FACE_DEBUG] Face {i+1}: {face}")
-        
         # Prepare enhanced user prompt
         user_prompt = f"""Analyze this YouTube thumbnail for {niche} content using provided technical measurements.
 
 TECHNICAL DATA TO REFERENCE:
 - Face detected: {face_detected}
 - Face/subject size: {face_size_pct}% of frame
-- Text detected: {detected_text_display}
+- Text detected: "{detected_text}"
 - Word count: {word_count}
-- Text clarity: {text_clarity}/100 (only if text exists)
+- Text clarity: {text_clarity}/100
 - Color contrast: {color_contrast}/100
 - Color saturation: {saturation}
 - Facial expression: {emotion_desc}
@@ -211,14 +197,15 @@ Generate JSON following this EXACT 4-sentence structure:
   
   SENTENCE 1 - Score Assessment: This thumbnail scored {final_score}/100 because [specific measurement] + [why it works for {niche}].
   
-  SENTENCE 2 - Primary Strength: The {face_size_pct}% [element] is [optimal/suboptimal] for {niche} - research shows [element] above/below [threshold] [increases/decreases] engagement by [percentage]. Text quality is [describe text readability naturally without showing raw OCR].
+  SENTENCE 2 - Primary Strength: The {face_size_pct}% [element] is [optimal/suboptimal] for {niche} - research shows [element] above/below [threshold] [increases/decreases] engagement by [percentage].
   
   SENTENCE 3 - Key Weakness: However, the [specific measurement issue] underperforms - {niche} thumbnails with [specific improvement] score [percentage] higher.
   
   SENTENCE 4 - Concrete Action: [Specific change] from [current measurement] to [target range] could boost this to [{final_score + 5}-{final_score + 15}]/100.",
   
   "insights": [
-    {{"label": "Subject Coverage", "evidence": "{face_size_pct}% frame coverage vs {current_niche['optimal_face']} optimal for {niche} - [analysis of gap and impact]"}},
+    {{"label": "Subject Size", "evidence": "{face_size_pct}% frame coverage vs {current_niche['optimal_face']} optimal for {niche} - [analysis of gap and impact]"}},
+    {{"label": "Text Analysis", "evidence": "{word_count}-word text '{detected_text}' with {text_clarity}/100 clarity - {niche} performs best with {current_niche['optimal_text']}"}},
     {{"label": "Technical Metrics", "evidence": "Saturation: {saturation}, Contrast: {color_contrast}/100, Expression: {emotion_desc} - [specific improvement suggestion]"}}
   ]
 }}
@@ -311,23 +298,20 @@ Metrics Context:
         word_count = len(detected_text.split()) if detected_text else 0
         niche = metrics.get('niche', 'general')
         
-        # Describe text quality naturally without showing raw OCR
-        text_quality_desc = "good readability" if metrics.get('text_clarity_score', 50) > 70 else "text could be clearer" if word_count > 0 else "no text detected"
-        
         return {
-            "winner_summary": f"This thumbnail scored {final_score}/100 with {face_size_pct}% subject coverage. Text quality shows {text_quality_desc} for {niche} content. Optimization opportunities exist in facial expression and contrast settings, which could add 8-12 points to the current score.",
+            "winner_summary": f"This thumbnail scored {final_score}/100 with {face_size_pct}% subject coverage and {word_count}-word text '{detected_text}'. For {niche} content, optimization opportunities exist in facial expression and text positioning. Enhancing these elements could add 8-12 points to the current score.",
             "insights": [
                 {
                     "label": "Subject Coverage",
                     "evidence": f"{face_size_pct}% frame coverage - {niche} content typically performs best with 35-45% subject size"
                 },
                 {
-                    "label": "Technical Metrics",
-                    "evidence": f"Saturation: {metrics.get('avg_saturation', 0.5):.3f}, Contrast: {metrics.get('color_contrast_score', 50)}/100"
+                    "label": "Text Elements", 
+                    "evidence": f"{word_count}-word text '{detected_text}' with {metrics.get('text_clarity_score', 50)}/100 clarity score"
                 },
                 {
-                    "label": "Composition Analysis",
-                    "evidence": f"Visual balance and element positioning optimized for {niche} audience engagement patterns"
+                    "label": "Technical Metrics",
+                    "evidence": f"Saturation: {metrics.get('avg_saturation', 0.5):.3f}, Contrast: {metrics.get('color_contrast_score', 50)}/100"
                 }
             ]
         }
@@ -373,16 +357,12 @@ def get_gpt_tailored_summary_with_retry(image_bytes: bytes, metrics: Dict[str, A
     word_count = len(detected_text.split()) if detected_text else 0
     niche = metrics.get('niche', 'general')
     
-    # Describe text quality naturally without showing raw OCR
-    text_clarity_score = metrics.get('text_clarity_score', 50)
-    text_quality_desc = "clear text readability" if text_clarity_score > 70 else "text readability could improve" if word_count > 0 else "no text elements"
-    
     return {
-        "winner_summary": f"Technical analysis shows this thumbnail scored {final_score}/100 with {face_size_pct}% subject coverage and {text_quality_desc}. For {niche} content, the current metrics indicate solid fundamentals with room for expression and contrast optimization. Strategic improvements could boost performance by 10-15 points.",
+        "winner_summary": f"Technical analysis shows this thumbnail scored {final_score}/100 based on {face_size_pct}% subject size and {word_count}-word text clarity. For {niche} content, the current metrics indicate solid fundamentals with room for expression and contrast optimization. Strategic improvements could boost performance by 10-15 points.",
         "insights": [
             {
                 "label": "Subject Analysis",
-                "evidence": f"{face_size_pct}% subject coverage meeting {niche} content standards for viewer engagement"
+                "evidence": f"{face_size_pct}% subject coverage with {metrics.get('text_clarity_score', 50)}/100 text clarity"
             },
             {
                 "label": "Color Metrics",
@@ -390,7 +370,7 @@ def get_gpt_tailored_summary_with_retry(image_bytes: bytes, metrics: Dict[str, A
             },
             {
                 "label": "Niche Optimization",
-                "evidence": f"{niche} content benefits from enhanced facial expressions and optimized visual composition"
+                "evidence": f"{niche} content benefits from enhanced facial expressions and optimized text positioning"
             }
         ]
     }

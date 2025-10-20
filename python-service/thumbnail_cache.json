@@ -1,40 +1,101 @@
 {
   "b67b94f2b9ab6186_Sample Video Title_food_v1.0-gpt4rubric-core": {
-    "thumbscore": 54.7,
-    "confidence": "medium",
-    "score_version": "v1.0-youtube-optimized",
+    "thumbscore": 73.1,
+    "confidence": 74.94876956299719,
+    "confidence_level": "medium",
+    "tier": "Good",
+    "tier_icon": "\ud83d\udfe1",
+    "tier_color": "yellow",
+    "ctr_prediction": {
+      "ctr_min": 3.1,
+      "ctr_max": 3.9,
+      "ctr_range": "3.1-3.9%",
+      "performance": "Good",
+      "comparison": "Average for food content (avg: 3.5%)",
+      "benchmark_average": 3.5,
+      "stars": 3,
+      "confidence": 85
+    },
+    "score_version": "v1.3-niche-weighted",
     "hash": "b67b94f2b9ab6186",
     "niche": "food",
     "rubric": {
       "visual_appeal": 4,
       "subject_prominence": 5,
-      "emotion": 4,
+      "emotion": 3,
       "text_readability": 0,
       "color_contrast": 4,
       "title_alignment": 3,
       "niche_relevance": 5,
-      "notes": "The thumbnail is visually appealing with bright colors and high contrast, especially with the flames. The subject, which is the meat and fire, is prominent and fills the frame well. It evokes curiosity and excitement due to the unusual cooking setup. There is no text, which could be a missed opportunity for additional intrigue. The colors are vibrant and suitable for the food niche. The thumbnail aligns well with food content expectations and would likely attract viewers interested in cooking or outdoor food preparation.",
-      "rubric_score": 69.4
+      "notes": "YouTube click optimization analysis",
+      "rubric_score": 65.3
     },
     "numeric_core": {
-      "text_clarity": 94,
+      "text_clarity": 49,
       "color_contrast": 34,
       "subject_size": 33,
       "saturation_energy": 70,
-      "core_score": 59,
-      "ocr_text": "",
+      "core_score": 46,
+      "ocr_text": "7 BE EK AL YY VE ITES 1716 WE",
       "face_boxes": []
     },
+    "components": {
+      "text_clarity": 49.0,
+      "professionalism": 80.0,
+      "visual_hierarchy": 100,
+      "emotion": 60.0,
+      "color_appeal": 34.0
+    },
+    "weights_used": {
+      "color_appeal": 0.3,
+      "visual_hierarchy": 0.25,
+      "emotion": 0.2,
+      "text_clarity": 0.15,
+      "professionalism": 0.1
+    },
+    "keyword_bonus_applied": false,
     "calibration": {
       "min": 30,
       "max": 95
     },
-    "id": "thumb1"
+    "gpt_summary": {
+      "winner_summary": "This thumbnail scored 73.1/100 with 33% subject coverage and 9-word text '7 BE EK AL YY VE ITES 1716 WE'. For food content, optimization opportunities exist in facial expression and text positioning. Enhancing these elements could add 8-12 points to the current score.",
+      "insights": [
+        {
+          "label": "Subject Coverage",
+          "evidence": "33% frame coverage - food content typically performs best with 35-45% subject size"
+        },
+        {
+          "label": "Text Elements",
+          "evidence": "9-word text '7 BE EK AL YY VE ITES 1716 WE' with 49/100 clarity score"
+        },
+        {
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 0.700, Contrast: 34/100"
+        }
+      ]
+    },
+    "summary": "Confidence 74.94876956299719%. Niche weights applied for 'food'. Components normalized and verified.",
+    "id": "thumb3"
   },
   "557619e04dd6c497_Sample Video Title_food_v1.0-gpt4rubric-core": {
-    "thumbscore": 59.7,
-    "confidence": "medium",
-    "score_version": "v1.0-youtube-optimized",
+    "thumbscore": 74.6,
+    "confidence": 58.81671842700025,
+    "confidence_level": "medium",
+    "tier": "Good",
+    "tier_icon": "\ud83d\udfe1",
+    "tier_color": "yellow",
+    "ctr_prediction": {
+      "ctr_min": 3.1,
+      "ctr_max": 3.9,
+      "ctr_range": "3.1-3.9%",
+      "performance": "Good",
+      "comparison": "Average for food content (avg: 3.5%)",
+      "benchmark_average": 3.5,
+      "stars": 3,
+      "confidence": 85
+    },
+    "score_version": "v1.3-niche-weighted",
     "hash": "557619e04dd6c497",
     "niche": "food",
     "rubric": {
@@ -49,12 +110,12 @@
       "rubric_score": 89.0
     },
     "numeric_core": {
-      "text_clarity": 97,
+      "text_clarity": 54,
       "color_contrast": 26,
       "subject_size": 8,
       "saturation_energy": 40,
-      "core_score": 46,
-      "ocr_text": "",
+      "core_score": 34,
+      "ocr_text": "AL ORDO A AS 4 2 1 308 J",
       "face_boxes": [
         {
           "bbox": [
@@ -70,17 +131,64 @@
         }
       ]
     },
+    "components": {
+      "text_clarity": 54.0,
+      "professionalism": 80.0,
+      "visual_hierarchy": 100,
+      "emotion": 80.0,
+      "color_appeal": 26.0
+    },
+    "weights_used": {
+      "color_appeal": 0.3,
+      "visual_hierarchy": 0.25,
+      "emotion": 0.2,
+      "text_clarity": 0.15,
+      "professionalism": 0.1
+    },
+    "keyword_bonus_applied": false,
     "calibration": {
       "min": 30,
       "max": 95
     },
-    "id": "thumb3",
+    "gpt_summary": {
+      "winner_summary": "This thumbnail scored 74.6/100 with 8% subject coverage and 9-word text 'AL ORDO A AS 4 2 1 308 J'. For food content, optimization opportunities exist in facial expression and text positioning. Enhancing these elements could add 8-12 points to the current score.",
+      "insights": [
+        {
+          "label": "Subject Coverage",
+          "evidence": "8% frame coverage - food content typically performs best with 35-45% subject size"
+        },
+        {
+          "label": "Text Elements",
+          "evidence": "9-word text 'AL ORDO A AS 4 2 1 308 J' with 54/100 clarity score"
+        },
+        {
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 0.400, Contrast: 26/100"
+        }
+      ]
+    },
+    "summary": "Confidence 58.81671842700025%. Niche weights applied for 'food'. Components normalized and verified.",
+    "id": "thumb2",
     "is_winner": true
   },
   "a4a3e75fec586ae0_Sample Video Title_food_v1.0-gpt4rubric-core": {
-    "thumbscore": 50.7,
-    "confidence": "medium",
-    "score_version": "v1.0-youtube-optimized",
+    "thumbscore": 71.5,
+    "confidence": 68.64876956299719,
+    "confidence_level": "medium",
+    "tier": "Good",
+    "tier_icon": "\ud83d\udfe1",
+    "tier_color": "yellow",
+    "ctr_prediction": {
+      "ctr_min": 3.1,
+      "ctr_max": 3.9,
+      "ctr_range": "3.1-3.9%",
+      "performance": "Good",
+      "comparison": "Average for food content (avg: 3.5%)",
+      "benchmark_average": 3.5,
+      "stars": 3,
+      "confidence": 85
+    },
+    "score_version": "v1.3-niche-weighted",
     "hash": "a4a3e75fec586ae0",
     "niche": "food",
     "rubric": {
@@ -91,30 +199,77 @@
       "color_contrast": 4,
       "title_alignment": 3,
       "niche_relevance": 5,
-      "notes": "The thumbnail is visually appealing with bright colors and high contrast, making it stand out. The subject is prominent and clearly visible, which is excellent for recognition. It evokes some curiosity and excitement, but not strongly. There is no text, so readability is not applicable. The color contrast is good, with vibrant food colors. The alignment with a potential title is average, as it shows food preparation but lacks specific context. It is highly relevant to the food niche, especially for grilling or meat preparation content.",
+      "notes": "YouTube click optimization analysis",
       "rubric_score": 65.3
     },
     "numeric_core": {
-      "text_clarity": 95,
+      "text_clarity": 37,
       "color_contrast": 32,
       "subject_size": 26,
       "saturation_energy": 56,
-      "core_score": 55,
-      "ocr_text": "",
+      "core_score": 37,
+      "ocr_text": "NX YK IS SS EEE A VA WE VV IA TS SE ED IN 2823 MET",
       "face_boxes": []
     },
+    "components": {
+      "text_clarity": 37.0,
+      "professionalism": 80.0,
+      "visual_hierarchy": 100,
+      "emotion": 60.0,
+      "color_appeal": 32.0
+    },
+    "weights_used": {
+      "color_appeal": 0.3,
+      "visual_hierarchy": 0.25,
+      "emotion": 0.2,
+      "text_clarity": 0.15,
+      "professionalism": 0.1
+    },
+    "keyword_bonus_applied": false,
     "calibration": {
       "min": 30,
       "max": 95
     },
-    "id": "thumb2"
+    "gpt_summary": {
+      "winner_summary": "This thumbnail scored 71.5/100 with 26% subject coverage and 16-word text 'NX YK IS SS EEE A VA WE VV IA TS SE ED IN 2823 MET'. For food content, optimization opportunities exist in facial expression and text positioning. Enhancing these elements could add 8-12 points to the current score.",
+      "insights": [
+        {
+          "label": "Subject Coverage",
+          "evidence": "26% frame coverage - food content typically performs best with 35-45% subject size"
+        },
+        {
+          "label": "Text Elements",
+          "evidence": "16-word text 'NX YK IS SS EEE A VA WE VV IA TS SE ED IN 2823 MET' with 37/100 clarity score"
+        },
+        {
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 0.560, Contrast: 32/100"
+        }
+      ]
+    },
+    "summary": "Confidence 68.64876956299719%. Niche weights applied for 'food'. Components normalized and verified.",
+    "id": "thumb1"
   },
-  "cdb30873bdf16770_Test_general_v1.0-gpt4rubric-core": {
-    "thumbscore": 28.5,
-    "confidence": "medium",
-    "score_version": "v1.0-youtube-optimized",
+  "cdb30873bdf16770_Test_business_v1.0-gpt4rubric-core": {
+    "thumbscore": 32.9,
+    "confidence": 82.1734368540005,
+    "confidence_level": "high",
+    "tier": "Needs Work",
+    "tier_icon": "\ud83d\udd34",
+    "tier_color": "red",
+    "ctr_prediction": {
+      "ctr_min": 0.7,
+      "ctr_max": 1.0,
+      "ctr_range": "0.7-1.0%",
+      "performance": "Needs Work",
+      "comparison": "Significantly below average for business (avg: 2.0%)",
+      "benchmark_average": 2.0,
+      "stars": 1,
+      "confidence": 85
+    },
+    "score_version": "v1.3-niche-weighted",
     "hash": "cdb30873bdf16770",
-    "niche": "general",
+    "niche": "business",
     "rubric": {
       "visual_appeal": 1,
       "subject_prominence": 0,
@@ -127,36 +282,72 @@
       "rubric_score": 2.2
     },
     "numeric_core": {
-      "text_clarity": 50,
+      "text_clarity": 0,
       "color_contrast": 0,
       "subject_size": 0,
       "saturation_energy": 100,
-      "core_score": 35,
+      "core_score": 20,
       "ocr_text": "",
       "face_boxes": []
     },
+    "components": {
+      "text_clarity": 0,
+      "professionalism": 20.0,
+      "visual_hierarchy": 0,
+      "emotion": 0,
+      "color_appeal": 0
+    },
+    "weights_used": {
+      "text_clarity": 0.3,
+      "professionalism": 0.25,
+      "visual_hierarchy": 0.2,
+      "emotion": 0.15,
+      "color_appeal": 0.1
+    },
+    "keyword_bonus_applied": false,
     "calibration": {
       "min": 30,
       "max": 95
     },
     "gpt_summary": {
-      "winner_summary": "Analysis completed with 0% subject prominence and 2/4 composition points.",
+      "winner_summary": "This thumbnail scored 32.9/100 with 0% subject coverage and 0-word text ''. For business content, optimization opportunities exist in facial expression and text positioning. Enhancing these elements could add 8-12 points to the current score.",
       "insights": [
         {
-          "label": "Subject Size",
-          "evidence": "Main subject occupies ~0% of frame"
+          "label": "Subject Coverage",
+          "evidence": "0% frame coverage - business content typically performs best with 35-45% subject size"
         },
         {
-          "label": "Composition",
-          "evidence": "Uses 2/4 rule-of-thirds intersections"
+          "label": "Text Elements",
+          "evidence": "0-word text '' with 0/100 clarity score"
+        },
+        {
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 1.000, Contrast: 0/100"
         }
       ]
-    }
+    },
+    "summary": "Confidence 82.1734368540005%. Niche weights applied for 'business'. Components normalized and verified.",
+    "id": "test1",
+    "is_winner": true
   },
-  "cdb30873bdf16770_Test_business_v1.0-gpt4rubric-core": {
-    "thumbscore": 27.9,
-    "confidence": "medium",
-    "score_version": "v1.0-youtube-optimized",
+  "cdb30873bdf16770_Test Title_business_v1.0-gpt4rubric-core": {
+    "thumbscore": 30,
+    "confidence": 86.0,
+    "confidence_level": "high",
+    "tier": "Needs Work",
+    "tier_icon": "\ud83d\udd34",
+    "tier_color": "red",
+    "ctr_prediction": {
+      "ctr_min": 0.7,
+      "ctr_max": 1.0,
+      "ctr_range": "0.7-1.0%",
+      "performance": "Needs Work",
+      "comparison": "Significantly below average for business (avg: 2.0%)",
+      "benchmark_average": 2.0,
+      "stars": 1,
+      "confidence": 85
+    },
+    "score_version": "v1.3-niche-weighted",
     "hash": "cdb30873bdf16770",
     "niche": "business",
     "rubric": {
@@ -171,248 +362,727 @@
       "rubric_score": 0.0
     },
     "numeric_core": {
-      "text_clarity": 50,
+      "text_clarity": 0,
       "color_contrast": 0,
       "subject_size": 0,
       "saturation_energy": 100,
-      "core_score": 35,
+      "core_score": 20,
       "ocr_text": "",
       "face_boxes": []
     },
+    "components": {
+      "text_clarity": 0,
+      "professionalism": 0,
+      "visual_hierarchy": 0,
+      "emotion": 0,
+      "color_appeal": 0
+    },
+    "weights_used": {
+      "text_clarity": 0.3,
+      "professionalism": 0.25,
+      "visual_hierarchy": 0.2,
+      "emotion": 0.15,
+      "color_appeal": 0.1
+    },
+    "keyword_bonus_applied": false,
     "calibration": {
       "min": 30,
       "max": 95
     },
     "gpt_summary": {
-      "winner_summary": "Analysis completed with 0% subject prominence and 2/4 composition points.",
+      "winner_summary": "This thumbnail scored 30/100 with 0% subject coverage and 0-word text ''. For business content, optimization opportunities exist in facial expression and text positioning. Enhancing these elements could add 8-12 points to the current score.",
       "insights": [
         {
-          "label": "Subject Size",
-          "evidence": "Main subject occupies ~0% of frame"
+          "label": "Subject Coverage",
+          "evidence": "0% frame coverage - business content typically performs best with 35-45% subject size"
         },
         {
-          "label": "Composition",
-          "evidence": "Uses 2/4 rule-of-thirds intersections"
+          "label": "Text Elements",
+          "evidence": "0-word text '' with 0/100 clarity score"
+        },
+        {
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 1.000, Contrast: 0/100"
         }
       ]
     },
-    "id": "thumb1",
-    "is_winner": true
+    "summary": "Confidence 86.0%. Niche weights applied for 'business'. Components normalized and verified."
   },
-  "9cd05fb74c9ef313_Test_business_v1.0-gpt4rubric-core": {
-    "thumbscore": 44.2,
-    "confidence": "high",
-    "score_version": "v1.0-youtube-optimized",
-    "hash": "9cd05fb74c9ef313",
-    "niche": "business",
-    "rubric": {
-      "visual_appeal": 3,
-      "subject_prominence": 3,
-      "emotion": 3,
-      "text_readability": 3,
-      "color_contrast": 3,
-      "title_alignment": 2,
-      "niche_relevance": 3,
-      "notes": "Fallback scoring due to API error",
-      "rubric_score": 47.0
+  "cdb30873bdf16770_Ultimate Gaming Setup Guide_gaming_v1.0-gpt4rubric-core": {
+    "thumbscore": 30,
+    "confidence": 86.0,
+    "confidence_level": "high",
+    "tier": "Needs Work",
+    "tier_icon": "\ud83d\udd34",
+    "tier_color": "red",
+    "ctr_prediction": {
+      "ctr_min": 1.0,
+      "ctr_max": 1.5,
+      "ctr_range": "1.0-1.5%",
+      "performance": "Needs Work",
+      "comparison": "Significantly below average for gaming (avg: 3.0%)",
+      "benchmark_average": 3.0,
+      "stars": 1,
+      "confidence": 85
     },
-    "numeric_core": {
-      "text_clarity": 50,
-      "color_contrast": 50,
-      "subject_size": 50,
-      "saturation_energy": 50,
-      "core_score": 50,
-      "ocr_text": "",
-      "face_boxes": []
-    },
-    "calibration": {
-      "min": 30,
-      "max": 95
-    },
-    "gpt_summary": {
-      "winner_summary": "Analysis completed with 50% subject prominence and 2/4 composition points.",
-      "insights": [
-        {
-          "label": "Subject Size",
-          "evidence": "Main subject occupies ~50% of frame"
-        },
-        {
-          "label": "Composition",
-          "evidence": "Uses 2/4 rule-of-thirds intersections"
-        }
-      ]
-    },
-    "id": "thumb1",
-    "is_winner": true
-  },
-  "cdb30873bdf16770_Test Thumbnail_tech_v1.0-gpt4rubric-core": {
-    "thumbscore": 28.5,
-    "confidence": "medium",
-    "score_version": "v1.0-youtube-optimized",
+    "score_version": "v1.3-niche-weighted",
     "hash": "cdb30873bdf16770",
-    "niche": "tech",
+    "niche": "gaming",
     "rubric": {
-      "visual_appeal": 1,
+      "visual_appeal": 0,
       "subject_prominence": 0,
       "emotion": 0,
       "text_readability": 0,
-      "color_contrast": 2,
+      "color_contrast": 0,
       "title_alignment": 0,
       "niche_relevance": 0,
       "notes": "YouTube click optimization analysis",
-      "rubric_score": 2.2
+      "rubric_score": 0.0
     },
     "numeric_core": {
-      "text_clarity": 50,
+      "text_clarity": 0,
       "color_contrast": 0,
       "subject_size": 0,
       "saturation_energy": 100,
-      "core_score": 35,
+      "core_score": 20,
       "ocr_text": "",
       "face_boxes": []
     },
+    "components": {
+      "text_clarity": 0,
+      "professionalism": 0,
+      "visual_hierarchy": 0,
+      "emotion": 0,
+      "color_appeal": 0
+    },
+    "weights_used": {
+      "emotion": 0.35,
+      "color_appeal": 0.25,
+      "text_clarity": 0.2,
+      "visual_hierarchy": 0.15,
+      "professionalism": 0.05
+    },
+    "keyword_bonus_applied": false,
     "calibration": {
       "min": 30,
       "max": 95
     },
     "gpt_summary": {
-      "winner_summary": "Analysis completed with 0% subject prominence and 2/4 composition points.",
+      "winner_summary": "This thumbnail scored 30/100 with 0% subject coverage and 0-word text ''. For gaming content, optimization opportunities exist in facial expression and text positioning. Enhancing these elements could add 8-12 points to the current score.",
       "insights": [
         {
-          "label": "Subject Size",
-          "evidence": "Main subject occupies ~0% of frame"
+          "label": "Subject Coverage",
+          "evidence": "0% frame coverage - gaming content typically performs best with 35-45% subject size"
         },
         {
-          "label": "Composition",
-          "evidence": "Uses 2/4 rule-of-thirds intersections"
+          "label": "Text Elements",
+          "evidence": "0-word text '' with 0/100 clarity score"
+        },
+        {
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 1.000, Contrast: 0/100"
         }
       ]
     },
-    "id": "thumb1",
-    "is_winner": true
+    "summary": "Confidence 86.0%. Niche weights applied for 'gaming'. Components normalized and verified."
   },
-  "d9022e818151792e_Sample Video Title_business_v1.0-gpt4rubric-core": {
-    "thumbscore": 50.4,
-    "confidence": "medium",
-    "score_version": "v1.0-youtube-optimized",
-    "hash": "d9022e818151792e",
-    "niche": "business",
+  "b67b94f2b9ab6186_Cooking a great steak!_food_v1.0-gpt4rubric-core": {
+    "thumbscore": 73.1,
+    "confidence": 73.1987695629972,
+    "confidence_level": "medium",
+    "tier": "Good",
+    "tier_icon": "\ud83d\udfe1",
+    "tier_color": "yellow",
+    "ctr_prediction": {
+      "ctr_min": 3.1,
+      "ctr_max": 3.9,
+      "ctr_range": "3.1-3.9%",
+      "performance": "Good",
+      "comparison": "Average for food content (avg: 3.5%)",
+      "benchmark_average": 3.5,
+      "stars": 3,
+      "confidence": 85
+    },
+    "score_version": "v1.3-niche-weighted",
+    "hash": "b67b94f2b9ab6186",
+    "niche": "food",
     "rubric": {
       "visual_appeal": 4,
-      "subject_prominence": 4,
+      "subject_prominence": 5,
       "emotion": 3,
-      "text_readability": 3,
+      "text_readability": 0,
       "color_contrast": 4,
       "title_alignment": 4,
-      "niche_relevance": 4,
-      "notes": "YouTube click optimization analysis",
-      "rubric_score": 76.3
+      "niche_relevance": 5,
+      "notes": "The thumbnail is visually appealing with bright colors and high contrast, especially the flames and the red meat. The subject is prominent and clear, making it easy to recognize at a small size. It evokes curiosity with the unusual cooking setup, but lacks text to enhance intrigue or provide context. The colors are vibrant and suitable for the food niche. It aligns well with the title 'Cooking a great steak!' and is relevant to food content.",
+      "rubric_score": 67.8
     },
     "numeric_core": {
-      "text_clarity": 97,
-      "color_contrast": 22,
-      "subject_size": 10,
-      "saturation_energy": 15,
-      "core_score": 41,
-      "ocr_text": "idea #1",
-      "face_boxes": [
-        {
-          "bbox": [
-            379,
-            60,
-            151,
-            151
-          ],
-          "confidence": 0.7559154033660889,
-          "emotion": "Detected",
-          "age": "Detected",
-          "gender": "Detected"
-        }
-      ]
+      "text_clarity": 49,
+      "color_contrast": 34,
+      "subject_size": 33,
+      "saturation_energy": 70,
+      "core_score": 46,
+      "ocr_text": "7 BE EK AL YY VE ITES 1716 WE",
+      "face_boxes": []
     },
+    "components": {
+      "text_clarity": 49.0,
+      "professionalism": 80.0,
+      "visual_hierarchy": 100,
+      "emotion": 60.0,
+      "color_appeal": 34.0
+    },
+    "weights_used": {
+      "color_appeal": 0.3,
+      "visual_hierarchy": 0.25,
+      "emotion": 0.2,
+      "text_clarity": 0.15,
+      "professionalism": 0.1
+    },
+    "keyword_bonus_applied": false,
     "calibration": {
       "min": 30,
       "max": 95
     },
     "gpt_summary": {
-      "winner_summary": "Analysis completed with 10% subject prominence and 2/4 composition points.",
+      "winner_summary": "This thumbnail scored 73.1/100 with 33% subject coverage and 9-word text '7 BE EK AL YY VE ITES 1716 WE'. For food content, optimization opportunities exist in facial expression and text positioning. Enhancing these elements could add 8-12 points to the current score.",
       "insights": [
         {
-          "label": "Subject Size",
-          "evidence": "Main subject occupies ~10% of frame"
+          "label": "Subject Coverage",
+          "evidence": "33% frame coverage - food content typically performs best with 35-45% subject size"
         },
         {
-          "label": "Composition",
-          "evidence": "Uses 2/4 rule-of-thirds intersections"
+          "label": "Text Elements",
+          "evidence": "9-word text '7 BE EK AL YY VE ITES 1716 WE' with 49/100 clarity score"
+        },
+        {
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 0.700, Contrast: 34/100"
         }
       ]
     },
+    "summary": "Confidence 73.1987695629972%. Niche weights applied for 'food'. Components normalized and verified.",
     "id": "thumb1"
   },
-  "429ad5eecc3d9289_Sample Video Title_business_v1.0-gpt4rubric-core": {
-    "thumbscore": 54.6,
-    "confidence": "medium",
-    "score_version": "v1.0-youtube-optimized",
-    "hash": "429ad5eecc3d9289",
-    "niche": "business",
+  "557619e04dd6c497_Cooking a great steak!_food_v1.0-gpt4rubric-core": {
+    "thumbscore": 72.0,
+    "confidence": 62.437359312880716,
+    "confidence_level": "medium",
+    "tier": "Good",
+    "tier_icon": "\ud83d\udfe1",
+    "tier_color": "yellow",
+    "ctr_prediction": {
+      "ctr_min": 3.1,
+      "ctr_max": 3.9,
+      "ctr_range": "3.1-3.9%",
+      "performance": "Good",
+      "comparison": "Average for food content (avg: 3.5%)",
+      "benchmark_average": 3.5,
+      "stars": 3,
+      "confidence": 85
+    },
+    "score_version": "v1.3-niche-weighted",
+    "hash": "557619e04dd6c497",
+    "niche": "food",
     "rubric": {
       "visual_appeal": 4,
       "subject_prominence": 5,
       "emotion": 3,
       "text_readability": 4,
       "color_contrast": 4,
-      "title_alignment": 4,
+      "title_alignment": 3,
       "niche_relevance": 5,
       "notes": "YouTube click optimization analysis",
-      "rubric_score": 84.8
+      "rubric_score": 81.6
     },
     "numeric_core": {
-      "text_clarity": 97,
-      "color_contrast": 22,
-      "subject_size": 7,
-      "saturation_energy": 15,
-      "core_score": 40,
-      "ocr_text": "idea #1",
+      "text_clarity": 54,
+      "color_contrast": 26,
+      "subject_size": 8,
+      "saturation_energy": 40,
+      "core_score": 34,
+      "ocr_text": "AL ORDO A AS 4 2 1 308 J",
       "face_boxes": [
         {
           "bbox": [
-            381,
-            62,
-            131,
-            131
+            395,
+            66,
+            167,
+            167
           ],
-          "confidence": 0.6979569792747498,
+          "confidence": 0.6297038197517395,
           "emotion": "Detected",
           "age": "Detected",
           "gender": "Detected"
         }
       ]
     },
+    "components": {
+      "text_clarity": 54.0,
+      "professionalism": 80.0,
+      "visual_hierarchy": 100,
+      "emotion": 60.0,
+      "color_appeal": 26.0
+    },
+    "weights_used": {
+      "color_appeal": 0.3,
+      "visual_hierarchy": 0.25,
+      "emotion": 0.2,
+      "text_clarity": 0.15,
+      "professionalism": 0.1
+    },
+    "keyword_bonus_applied": false,
     "calibration": {
       "min": 30,
       "max": 95
     },
     "gpt_summary": {
-      "winner_summary": "Analysis completed with 7% subject prominence and 2/4 composition points.",
+      "winner_summary": "This thumbnail scored 72.0/100 with 8% subject coverage and 9-word text 'AL ORDO A AS 4 2 1 308 J'. For food content, optimization opportunities exist in facial expression and text positioning. Enhancing these elements could add 8-12 points to the current score.",
       "insights": [
         {
-          "label": "Subject Size",
-          "evidence": "Main subject occupies ~7% of frame"
+          "label": "Subject Coverage",
+          "evidence": "8% frame coverage - food content typically performs best with 35-45% subject size"
         },
         {
-          "label": "Composition",
-          "evidence": "Uses 2/4 rule-of-thirds intersections"
+          "label": "Text Elements",
+          "evidence": "9-word text 'AL ORDO A AS 4 2 1 308 J' with 54/100 clarity score"
+        },
+        {
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 0.400, Contrast: 26/100"
         }
       ]
     },
+    "summary": "Confidence 62.437359312880716%. Niche weights applied for 'food'. Components normalized and verified.",
     "id": "thumb2"
   },
-  "c9b9eb9d0d5bf8f0_Sample Video Title_business_v1.0-gpt4rubric-core": {
-    "thumbscore": 54.6,
-    "confidence": "medium",
-    "score_version": "v1.0-youtube-optimized",
-    "hash": "c9b9eb9d0d5bf8f0",
-    "niche": "business",
+  "a4a3e75fec586ae0_Cooking a great steak!_food_v1.0-gpt4rubric-core": {
+    "thumbscore": 71.5,
+    "confidence": 65.07876956299718,
+    "confidence_level": "medium",
+    "tier": "Good",
+    "tier_icon": "\ud83d\udfe1",
+    "tier_color": "yellow",
+    "ctr_prediction": {
+      "ctr_min": 3.1,
+      "ctr_max": 3.9,
+      "ctr_range": "3.1-3.9%",
+      "performance": "Good",
+      "comparison": "Average for food content (avg: 3.5%)",
+      "benchmark_average": 3.5,
+      "stars": 3,
+      "confidence": 85
+    },
+    "score_version": "v1.3-niche-weighted",
+    "hash": "a4a3e75fec586ae0",
+    "niche": "food",
+    "rubric": {
+      "visual_appeal": 4,
+      "subject_prominence": 5,
+      "emotion": 3,
+      "text_readability": 0,
+      "color_contrast": 4,
+      "title_alignment": 5,
+      "niche_relevance": 5,
+      "notes": "YouTube click optimization analysis",
+      "rubric_score": 70.4
+    },
+    "numeric_core": {
+      "text_clarity": 37,
+      "color_contrast": 32,
+      "subject_size": 26,
+      "saturation_energy": 56,
+      "core_score": 37,
+      "ocr_text": "NX YK IS SS EEE A VA WE VV IA TS SE ED IN 2823 MET",
+      "face_boxes": []
+    },
+    "components": {
+      "text_clarity": 37.0,
+      "professionalism": 80.0,
+      "visual_hierarchy": 100,
+      "emotion": 60.0,
+      "color_appeal": 32.0
+    },
+    "weights_used": {
+      "color_appeal": 0.3,
+      "visual_hierarchy": 0.25,
+      "emotion": 0.2,
+      "text_clarity": 0.15,
+      "professionalism": 0.1
+    },
+    "keyword_bonus_applied": false,
+    "calibration": {
+      "min": 30,
+      "max": 95
+    },
+    "gpt_summary": {
+      "winner_summary": "This thumbnail scored 71.5/100 with 26% subject coverage and 16-word text 'NX YK IS SS EEE A VA WE VV IA TS SE ED IN 2823 MET'. For food content, optimization opportunities exist in facial expression and text positioning. Enhancing these elements could add 8-12 points to the current score.",
+      "insights": [
+        {
+          "label": "Subject Coverage",
+          "evidence": "26% frame coverage - food content typically performs best with 35-45% subject size"
+        },
+        {
+          "label": "Text Elements",
+          "evidence": "16-word text 'NX YK IS SS EEE A VA WE VV IA TS SE ED IN 2823 MET' with 37/100 clarity score"
+        },
+        {
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 0.560, Contrast: 32/100"
+        }
+      ]
+    },
+    "summary": "Confidence 65.07876956299718%. Niche weights applied for 'food'. Components normalized and verified."
+  },
+  "557619e04dd6c497_I love to cook_food_v1.0-gpt4rubric-core": {
+    "thumbscore": 74.8,
+    "confidence": 55.203664654969,
+    "confidence_level": "medium",
+    "tier": "Good",
+    "tier_icon": "\ud83d\udfe1",
+    "tier_color": "yellow",
+    "ctr_prediction": {
+      "ctr_min": 3.1,
+      "ctr_max": 3.9,
+      "ctr_range": "3.1-3.9%",
+      "performance": "Good",
+      "comparison": "Average for food content (avg: 3.5%)",
+      "benchmark_average": 3.5,
+      "stars": 3,
+      "confidence": 85
+    },
+    "score_version": "v1.3-niche-weighted",
+    "hash": "557619e04dd6c497",
+    "niche": "food",
+    "rubric": {
+      "visual_appeal": 4,
+      "subject_prominence": 5,
+      "emotion": 4,
+      "text_readability": 5,
+      "color_contrast": 4,
+      "title_alignment": 4,
+      "niche_relevance": 5,
+      "notes": "YouTube click optimization analysis",
+      "rubric_score": 93.3
+    },
+    "numeric_core": {
+      "text_clarity": 56,
+      "color_contrast": 26,
+      "subject_size": 8,
+      "saturation_energy": 40,
+      "core_score": 34,
+      "ocr_text": "A iy, eee RAMS IE:OB",
+      "face_boxes": [
+        {
+          "bbox": [
+            395,
+            66,
+            167,
+            167
+          ],
+          "confidence": 0.6297038197517395,
+          "emotion": "Detected",
+          "age": "Detected",
+          "gender": "Detected"
+        }
+      ]
+    },
+    "components": {
+      "text_clarity": 56.0,
+      "professionalism": 80.0,
+      "visual_hierarchy": 100,
+      "emotion": 80.0,
+      "color_appeal": 26.0
+    },
+    "weights_used": {
+      "color_appeal": 0.3,
+      "visual_hierarchy": 0.25,
+      "emotion": 0.2,
+      "text_clarity": 0.15,
+      "professionalism": 0.1
+    },
+    "keyword_bonus_applied": false,
+    "calibration": {
+      "min": 30,
+      "max": 95
+    },
+    "gpt_summary": {
+      "winner_summary": "This thumbnail scored 74.8/100 with 8% subject coverage and 5-word text 'A iy, eee RAMS IE:OB'. For food content, optimization opportunities exist in facial expression and text positioning. Enhancing these elements could add 8-12 points to the current score.",
+      "insights": [
+        {
+          "label": "Subject Coverage",
+          "evidence": "8% frame coverage - food content typically performs best with 35-45% subject size"
+        },
+        {
+          "label": "Text Elements",
+          "evidence": "5-word text 'A iy, eee RAMS IE:OB' with 56/100 clarity score"
+        },
+        {
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 0.400, Contrast: 26/100"
+        }
+      ]
+    },
+    "summary": "Confidence 55.203664654969%. Niche weights applied for 'food'. Components normalized and verified.",
+    "id": "thumb1"
+  },
+  "a4a3e75fec586ae0_I love to cook_food_v1.0-gpt4rubric-core": {
+    "thumbscore": 72.9,
+    "confidence": 71.4487695629972,
+    "confidence_level": "medium",
+    "tier": "Good",
+    "tier_icon": "\ud83d\udfe1",
+    "tier_color": "yellow",
+    "ctr_prediction": {
+      "ctr_min": 3.1,
+      "ctr_max": 3.9,
+      "ctr_range": "3.1-3.9%",
+      "performance": "Good",
+      "comparison": "Average for food content (avg: 3.5%)",
+      "benchmark_average": 3.5,
+      "stars": 3,
+      "confidence": 85
+    },
+    "score_version": "v1.3-niche-weighted",
+    "hash": "a4a3e75fec586ae0",
+    "niche": "food",
+    "rubric": {
+      "visual_appeal": 4,
+      "subject_prominence": 5,
+      "emotion": 3,
+      "text_readability": 0,
+      "color_contrast": 4,
+      "title_alignment": 3,
+      "niche_relevance": 5,
+      "notes": "YouTube click optimization analysis",
+      "rubric_score": 65.3
+    },
+    "numeric_core": {
+      "text_clarity": 51,
+      "color_contrast": 32,
+      "subject_size": 26,
+      "saturation_energy": 56,
+      "core_score": 41,
+      "ocr_text": "A A A Lae ZB:ZE",
+      "face_boxes": []
+    },
+    "components": {
+      "text_clarity": 51.0,
+      "professionalism": 80.0,
+      "visual_hierarchy": 100,
+      "emotion": 60.0,
+      "color_appeal": 32.0
+    },
+    "weights_used": {
+      "color_appeal": 0.3,
+      "visual_hierarchy": 0.25,
+      "emotion": 0.2,
+      "text_clarity": 0.15,
+      "professionalism": 0.1
+    },
+    "keyword_bonus_applied": false,
+    "calibration": {
+      "min": 30,
+      "max": 95
+    },
+    "gpt_summary": {
+      "winner_summary": "This thumbnail scored 72.9/100 with 26% subject coverage and 5-word text 'A A A Lae ZB:ZE'. For food content, optimization opportunities exist in facial expression and text positioning. Enhancing these elements could add 8-12 points to the current score.",
+      "insights": [
+        {
+          "label": "Subject Coverage",
+          "evidence": "26% frame coverage - food content typically performs best with 35-45% subject size"
+        },
+        {
+          "label": "Text Elements",
+          "evidence": "5-word text 'A A A Lae ZB:ZE' with 51/100 clarity score"
+        },
+        {
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 0.560, Contrast: 32/100"
+        }
+      ]
+    },
+    "summary": "Confidence 71.4487695629972%. Niche weights applied for 'food'. Components normalized and verified.",
+    "id": "thumb2"
+  },
+  "b67b94f2b9ab6186_I love to cook_food_v1.0-gpt4rubric-core": {
+    "thumbscore": 73.7,
+    "confidence": 75.64876956299719,
+    "confidence_level": "high",
+    "tier": "Good",
+    "tier_icon": "\ud83d\udfe1",
+    "tier_color": "yellow",
+    "ctr_prediction": {
+      "ctr_min": 3.1,
+      "ctr_max": 3.9,
+      "ctr_range": "3.1-3.9%",
+      "performance": "Good",
+      "comparison": "Average for food content (avg: 3.5%)",
+      "benchmark_average": 3.5,
+      "stars": 3,
+      "confidence": 85
+    },
+    "score_version": "v1.3-niche-weighted",
+    "hash": "b67b94f2b9ab6186",
+    "niche": "food",
+    "rubric": {
+      "visual_appeal": 4,
+      "subject_prominence": 5,
+      "emotion": 3,
+      "text_readability": 0,
+      "color_contrast": 4,
+      "title_alignment": 3,
+      "niche_relevance": 5,
+      "notes": "YouTube click optimization analysis",
+      "rubric_score": 65.3
+    },
+    "numeric_core": {
+      "text_clarity": 55,
+      "color_contrast": 34,
+      "subject_size": 33,
+      "saturation_energy": 70,
+      "core_score": 47,
+      "ocr_text": "ites IT:IG",
+      "face_boxes": []
+    },
+    "components": {
+      "text_clarity": 55.0,
+      "professionalism": 80.0,
+      "visual_hierarchy": 100,
+      "emotion": 60.0,
+      "color_appeal": 34.0
+    },
+    "weights_used": {
+      "color_appeal": 0.3,
+      "visual_hierarchy": 0.25,
+      "emotion": 0.2,
+      "text_clarity": 0.15,
+      "professionalism": 0.1
+    },
+    "keyword_bonus_applied": false,
+    "calibration": {
+      "min": 30,
+      "max": 95
+    },
+    "gpt_summary": {
+      "winner_summary": "This thumbnail scored 73.7/100 with 33% subject coverage and 2-word text 'ites IT:IG'. For food content, optimization opportunities exist in facial expression and text positioning. Enhancing these elements could add 8-12 points to the current score.",
+      "insights": [
+        {
+          "label": "Subject Coverage",
+          "evidence": "33% frame coverage - food content typically performs best with 35-45% subject size"
+        },
+        {
+          "label": "Text Elements",
+          "evidence": "2-word text 'ites IT:IG' with 55/100 clarity score"
+        },
+        {
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 0.700, Contrast: 34/100"
+        }
+      ]
+    },
+    "summary": "Confidence 75.64876956299719%. Niche weights applied for 'food'. Components normalized and verified."
+  },
+  "910bc16327f7821e_Sample Video Title_food_v1.0-gpt4rubric-core": {
+    "thumbscore": 71.3,
+    "confidence": 71.09876956299719,
+    "confidence_level": "medium",
+    "tier": "Good",
+    "tier_icon": "\ud83d\udfe1",
+    "tier_color": "yellow",
+    "ctr_prediction": {
+      "ctr_min": 3.1,
+      "ctr_max": 3.9,
+      "ctr_range": "3.1-3.9%",
+      "performance": "Good",
+      "comparison": "Average for food content (avg: 3.5%)",
+      "benchmark_average": 3.5,
+      "stars": 3,
+      "confidence": 85
+    },
+    "score_version": "v1.3-niche-weighted",
+    "hash": "910bc16327f7821e",
+    "niche": "food",
+    "rubric": {
+      "visual_appeal": 4,
+      "subject_prominence": 5,
+      "emotion": 3,
+      "text_readability": 0,
+      "color_contrast": 4,
+      "title_alignment": 4,
+      "niche_relevance": 5,
+      "notes": "YouTube click optimization analysis",
+      "rubric_score": 67.8
+    },
+    "numeric_core": {
+      "text_clarity": 30,
+      "color_contrast": 35,
+      "subject_size": 46,
+      "saturation_energy": 73,
+      "core_score": 43,
+      "ocr_text": "",
+      "face_boxes": []
+    },
+    "components": {
+      "text_clarity": 30.0,
+      "professionalism": 80.0,
+      "visual_hierarchy": 100,
+      "emotion": 60.0,
+      "color_appeal": 35.0
+    },
+    "weights_used": {
+      "color_appeal": 0.3,
+      "visual_hierarchy": 0.25,
+      "emotion": 0.2,
+      "text_clarity": 0.15,
+      "professionalism": 0.1
+    },
+    "keyword_bonus_applied": false,
+    "calibration": {
+      "min": 30,
+      "max": 95
+    },
+    "gpt_summary": {
+      "winner_summary": "This thumbnail scored 71.3/100 with 46% subject coverage. Text quality shows no text detected for food content. Optimization opportunities exist in facial expression and contrast settings, which could add 8-12 points to the current score.",
+      "insights": [
+        {
+          "label": "Subject Coverage",
+          "evidence": "46% frame coverage - food content typically performs best with 35-45% subject size"
+        },
+        {
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 0.730, Contrast: 35/100"
+        },
+        {
+          "label": "Composition Analysis",
+          "evidence": "Visual balance and element positioning optimized for food audience engagement patterns"
+        }
+      ]
+    },
+    "summary": "Confidence 71.09876956299719%. Niche weights applied for 'food'. Components normalized and verified.",
+    "id": "thumb1"
+  },
+  "357b8276a28c5c5a_Sample Video Title_food_v1.0-gpt4rubric-core": {
+    "thumbscore": 70.2,
+    "confidence": 58.09735931288071,
+    "confidence_level": "medium",
+    "tier": "Good",
+    "tier_icon": "\ud83d\udfe1",
+    "tier_color": "yellow",
+    "ctr_prediction": {
+      "ctr_min": 3.1,
+      "ctr_max": 3.9,
+      "ctr_range": "3.1-3.9%",
+      "performance": "Good",
+      "comparison": "Average for food content (avg: 3.5%)",
+      "benchmark_average": 3.5,
+      "stars": 3,
+      "confidence": 85
+    },
+    "score_version": "v1.3-niche-weighted",
+    "hash": "357b8276a28c5c5a",
+    "niche": "food",
     "rubric": {
       "visual_appeal": 4,
       "subject_prominence": 5,
@@ -425,43 +1095,142 @@
       "rubric_score": 84.8
     },
     "numeric_core": {
-      "text_clarity": 97,
-      "color_contrast": 22,
-      "subject_size": 9,
-      "saturation_energy": 15,
-      "core_score": 40,
-      "ocr_text": "2h dea",
+      "text_clarity": 29,
+      "color_contrast": 30,
+      "subject_size": 7,
+      "saturation_energy": 59,
+      "core_score": 31,
+      "ocr_text": "",
       "face_boxes": [
         {
           "bbox": [
-            367,
-            69,
-            150,
-            150
+            113,
+            19,
+            43,
+            43
           ],
-          "confidence": 0.6902397274971008,
+          "confidence": 0.709392249584198,
           "emotion": "Detected",
           "age": "Detected",
           "gender": "Detected"
         }
       ]
     },
+    "components": {
+      "text_clarity": 29.0,
+      "professionalism": 80.0,
+      "visual_hierarchy": 100,
+      "emotion": 60.0,
+      "color_appeal": 30.0
+    },
+    "weights_used": {
+      "color_appeal": 0.3,
+      "visual_hierarchy": 0.25,
+      "emotion": 0.2,
+      "text_clarity": 0.15,
+      "professionalism": 0.1
+    },
+    "keyword_bonus_applied": false,
     "calibration": {
       "min": 30,
       "max": 95
     },
     "gpt_summary": {
-      "winner_summary": "Analysis completed with 9% subject prominence and 2/4 composition points.",
+      "winner_summary": "This thumbnail scored 70.2/100 with 7% subject coverage. Text quality shows no text detected for food content. Optimization opportunities exist in facial expression and contrast settings, which could add 8-12 points to the current score.",
       "insights": [
         {
-          "label": "Subject Size",
-          "evidence": "Main subject occupies ~9% of frame"
+          "label": "Subject Coverage",
+          "evidence": "7% frame coverage - food content typically performs best with 35-45% subject size"
         },
         {
-          "label": "Composition",
-          "evidence": "Uses 2/4 rule-of-thirds intersections"
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 0.590, Contrast: 30/100"
+        },
+        {
+          "label": "Composition Analysis",
+          "evidence": "Visual balance and element positioning optimized for food audience engagement patterns"
         }
       ]
-    }
+    },
+    "summary": "Confidence 58.09735931288071%. Niche weights applied for 'food'. Components normalized and verified.",
+    "id": "thumb2"
+  },
+  "fa3e2f919fad46ee_Sample Video Title_food_v1.0-gpt4rubric-core": {
+    "thumbscore": 70.5,
+    "confidence": 73.1987695629972,
+    "confidence_level": "medium",
+    "tier": "Good",
+    "tier_icon": "\ud83d\udfe1",
+    "tier_color": "yellow",
+    "ctr_prediction": {
+      "ctr_min": 3.1,
+      "ctr_max": 3.9,
+      "ctr_range": "3.1-3.9%",
+      "performance": "Good",
+      "comparison": "Average for food content (avg: 3.5%)",
+      "benchmark_average": 3.5,
+      "stars": 3,
+      "confidence": 85
+    },
+    "score_version": "v1.3-niche-weighted",
+    "hash": "fa3e2f919fad46ee",
+    "niche": "food",
+    "rubric": {
+      "visual_appeal": 4,
+      "subject_prominence": 5,
+      "emotion": 3,
+      "text_readability": 0,
+      "color_contrast": 4,
+      "title_alignment": 4,
+      "niche_relevance": 5,
+      "notes": "YouTube click optimization analysis",
+      "rubric_score": 67.8
+    },
+    "numeric_core": {
+      "text_clarity": 26,
+      "color_contrast": 33,
+      "subject_size": 52,
+      "saturation_energy": 90,
+      "core_score": 46,
+      "ocr_text": "",
+      "face_boxes": []
+    },
+    "components": {
+      "text_clarity": 26.0,
+      "professionalism": 80.0,
+      "visual_hierarchy": 100,
+      "emotion": 60.0,
+      "color_appeal": 33.0
+    },
+    "weights_used": {
+      "color_appeal": 0.3,
+      "visual_hierarchy": 0.25,
+      "emotion": 0.2,
+      "text_clarity": 0.15,
+      "professionalism": 0.1
+    },
+    "keyword_bonus_applied": false,
+    "calibration": {
+      "min": 30,
+      "max": 95
+    },
+    "gpt_summary": {
+      "winner_summary": "This thumbnail scored 70.5/100 with 52% subject coverage. Text quality shows no text detected for food content. Optimization opportunities exist in facial expression and contrast settings, which could add 8-12 points to the current score.",
+      "insights": [
+        {
+          "label": "Subject Coverage",
+          "evidence": "52% frame coverage - food content typically performs best with 35-45% subject size"
+        },
+        {
+          "label": "Technical Metrics",
+          "evidence": "Saturation: 0.900, Contrast: 33/100"
+        },
+        {
+          "label": "Composition Analysis",
+          "evidence": "Visual balance and element positioning optimized for food audience engagement patterns"
+        }
+      ]
+    },
+    "summary": "Confidence 73.1987695629972%. Niche weights applied for 'food'. Components normalized and verified."
   }
 }

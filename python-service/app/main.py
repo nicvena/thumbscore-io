@@ -92,6 +92,9 @@ if not USE_FAISS:
 else:
     logger.info("[V1.1+] Using FAISS-based scoring system")
 
+# Import analytics logger for comprehensive data collection
+from app.analytics_logger import analytics_logger
+
 app = FastAPI(
     title="Thumbscore.io API",
     description="AI thumbnail scoring service - Visual quality, power words, and similarity intelligence",
@@ -188,6 +191,22 @@ class ScoreResponse(BaseModel):
     scoring_metadata: Optional[Dict[str, Any]] = None
     deterministic_mode: bool = False
     score_version: str = "v1.4-faiss-hybrid"
+
+class FeedbackRequest(BaseModel):
+    analysis_id: str
+    helpful: Optional[bool] = None
+    accurate: Optional[bool] = None
+    used_winner: Optional[bool] = None
+    actual_ctr: Optional[float] = None
+    actual_views: Optional[int] = None
+    actual_impressions: Optional[int] = None
+    comments: Optional[str] = None
+    feedback_type: str = "rating"
+
+class FeedbackResponse(BaseModel):
+    success: bool
+    message: str
+    feedback_id: Optional[str] = None
 
 # ============================================================================
 # MODEL INITIALIZATION (V1.1+ only - simplified for V1)
@@ -3568,17 +3587,17 @@ async def score(request: Request, req: ScoreRequest):
                 # Extract simplified data - stable scorer uses 'thumbscore' not 'score'
                 score = thumb_result.get("thumbscore", 60)
                 
-                # Calculate tier based on score
-                if score >= 85:
+                # Calculate tier based on score (updated for v1.1 realistic scoring)
+                if score >= 86:
                     tier = "excellent"
-                elif score >= 75:
+                elif score >= 76:
                     tier = "strong"
-                elif score >= 65:
+                elif score >= 66:
                     tier = "good"
-                elif score >= 50:
-                    tier = "needs_work"
+                elif score >= 51:
+                    tier = "fair"
                 else:
-                    tier = "weak"
+                    tier = "needs_work"
                 
                 # Use GPT summary if available, otherwise fallback to rubric data
                 gpt_summary = thumb_result.get("gpt_summary")
@@ -3673,6 +3692,42 @@ async def score(request: Request, req: ScoreRequest):
             for thumb_result in simple_result["thumbnails"]:
                 if thumb_result.get("gpt_summary"):
                     gpt_summaries[thumb_result["id"]] = thumb_result["gpt_summary"]
+            
+            # Log analytics data for model training and monitoring
+            try:
+                session_id = f"session_{int(datetime.now().timestamp())}"
+                client_ip = request.client.host if hasattr(request, 'client') else None
+                user_agent = request.headers.get('User-Agent', '') if hasattr(request, 'headers') else ''
+                
+                for idx, (thumb, thumb_result) in enumerate(zip(req.thumbnails, simple_result["thumbnails"])):
+                    # Extract image data for hash generation
+                    if thumb.url.startswith('data:'):
+                        header, data = thumb.url.split(',', 1)
+                        image_data = base64.b64decode(data)
+                    else:
+                        response = requests.get(thumb.url, timeout=10)
+                        image_data = response.content
+                    
+                    # Log each thumbnail analysis
+                    analysis_id = analytics_logger.log_analysis(
+                        user_id=user_id,
+                        session_id=session_id,
+                        niche=niche,
+                        title=req.title,
+                        thumbnail_index=idx + 1,
+                        thumbnail_data=thumb_result,
+                        image_data=image_data,
+                        processing_time_ms=int(duration),
+                        request_ip=client_ip,
+                        user_agent=user_agent
+                    )
+                    
+                    if analysis_id:
+                        logger.info(f"[ANALYTICS] Logged thumbnail {thumb.id} analysis: {analysis_id}")
+                    
+            except Exception as e:
+                logger.warning(f"[ANALYTICS] Failed to log analysis data: {e}")
+                # Don't fail the request if logging fails
             
             return ScoreResponse(
                 winner_id=winner_id,
@@ -3879,6 +3934,136 @@ async def get_credit_status_endpoint(request: Request):
     except Exception as e:
         logger.error(f"[CREDITS] Error getting credit status: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get credit status: {str(e)}")
+
+@app.post("/v1/feedback", response_model=FeedbackResponse)
+async def submit_feedback(request: Request, feedback: FeedbackRequest):
+    """
+    Submit user feedback on thumbnail analysis for training labels and quality assurance
+    
+    This endpoint allows users to provide feedback on analysis quality, which is used for:
+    - Training data labeling for model improvement
+    - Quality assurance and confidence calibration
+    - A/B testing of scoring changes
+    - Performance tracking and validation
+    """
+    try:
+        from app.credits import get_user_from_request
+        
+        # Get user info
+        user_id, user_type = get_user_from_request(request)
+        client_ip = request.client.host if hasattr(request, 'client') else None
+        
+        # Validate analysis_id format (should be UUID)
+        import uuid
+        try:
+            uuid.UUID(feedback.analysis_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid analysis_id format")
+        
+        # Log feedback to analytics database
+        success = analytics_logger.log_feedback(
+            analysis_id=feedback.analysis_id,
+            user_id=user_id or 'anonymous',
+            helpful=feedback.helpful,
+            accurate=feedback.accurate,
+            used_winner=feedback.used_winner,
+            actual_ctr=feedback.actual_ctr,
+            actual_views=feedback.actual_views,
+            actual_impressions=feedback.actual_impressions,
+            comments=feedback.comments,
+            feedback_type=feedback.feedback_type,
+            request_ip=client_ip
+        )
+        
+        if success:
+            logger.info(f"[FEEDBACK] User {user_id} provided feedback for analysis {feedback.analysis_id}")
+            return FeedbackResponse(
+                success=True,
+                message="Thank you for your feedback! This helps us improve our analysis quality.",
+                feedback_id=feedback.analysis_id  # Return analysis_id for reference
+            )
+        else:
+            logger.warning(f"[FEEDBACK] Failed to log feedback for analysis {feedback.analysis_id}")
+            return FeedbackResponse(
+                success=False,
+                message="Failed to record feedback. Please try again later."
+            )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[FEEDBACK] Error processing feedback: {e}")
+        raise HTTPException(status_code=500, detail="Failed to process feedback")
+
+@app.get("/v1/analytics")
+async def get_analytics(request: Request, niche: Optional[str] = None, days: int = 30):
+    """
+    Get analytics data for dashboard (admin/analytics endpoint)
+    
+    Returns aggregated analytics data including:
+    - Total analyses by niche
+    - Average scores and confidence
+    - User engagement metrics
+    - Detection rates and quality metrics
+    """
+    try:
+        # Basic rate limiting for analytics endpoint
+        from app.rate_limiting import check_rate_limit
+        rate_status = check_rate_limit(request, "analytics")
+        if not rate_status["allowed"]:
+            raise HTTPException(status_code=429, detail="Too many analytics requests")
+        
+        # Get analytics data
+        analytics_data = analytics_logger.get_niche_analytics(niche=niche, days=days)
+        
+        if analytics_data is None:
+            raise HTTPException(status_code=503, detail="Analytics service unavailable")
+        
+        # Add recent analyses for monitoring
+        recent_analyses = analytics_logger.get_recent_analyses(limit=50)
+        
+        return {
+            "status": "success",
+            "analytics": analytics_data,
+            "recent_analyses": recent_analyses[:10],  # Only include last 10 for summary
+            "total_recent": len(recent_analyses),
+            "niche_filter": niche,
+            "days_filter": days,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[ANALYTICS] Error fetching analytics: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch analytics data")
+
+@app.post("/v1/analytics/refresh")
+async def refresh_analytics(request: Request):
+    """
+    Refresh aggregated analytics data (admin endpoint)
+    
+    Triggers recalculation of niche analytics and other aggregated metrics.
+    Should be called periodically or after significant data changes.
+    """
+    try:
+        # Basic authentication check (you might want to add proper admin auth)
+        from app.credits import get_user_from_request
+        user_id, user_type = get_user_from_request(request)
+        
+        # Refresh analytics
+        success = analytics_logger.refresh_analytics()
+        
+        if success:
+            logger.info(f"[ANALYTICS] Analytics refreshed by user {user_id}")
+            return {"status": "success", "message": "Analytics data refreshed successfully"}
+        else:
+            logger.warning(f"[ANALYTICS] Failed to refresh analytics for user {user_id}")
+            return {"status": "warning", "message": "Analytics refresh partially failed"}
+            
+    except Exception as e:
+        logger.error(f"[ANALYTICS] Error refreshing analytics: {e}")
+        raise HTTPException(status_code=500, detail="Failed to refresh analytics")
 
 # ============================================================================
 # RUN SERVER

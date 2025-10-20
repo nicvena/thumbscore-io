@@ -11,8 +11,6 @@ import { AdvancedScoringGate, ABTestingGate, TrendAnalysisGate } from '../compon
 import WinnerCard from '../components/WinnerCard';
 import AnalysisSummary from '../components/AnalysisSummary';
 import DetailsDisclosure from '../components/DetailsDisclosure';
-import { UpgradePrompt } from '../components/UpgradePrompt';
-import { useFreeCredits } from '@/lib/hooks/useFreeCredits';
 
 // Helper to get winner label based on score
 function getWinnerLabel(score: number): "🔥 Strong Performer" | "💡 Solid Choice" | "⚠️ Needs Work" {
@@ -196,9 +194,6 @@ function ResultsContent() {
   const [loading, setLoading] = useState(true);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   
-  // Free credits tracking
-  const { isUsedUp, increment } = useFreeCredits();
-  
   // State for animations
   const [displayedScore, setDisplayedScore] = useState(0);
   const [sectionsVisible, setSectionsVisible] = useState(false);
@@ -277,42 +272,44 @@ function ResultsContent() {
           const thumbnailsJson = sessionStorage.getItem('thumbnails');
           const thumbnails = thumbnailsJson ? JSON.parse(thumbnailsJson) : [];
           
-          // Get image URLs for display with error handling
-          let storedImageUrls: string[] = [];
-          try {
-            const imageUrlsJson = sessionStorage.getItem('imageUrls');
-            storedImageUrls = imageUrlsJson ? JSON.parse(imageUrlsJson) : [];
-            setImageUrls(storedImageUrls);
-          } catch (error) {
-            console.warn('Failed to load stored image URLs, using placeholder images:', error);
-            setImageUrls([]); // Fallback to empty array
-          }
+          // Get image URLs for display
+          const imageUrlsJson = sessionStorage.getItem('imageUrls');
+          const storedImageUrls = imageUrlsJson ? JSON.parse(imageUrlsJson) : [];
+          setImageUrls(storedImageUrls);
           
-          // Use stored base64 data URLs directly for API
-          const thumbnailsWithData = thumbnails.map((thumb: any, index: number) => {
-            if (storedImageUrls[index]) {
-              return {
-                ...thumb,
-                dataUrl: storedImageUrls[index] // Already base64 data URL
-              };
-            }
-            return thumb;
-          });
+          // Convert blob URLs to base64 data URLs for API
+          const thumbnailsWithData = await Promise.all(
+            thumbnails.map(async (thumb: any, index: number) => {
+              if (storedImageUrls[index]) {
+                try {
+                  // Convert blob URL to base64
+                  const response = await fetch(storedImageUrls[index]);
+                  const blob = await response.blob();
+                  const base64 = await new Promise<string>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.readAsDataURL(blob);
+                  });
+                  return {
+                    ...thumb,
+                    dataUrl: base64
+                  };
+                } catch (error) {
+                  console.warn(`Failed to convert image ${index + 1}:`, error);
+                  return thumb;
+                }
+              }
+              return thumb;
+            })
+          );
           
           console.log('Fetching analysis with:', { sessionId, title, niche, thumbnails: thumbnailsWithData.length });
           console.log('Thumbnails data:', thumbnailsWithData);
         
         // Call analyze API
-        const sessionToken = localStorage.getItem('thumbscore_user_session');
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        
-        if (sessionToken) {
-          headers['X-Session-Token'] = sessionToken;
-        }
-
         const response = await fetch('/api/analyze', {
           method: 'POST',
-          headers,
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             sessionId,
             thumbnails: thumbnailsWithData.length > 0 ? thumbnailsWithData : [],
@@ -599,52 +596,10 @@ function ResultsContent() {
           <p className="text-lg text-cyan-400">Analysis Results</p>
         </div>
         
-        {/* Usage Tracker - Only show if user has remaining free credits */}
-        {!isUsedUp && (
+        {/* Usage Tracker */}
         <div className="mb-8 max-w-sm mx-auto">
           <UsageTracker />
         </div>
-        )}
-        
-        {/* Upgrade Prompt for Free Users - Clean, focused design */}
-        {isUsedUp && (
-          <div className="mb-12 max-w-2xl mx-auto">
-            <div className="bg-gradient-to-br from-purple-900/50 to-blue-900/50 border border-purple-600/20 rounded-2xl p-8 text-center">
-              <div className="mb-6">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <h2 className="text-3xl font-bold text-white mb-3">
-                  Ready for unlimited AI insights?
-                </h2>
-                <p className="text-lg text-gray-300 mb-6">
-                  You've experienced Thumbscore's power. Unlock unlimited analyses and advanced features.
-                </p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-                <Link
-                  href="/pricing"
-                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-semibold text-lg transition-all duration-200 transform hover:scale-105"
-                >
-                  Upgrade for $19/mo →
-                </Link>
-                <Link
-                  href="/pricing"
-                  className="px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold text-lg transition-colors"
-                >
-                  View All Plans
-                </Link>
-              </div>
-              
-              <p className="text-sm text-gray-400">
-                Already subscribed? Sign in to access your full plan.
-              </p>
-            </div>
-          </div>
-        )}
         
         {/* Winner Announcement - ENHANCED 3X MORE PROMINENT */}
         <div className="relative bg-gradient-to-r from-orange-500 via-red-500 to-orange-600 rounded-2xl p-16 mb-16 text-center overflow-hidden shadow-2xl">
@@ -892,8 +847,8 @@ function ResultsContent() {
                           <p className="text-sm text-gray-300">
                             The main subject occupies approximately 40-60% of the frame, which is optimal for YouTube thumbnails. This size ensures visibility even at mobile thumbnail sizes while maintaining visual balance.
                           </p>
-          </div>
-        </div>
+                </div>
+                </div>
 
                       <p className="mb-4">
                         <strong className="text-yellow-400">Color Psychology:</strong> The color palette has been strategically chosen to evoke specific emotions that drive clicks. Research shows that certain color combinations can increase CTR by up to 15-25% in the food niche.
@@ -904,23 +859,26 @@ function ResultsContent() {
                       </p>
               </div>
             </div>
-            
+
                   {/* GPT-4 Vision Analysis - Single Source of Truth */}
                   <div className="mb-6 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg p-4 border border-purple-500/20">
                     <div className="text-center">
                       <h5 className="text-lg font-semibold mb-3 text-purple-300">🧠 AI Reasoning & Analysis</h5>
-                      </div>
+          </div>
                     
                     {/* GPT summary if available */}
                     {winner.gptSummary && winner.gptSummary.winner_summary && (
                       <div className="bg-gradient-to-r from-blue-900/40 to-purple-900/40 rounded-lg p-4 mb-6 border border-blue-500/30">
                         <div className="text-center mb-3">
                           <h6 className="font-semibold text-blue-300 text-sm">🎯 AI Performance Analysis</h6>
-                    </div>
-                        <div className="text-gray-200 text-base leading-relaxed">
-                          {winner.gptSummary.winner_summary}
-                </div>
-              </div>
+        </div>
+                        <div 
+                          className="text-gray-200 text-base leading-relaxed"
+                          dangerouslySetInnerHTML={{ 
+                            __html: highlightMetrics(winner.gptSummary.winner_summary) 
+                          }}
+                        />
+                      </div>
                     )}
                     
                     {/* Fallback to original explanation if no GPT summary */}
@@ -931,7 +889,7 @@ function ResultsContent() {
             </div>
                         <div className="text-gray-200 text-base leading-relaxed">
                           {winner.explanation}
-          </div>
+                        </div>
                       </div>
                     )}
             
@@ -940,42 +898,33 @@ function ResultsContent() {
                 <div className="space-y-3">
                           <div className="text-center">
                             <h6 className="font-semibold text-purple-300 mb-3">🔍 Detailed Visual Analysis</h6>
-                          </div>
-                          {winner.gptSummary.insights
-                            .filter((insight: any) => 
-                              !insight.label?.toLowerCase().includes('text') && 
-                              !insight.label?.toLowerCase().includes('text elements') &&
-                              !insight.label?.toLowerCase().includes('text analysis')
-                            )
-                            .map((insight: any, index: number) => (
+                      </div>
+                          {winner.gptSummary.insights.map((insight: any, index: number) => (
                             <div key={index} className="bg-gray-800/70 rounded-lg p-4 border border-gray-600/70 hover:border-blue-500/30 transition-colors">
                               <div className="flex items-center gap-2 mb-2">
                                 <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                                 <div className="font-semibold text-blue-300 text-sm">
                                   {insight.label || `Technical Insight ${index + 1}`}
-                          </div>
-                        </div>
-                              <div className="text-gray-300 text-sm leading-relaxed pl-4">
-                                {insight.evidence || insight}
-                        </div>
-                      </div>
-                          ))}
                     </div>
-                  )}
-              
+                </div>
+                              <div 
+                                className="text-gray-300 text-sm leading-relaxed pl-4"
+                                dangerouslySetInnerHTML={{ 
+                                  __html: highlightMetrics(insight.evidence || insight) 
+                                }}
+                              />
+              </div>
+                          ))}
+            </div>
+                      )}
+                      
                       {/* Fallback to insights if no GPT summary */}
                       {(!winner.gptSummary || !winner.gptSummary.winner_summary) && winner.insights.gptInsights && winner.insights.gptInsights.length > 0 && (
                 <div className="space-y-3">
                           <div className="text-center">
                             <h6 className="font-semibold text-purple-300 mb-3">🔍 Detailed Visual Analysis</h6>
                           </div>
-                          {winner.insights.gptInsights
-                            .filter((insight: any) => 
-                              !insight.label?.toLowerCase().includes('text') && 
-                              !insight.label?.toLowerCase().includes('text elements') &&
-                              !insight.label?.toLowerCase().includes('text analysis')
-                            )
-                            .map((insight: any, index: number) => (
+                          {winner.insights.gptInsights.map((insight: any, index: number) => (
                             <div key={index} className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
                               <div className="font-medium text-blue-300 text-sm mb-1">
                                 {insight.label || `Insight ${index + 1}`}
@@ -987,9 +936,42 @@ function ResultsContent() {
                           ))}
                     </div>
                   )}
-                </div>
-              
               </div>
+              
+                  {/* AI Judging Criteria Breakdown */}
+                  <div className="mt-6">
+                    <div className="text-center">
+                      <h5 className="text-xl font-semibold mb-4 text-green-300">📊 Scoring Breakdown</h5>
+                          </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-600">
+                        <h6 className="font-semibold text-blue-300 mb-2">🎯 Visual Appeal (GPT-4 Vision)</h6>
+                        <p className="text-sm text-gray-300">Analyzed for composition, color harmony, and visual hierarchy using advanced computer vision models trained on millions of high-performing thumbnails.</p>
+                          </div>
+                      <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-600">
+                        <h6 className="font-semibold text-purple-300 mb-2">📝 Text Clarity & Readability</h6>
+                        <p className="text-sm text-gray-300">OCR analysis measuring text contrast, font size, and readability at mobile sizes - critical for YouTube's mobile-first audience.</p>
+                        </div>
+                      <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-600">
+                        <h6 className="font-semibold text-pink-300 mb-2">🎨 Subject Prominence</h6>
+                        <p className="text-sm text-gray-300">Computer vision analysis of focal point strength and subject size relative to frame - optimized for YouTube's thumbnail dimensions.</p>
+                        </div>
+                      <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-600">
+                        <h6 className="font-semibold text-yellow-300 mb-2">⚡ Emotional Impact</h6>
+                        <p className="text-sm text-gray-300">AI-powered emotion detection analyzing facial expressions, colors, and visual elements that drive curiosity and clicks.</p>
+                      </div>
+                    </div>
+                </div>
+
+                  {/* Data-Backed Insights */}
+                  <div className="mt-6 bg-gradient-to-r from-green-900/30 to-blue-900/30 rounded-lg p-4 border border-green-500/20">
+                    <h6 className="font-semibold text-green-300 mb-2">📈 Proven Performance Data</h6>
+                    <p className="text-sm text-gray-300">
+                      This analysis is based on patterns from over 100,000 high-performing YouTube thumbnails and validated against real CTR data. 
+                      Our AI models have been trained on thumbnails with 5M+ views to identify the visual elements that consistently drive engagement.
+                    </p>
+              </div>
+                </div>
                     </div>
                   )}
 
@@ -1245,5 +1227,4 @@ export default function ResultsPage() {
     </>
   );
 }
-
 
