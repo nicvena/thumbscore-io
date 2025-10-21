@@ -3,7 +3,7 @@ import Stripe from 'stripe'
 import { addToEmailList } from '@/lib/email'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-09-30.clover'
+  apiVersion: '2024-06-20'
 })
 
 export async function POST(req: Request) {

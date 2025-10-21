@@ -59,8 +59,8 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const user = userStore.getUser(userId);
-    if (!user) {
+    const currentUser = userStore.getUser(userId);
+    if (!currentUser) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
       monthlyLimit: summary.monthlyLimit,
       canAnalyze: summary.canAnalyze,
       features: summary.features,
-      subscriptionStatus: user.subscriptionStatus,
+      subscriptionStatus: currentUser.subscriptionStatus,
     });
 
   } catch (error) {

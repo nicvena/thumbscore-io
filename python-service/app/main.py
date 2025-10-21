@@ -2381,7 +2381,10 @@ async def startup_event():
 async def shutdown_event():
     """Clean shutdown"""
     logger.info("[Thumbscore.io] Shutting down AI thumbnail scoring service...")
-    scheduler.shutdown()
+    try:
+        scheduler.shutdown()
+    except Exception as e:
+        logger.warning(f"Scheduler shutdown failed: {e}")
 
 @app.get("/")
 def root():
