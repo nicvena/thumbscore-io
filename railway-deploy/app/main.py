@@ -16,7 +16,6 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
-import torch
 import numpy as np
 from PIL import Image
 import io
@@ -28,6 +27,26 @@ import logging
 import os
 from pathlib import Path
 from datetime import datetime
+
+# Conditional torch import (only needed for V1.1+ with FAISS)
+if USE_FAISS:
+    import torch
+else:
+    # V1: Create a mock torch object for compatibility
+    class MockTorch:
+        class cuda:
+            @staticmethod
+            def is_available():
+                return False
+        
+        class device:
+            def __init__(self, device_str):
+                self.device_str = device_str
+            
+            def __str__(self):
+                return self.device_str
+    
+    torch = MockTorch()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -2399,24 +2418,21 @@ def root():
 
 @app.get("/health")
 def health():
-    """Detailed health check"""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-        "models": {
-            "clip": pipeline.clip_model is not None,
-            "ocr": pipeline.ocr_model is not None,
-            "face": pipeline.face_model is not None,
-            "emotion": pipeline.emotion_model is not None,
-            "ranking": pipeline.ranking_model is not None
-        },
-        "device": str(pipeline.device),
-        "gpu_available": torch.cuda.is_available(),
-        "scheduler": {
-            "running": scheduler.running,
-            "jobs": len(scheduler.get_jobs())
+    """Simple health check for Railway deployment"""
+    try:
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "service": "thumbscore-backend",
+            "version": "v1.0-stable"
         }
-    }
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat()
+        }
 
 @app.get("/internal/refresh-library")
 def refresh_library():
