@@ -20,6 +20,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY app/ ./app/
+COPY scoring_v1_stable.py .
 
 # Expose port
 EXPOSE 8000
@@ -28,6 +29,6 @@ EXPOSE 8000
 # HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 #     CMD python -c "import os, requests; requests.get(f'http://localhost:{os.environ.get(\"PORT\", \"8000\")}/health')"
 
-# Run FastAPI with uvicorn using Railway's PORT env var
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Debug startup and run FastAPI
+CMD ["sh", "-c", "echo 'Starting app...' && echo 'PORT='$PORT && python -c 'import app.main; print(\"App module loaded\")' && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
 
