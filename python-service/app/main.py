@@ -2399,34 +2399,7 @@ def root():
 
 @app.get("/health")
 def health():
-    """Detailed health check with Railway-safe fallbacks"""
-    try:
-        return {
-            "status": "healthy",
-            "timestamp": datetime.now().isoformat(),
-            "models": {
-                "clip": pipeline.clip_model is not None if 'pipeline' in globals() else False,
-                "ocr": pipeline.ocr_model is not None if 'pipeline' in globals() else False,
-                "face": pipeline.face_model is not None if 'pipeline' in globals() else False,
-                "emotion": pipeline.emotion_model is not None if 'pipeline' in globals() else False,
-                "ranking": pipeline.ranking_model is not None if 'pipeline' in globals() else False
-            },
-            "device": str(pipeline.device) if 'pipeline' in globals() else "cpu",
-            "gpu_available": torch.cuda.is_available() if 'torch' in globals() else False,
-            "scheduler": {
-                "running": scheduler.running if 'scheduler' in globals() else False,
-                "jobs": len(scheduler.get_jobs()) if 'scheduler' in globals() else 0
-            }
-        }
-    except Exception as e:
-        # Minimal health response for Railway deployment
-        return {
-            "status": "healthy",
-            "timestamp": datetime.now().isoformat(),
-            "service": "thumbscore-api",
-            "version": "v1.0",
-            "error": str(e) if os.getenv("DEBUG") else None
-        }
+    return {"status": "ok"}
 
 @app.get("/internal/refresh-library")
 def refresh_library():
