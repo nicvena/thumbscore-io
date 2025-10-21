@@ -1,0 +1,17 @@
+# Railway ignore file - exclude frontend files
+node_modules/
+.next/
+package.json
+package-lock.json
+tsconfig.json
+next.config.ts
+postcss.config.mjs
+tailwind.config.ts
+eslint.config.mjs
+app/
+components/
+lib/
+public/
+env.example
+.env.local
+DEPLOYMENT_GUIDE.md
