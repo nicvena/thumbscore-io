@@ -95,8 +95,11 @@ else:
 # Load environment variables
 from dotenv import load_dotenv
 import os
-# Load .env from the python-service directory
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+# Try to load .env file, but don't fail if it doesn't exist
+try:
+    load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+except:
+    pass  # Environment variables will be loaded from Railway
 
 # ============================================================================
 # V1 FEATURE FLAG - SIMPLIFIED SCORING SYSTEM
