@@ -24,9 +24,9 @@ COPY app/ ./app/
 # Expose port
 EXPOSE 8000
 
-# Health check using Railway's PORT env var
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD python -c "import os, requests; requests.get(f'http://localhost:{os.environ.get(\"PORT\", \"8000\")}/health')"
+# Disable healthcheck for Railway deployment debugging
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+#     CMD python -c "import os, requests; requests.get(f'http://localhost:{os.environ.get(\"PORT\", \"8000\")}/health')"
 
 # Run FastAPI with uvicorn using Railway's PORT env var
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
