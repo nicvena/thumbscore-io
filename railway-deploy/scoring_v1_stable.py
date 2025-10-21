@@ -118,8 +118,16 @@ except ImportError as e:
     GPT_SUMMARY_AVAILABLE = False
     logger.warning(f"[STABLE_SCORER] GPT summary module not available: {e}")
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Initialize OpenAI client conditionally
+def get_openai_client():
+    """Get OpenAI client, initializing if needed"""
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        logger.warning("[GPT] OpenAI API key not found - GPT summaries will be disabled")
+        return None
+    return OpenAI(api_key=api_key)
+
+client = get_openai_client()
 
 # In-memory cache for responses
 response_cache = {}
@@ -285,6 +293,20 @@ def get_gpt_rubric(image_bytes: bytes, title: str, niche: str) -> Dict[str, Any]
     Get GPT-4 Vision rubric analysis with strict JSON schema
     Returns deterministic scores 0-5 for each dimension
     """
+    # Check if OpenAI client is available
+    if client is None:
+        logger.warning("[GPT-4] OpenAI client not available, using fallback scoring")
+        return {
+            "visual_appeal": 3,
+            "subject_prominence": 3,
+            "emotion": 3,
+            "text_readability": 3,
+            "color_contrast": 3,
+            "title_alignment": 2,
+            "niche_relevance": 3,
+            "notes": "OpenAI API key not configured. Using fallback scoring."
+        }
+    
     # Check usage limits first
     usage_status = check_usage_limits()
     if not usage_status["within_limits"]:
