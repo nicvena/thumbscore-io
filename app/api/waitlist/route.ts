@@ -76,10 +76,21 @@ export async function POST(req: Request) {
       
       if (error) {
         console.error('Supabase insert error:', error)
-        return NextResponse.json(
-          { error: 'Failed to join waitlist' },
-          { status: 500 }
-        )
+        console.error('Error details:', JSON.stringify(error, null, 2))
+        
+        // If Supabase fails, continue with email anyway and use fallback storage
+        console.log('Falling back to memory storage due to Supabase error')
+        const entry = {
+          email,
+          plan,
+          maxPrice: maxPrice || '$19',
+          interests: interests || [],
+          joinedAt: new Date().toISOString()
+        }
+        waitlistStore.push(entry)
+        console.log(`Fallback: Added to memory storage: ${email}`)
+      } else {
+        console.log(`Successfully added to Supabase: ${email}`)
       }
       
       console.log(`New waitlist signup (Supabase): ${email} for ${plan} plan`)
