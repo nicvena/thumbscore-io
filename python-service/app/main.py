@@ -98,94 +98,145 @@ async def score_thumbnails(req: ScoreRequest):
         logger.error(f"Scoring error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Scoring failed: {str(e)}")
 
+async def analyze_with_gpt4_vision(thumb: Thumb, title: str, category: str) -> dict:
+    """
+    Analyze thumbnail using GPT-4 Vision with structured scoring
+    """
+    openai_key = os.environ.get("OPENAI_API_KEY")
+    if not openai_key:
+        logger.warning("OPENAI_API_KEY not found, using fallback scoring")
+        return None
+    
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=openai_key)
+        
+        # Prepare the prompt for GPT-4 Vision
+        system_prompt = f"""You are an expert YouTube thumbnail analyzer. Analyze this thumbnail and provide scores (0-100) for each metric:
+
+        SCORING CRITERIA:
+        - clarity: Text readability, image sharpness, mobile optimization
+        - subject_prominence: How well the main subject stands out  
+        - contrast_pop: Color contrast and visual impact against YouTube's interface
+        - emotion: Emotional appeal, facial expressions, curiosity factor
+        - hierarchy: Visual flow, rule of thirds, composition
+        - title_match: How well thumbnail matches the title "{title}"
+
+        VIDEO CONTEXT:
+        Title: "{title}"
+        Category: "{category}"
+
+        Return JSON ONLY in this exact format:
+        {{
+            "clarity": 85,
+            "subject_prominence": 92, 
+            "contrast_pop": 78,
+            "emotion": 88,
+            "hierarchy": 81,
+            "title_match": 94,
+            "insights": ["Specific insight 1", "Specific insight 2", "Specific insight 3"],
+            "winner_summary": "One sentence explaining why this thumbnail works for YouTube"
+        }}
+
+        Be precise with scores - consider mobile viewing, YouTube competition, and click psychology."""
+        
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {
+                    "role": "user", 
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"Analyze this YouTube thumbnail for the video titled: '{title}'"
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": thumb.url}
+                        }
+                    ]
+                }
+            ],
+            max_tokens=500,
+            temperature=0.1
+        )
+        
+        # Parse GPT-4 response
+        content = response.choices[0].message.content
+        try:
+            analysis = json.loads(content)
+            return analysis
+        except json.JSONDecodeError:
+            logger.error(f"Failed to parse GPT-4 response: {content}")
+            return None
+            
+    except Exception as e:
+        logger.error(f"GPT-4 Vision analysis failed: {str(e)}")
+        return None
+
 def generate_basic_score(thumb: Thumb, title: str, index: int) -> ThumbnailScore:
     """
-    Generate thumbnail score using real image analysis
+    Generate thumbnail score using GPT-4 Vision analysis with fallback
     """
     try:
-        # Handle base64 data URLs
+        # Get image dimensions for basic metrics
         if thumb.url.startswith('data:image'):
-            # Extract base64 data
             header, data = thumb.url.split(',', 1)
             image_data = base64.b64decode(data)
             image = Image.open(io.BytesIO(image_data))
         else:
-            # Download from URL
             response = requests.get(thumb.url, timeout=10)
             response.raise_for_status()
             image = Image.open(io.BytesIO(response.content))
         
-        # Real image analysis
         width, height = image.size
         aspect_ratio = width / height
-        total_pixels = width * height
         
-        # Convert to RGB for analysis
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
+        # Try GPT-4 Vision analysis first
+        import asyncio
+        gpt_analysis = None
+        try:
+            # Create new event loop if needed
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            
+            gpt_analysis = loop.run_until_complete(
+                analyze_with_gpt4_vision(thumb, title, "general")
+            )
+        except Exception as e:
+            logger.error(f"GPT-4 analysis failed: {str(e)}")
         
-        # Calculate real metrics
-        import cv2
-        import numpy as np
-        
-        # Convert PIL to numpy array
-        img_array = np.array(image)
-        
-        # 1. Clarity Score - based on edge detection
-        gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
-        edges = cv2.Laplacian(gray, cv2.CV_64F)
-        clarity_score = min(100, max(0, np.var(edges) / 1000 * 50 + 30))
-        
-        # 2. Subject Prominence - based on center region contrast
-        center_y, center_x = height // 2, width // 2
-        h_quarter, w_quarter = height // 4, width // 4
-        center_region = gray[center_y-h_quarter:center_y+h_quarter, center_x-w_quarter:center_x+w_quarter]
-        if center_region.size > 0:
-            center_contrast = np.std(center_region)
-            overall_contrast = np.std(gray)
-            prominence_score = min(100, max(0, (center_contrast / (overall_contrast + 1)) * 60 + 20))
+        # Use GPT-4 scores if available, otherwise fallback
+        if gpt_analysis and all(key in gpt_analysis for key in ['clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']):
+            subscores = SubScores(
+                similarity=75.0,  # Not analyzed by GPT-4 currently
+                clarity=float(gpt_analysis['clarity']),
+                subject_prominence=float(gpt_analysis['subject_prominence']),
+                contrast_pop=float(gpt_analysis['contrast_pop']),
+                emotion=float(gpt_analysis['emotion']),
+                hierarchy=float(gpt_analysis['hierarchy']),
+                title_match=float(gpt_analysis['title_match'])
+            )
+            insights = gpt_analysis.get('insights', ['GPT-4 Vision analysis completed'])
+            winner_summary = gpt_analysis.get('winner_summary', '')
         else:
-            prominence_score = 50.0
-        
-        # 3. Contrast/Color Pop - based on color variance
-        color_variance = np.var(img_array.reshape(-1, 3), axis=0).mean()
-        contrast_score = min(100, max(0, color_variance / 2000 * 70 + 15))
-        
-        # 4. Emotion - based on saturation and brightness
-        hsv = cv2.cvtColor(img_array, cv2.COLOR_RGB2HSV)
-        saturation = np.mean(hsv[:, :, 1])
-        brightness = np.mean(hsv[:, :, 2])
-        emotion_score = min(100, max(0, (saturation / 255 * 40) + (brightness / 255 * 35) + 15))
-        
-        # 5. Visual Hierarchy - based on rule of thirds
-        h_third, w_third = height // 3, width // 3
-        thirds_points = [
-            (w_third, h_third), (2 * w_third, h_third),
-            (w_third, 2 * h_third), (2 * w_third, 2 * h_third)
-        ]
-        hierarchy_score = 60.0
-        for x, y in thirds_points:
-            if x < width and y < height:
-                region = gray[max(0, y-20):min(height, y+20), max(0, x-20):min(width, x+20)]
-                if region.size > 0 and np.std(region) > 30:
-                    hierarchy_score += 8
-        hierarchy_score = min(100, hierarchy_score)
-        
-        # 6. Title Match - based on aspect ratio and resolution quality
-        optimal_ratio = 16/9  # YouTube optimal
-        ratio_diff = abs(aspect_ratio - optimal_ratio) / optimal_ratio
-        resolution_quality = min(1.0, total_pixels / (1920 * 1080))
-        title_match_score = max(30, 90 - (ratio_diff * 30) + (resolution_quality * 10))
-        
-        subscores = SubScores(
-            similarity=75.0,  # Placeholder for now
-            clarity=round(clarity_score, 1),
-            subject_prominence=round(prominence_score, 1),
-            contrast_pop=round(contrast_score, 1),
-            emotion=round(emotion_score, 1),
-            hierarchy=round(hierarchy_score, 1),
-            title_match=round(title_match_score, 1)
-        )
+            # Fallback to basic scoring
+            logger.warning("Using fallback scoring due to GPT-4 failure")
+            subscores = SubScores(
+                similarity=75.0,
+                clarity=80.0 + (width * height / 100000),
+                subject_prominence=70.0 + (15 if aspect_ratio > 1.5 else 5),
+                contrast_pop=75.0,
+                emotion=70.0,
+                hierarchy=75.0,
+                title_match=80.0
+            )
+            insights = ['Fallback analysis - GPT-4 Vision unavailable']
+            winner_summary = ''
         
         # Calculate final score (weighted average)
         weights = {
@@ -206,19 +257,20 @@ def generate_basic_score(thumb: Thumb, title: str, index: int) -> ThumbnailScore
             subscores.title_match * weights["title_match"]
         )
         
-        # Generate insights
-        insights = []
-        if subscores.clarity < 75:
-            insights.append("Consider improving image resolution and sharpness")
-        if subscores.subject_prominence < 70:
-            insights.append("Make the main subject more prominent")
-        if subscores.contrast_pop < 65:
-            insights.append("Increase visual contrast and color saturation")
-        if subscores.emotion < 70:
-            insights.append("Add more emotional appeal to the thumbnail")
-        
-        if not insights:
-            insights.append("Good overall thumbnail composition")
+        # Use GPT-4 insights or generate fallback insights
+        if 'insights' not in locals():
+            insights = []
+            if subscores.clarity < 75:
+                insights.append("Consider improving image resolution and sharpness")
+            if subscores.subject_prominence < 70:
+                insights.append("Make the main subject more prominent")
+            if subscores.contrast_pop < 65:
+                insights.append("Increase visual contrast and color saturation")
+            if subscores.emotion < 70:
+                insights.append("Add more emotional appeal to the thumbnail")
+            
+            if not insights:
+                insights.append("Good overall thumbnail composition")
         
         # Generate mock overlays (for API compatibility)
         overlays = {
