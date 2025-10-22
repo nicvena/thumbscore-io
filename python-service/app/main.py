@@ -182,17 +182,22 @@ def generate_basic_score(thumb: Thumb, title: str, index: int) -> ThumbnailScore
     try:
         # Get image for analysis
         if thumb.url.startswith('data:image'):
-            # Handle base64 data URL
-            header, data = thumb.url.split(',', 1)
-            image_data = base64.b64decode(data)
-            image = Image.open(io.BytesIO(image_data))
-            # Use the data URL for GPT-4 Vision
-            image_url_for_gpt = thumb.url
+            # Handle base64 data URL - decode for PIL processing
+            try:
+                header, data = thumb.url.split(',', 1)
+                image_data = base64.b64decode(data)
+                image = Image.open(io.BytesIO(image_data))
+                # Use the data URL directly for GPT-4 Vision (it supports base64)
+                image_url_for_gpt = thumb.url
+            except Exception as e:
+                logger.error(f"Failed to decode base64 image data: {str(e)}")
+                raise ValueError(f"Invalid base64 image data: {str(e)}")
         else:
-            # Handle regular URL
+            # Handle regular URL - fetch for PIL processing
             response = requests.get(thumb.url, timeout=10)
             response.raise_for_status()
             image = Image.open(io.BytesIO(response.content))
+            # Use the regular URL for GPT-4 Vision
             image_url_for_gpt = thumb.url
         
         width, height = image.size

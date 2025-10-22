@@ -553,7 +553,7 @@ export async function POST(request: NextRequest) {
 
       console.log('📤 Sending to Python server:', pythonRequest);
 
-      const pythonResponse = await fetch('http://localhost:8000/v1/score', {
+      const pythonResponse = await fetch('https://thumbscore-io-production.up.railway.app/v1/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pythonRequest)
