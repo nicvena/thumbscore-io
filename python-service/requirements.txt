@@ -19,7 +19,7 @@ openai>=1.0.0
 pytesseract==0.3.10
 
 # Computer vision for stable scoring (V1 core dependency)
-opencv-python==4.9.0.80
+opencv-python==4.6.0.66
 
 # MediaPipe for face detection (V1 core dependency)
 mediapipe==0.10.8
@@ -50,7 +50,7 @@ faiss-cpu==1.7.4
 # faiss-gpu==1.7.4
 
 # Advanced image processing (V1.1+ only)
-opencv-python==4.9.0.80
+opencv-python==4.6.0.66
 
 # ML Models (V1.1+ only)
 torch==2.1.2
