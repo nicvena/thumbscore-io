@@ -79,7 +79,7 @@ async def score_thumbnails(req: ScoreRequest):
         
         for idx, thumb in enumerate(req.thumbnails):
             # Basic scoring without heavy ML
-            score = generate_basic_score(thumb, req.title, idx)
+            score = await generate_basic_score(thumb, req.title, idx)
             results.append(score)
         
         # Find winner
@@ -104,8 +104,8 @@ async def analyze_with_gpt4_vision(thumb: Thumb, title: str, category: str) -> d
     """
     openai_key = os.environ.get("OPENAI_API_KEY")
     if not openai_key:
-        logger.warning("OPENAI_API_KEY not found, using fallback scoring")
-        return None
+        logger.error("OPENAI_API_KEY not found - GPT-4 analysis cannot proceed")
+        raise ValueError("OpenAI API key not configured")
     
     try:
         from openai import OpenAI
@@ -175,7 +175,7 @@ async def analyze_with_gpt4_vision(thumb: Thumb, title: str, category: str) -> d
         logger.error(f"GPT-4 Vision analysis failed: {str(e)}")
         return None
 
-def generate_basic_score(thumb: Thumb, title: str, index: int) -> ThumbnailScore:
+async def generate_basic_score(thumb: Thumb, title: str, index: int) -> ThumbnailScore:
     """
     Generate thumbnail score using GPT-4 Vision analysis with fallback
     """
@@ -204,21 +204,11 @@ def generate_basic_score(thumb: Thumb, title: str, index: int) -> ThumbnailScore
         aspect_ratio = width / height
         
         # Try GPT-4 Vision analysis first
-        import asyncio
         gpt_analysis = None
         try:
-            # Create new event loop if needed
-            try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-            
             # Create a modified thumb object with the correct URL for GPT-4
             gpt_thumb = Thumb(id=thumb.id, url=image_url_for_gpt)
-            gpt_analysis = loop.run_until_complete(
-                analyze_with_gpt4_vision(gpt_thumb, title, "general")
-            )
+            gpt_analysis = await analyze_with_gpt4_vision(gpt_thumb, title, "general")
         except Exception as e:
             logger.error(f"GPT-4 analysis failed: {str(e)}")
         
@@ -300,7 +290,9 @@ def generate_basic_score(thumb: Thumb, title: str, index: int) -> ThumbnailScore
         )
         
     except Exception as e:
+        import traceback
         logger.error(f"Basic scoring error: {str(e)}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         # Return fallback score
         fallback_overlays = {
             "saliency_heatmap_url": f"/api/v1/overlays/session/{thumb.id}/heatmap.png",
