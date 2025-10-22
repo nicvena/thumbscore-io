@@ -43,12 +43,14 @@ function VerifyAuthContent() {
             router.push('/upload')
           }, 2000)
         } else {
+          console.error('Auth API error:', response.status, data)
           setStatus('error')
-          setMessage(data.error || 'Invalid or expired token')
+          setMessage(data.error || `Authentication failed (${response.status})`)
         }
       } catch (error) {
+        console.error('Network error:', error)
         setStatus('error')
-        setMessage('Something went wrong. Please try again.')
+        setMessage(`Network error: ${error.message}`)
       }
     }
 

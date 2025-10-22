@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { userStore, getOrCreateAnonymousUser, upgradeTier } from '@/lib/user-management';
+import { userStore, getOrCreateAnonymousUser, upgradeTier, User } from '@/lib/user-management';
 import { getStripeCustomerByEmail } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
             if (!existingUser || existingUser.tier !== tier) {
               upgradeTier(userId, tier, {
                 customerId: stripeData.customerId,
-                subscriptionId: stripeData.subscriptionId || ''
+                subscriptionId: (stripeData.subscription as any)?.id || ''
               });
             }
           }
@@ -50,16 +50,21 @@ export async function GET(request: NextRequest) {
     const sessionId = request.headers.get('x-session-id') || undefined;
     const userId = sessionToken ? `user_${sessionId}` : sessionId;
     
-    if (!userStore.getUser(userId)) {
-      userStore.createUser({
+    // Get or create user with specific ID
+    let currentUser = userId ? userStore.getUser(userId) : null;
+    if (!currentUser && userId) {
+      // Create user with specific ID by directly adding to the store
+      const newUser: User = {
         id: userId,
         tier,
         subscriptionStatus,
-        email: sessionToken ? 'authenticated@user.com' : undefined
-      });
+        email: sessionToken ? 'authenticated@user.com' : undefined,
+        createdAt: new Date(),
+      };
+      // Access the private users map directly (we need to modify the class)
+      (userStore as any).users.set(userId, newUser);
+      currentUser = newUser;
     }
-
-    const currentUser = userStore.getUser(userId);
     if (!currentUser) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -68,7 +73,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get usage summary
-    const summary = userStore.getUserUsageSummary(userId);
+    const summary = userId ? userStore.getUserUsageSummary(userId) : null;
     
     if (!summary) {
       return NextResponse.json(

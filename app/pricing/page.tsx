@@ -1,9 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { WaitlistModal } from '@/app/components/WaitlistModal'
 
 export default function PricingPage() {
+  const [showWaitlist, setShowWaitlist] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<'creator' | 'pro'>('creator')
+  const [waitlistCount, setWaitlistCount] = useState(0)
+  
+  useEffect(() => {
+    // Fetch waitlist count
+    fetch('/api/waitlist')
+      .then(r => r.json())
+      .then(data => setWaitlistCount(data.count))
+      .catch(() => setWaitlistCount(47)) // Fallback count for demo
+  }, [])
+  
+  function handleJoinWaitlist(plan: 'creator' | 'pro') {
+    setSelectedPlan(plan)
+    setShowWaitlist(true)
+  }
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 py-20">
       <div className="container mx-auto px-4">
@@ -52,10 +70,11 @@ export default function PricingPage() {
               "Niche-specific performance model",
               "Priority processing"
             ]} 
-            button="Upgrade to Creator" 
-            stripePriceId="price_1SK6IQ1LSC8aAl4yNLG3TXDL" 
+            button="Join Waitlist" 
             popular={true}
             badge="Best for YouTubers"
+            waitlistCount={waitlistCount}
+            onJoinWaitlist={() => handleJoinWaitlist('creator')}
           />
           
           <Plan 
@@ -68,23 +87,30 @@ export default function PricingPage() {
               "Compare historical results (A/B mode)",
               "Early access to new AI models"
             ]} 
-            button="Upgrade to Pro" 
-            stripePriceId="price_1SK6Hi1LSC8aAl4ySqs5CDZK" 
+            button="Join Waitlist" 
             popular={false}
+            onJoinWaitlist={() => handleJoinWaitlist('pro')}
           />
         </div>
 
         <div className="text-center mt-16">
           <p className="text-gray-400 text-sm">
-            Prices in USD • All plans include our proprietary AI analysis engine
+            Launching soon • All plans include our proprietary AI analysis engine
           </p>
         </div>
+        
+        {/* Waitlist Modal */}
+        <WaitlistModal
+          isOpen={showWaitlist}
+          onClose={() => setShowWaitlist(false)}
+          plan={selectedPlan}
+        />
       </div>
     </div>
   )
 }
 
-function Plan({ title, price, period, features, button, stripePriceId, popular, disabled, badge }: {
+function Plan({ title, price, period, features, button, stripePriceId, popular, disabled, badge, waitlistCount, onJoinWaitlist }: {
   title: string
   price: string
   period: string
@@ -94,8 +120,20 @@ function Plan({ title, price, period, features, button, stripePriceId, popular, 
   popular?: boolean
   disabled?: boolean
   badge?: string
+  waitlistCount?: number
+  onJoinWaitlist?: () => void
 }) {
   const [isLoading, setIsLoading] = useState(false)
+
+  function handleClick() {
+    if (disabled) return
+    
+    if (onJoinWaitlist) {
+      onJoinWaitlist()
+    } else if (stripePriceId) {
+      handleCheckout()
+    }
+  }
 
   async function handleCheckout() {
     if (!stripePriceId || disabled) return
@@ -155,9 +193,25 @@ function Plan({ title, price, period, features, button, stripePriceId, popular, 
           ))}
         </ul>
         
+        {/* Waitlist Badge */}
+        {onJoinWaitlist && waitlistCount && (
+          <div className="text-center mb-4">
+            <div className="inline-flex items-center px-3 py-1 bg-purple-600/20 border border-purple-500/30 rounded-full text-sm text-purple-300">
+              🎯 {waitlistCount}+ creators waiting
+            </div>
+          </div>
+        )}
+        
+        {/* Launch Status */}
+        {onJoinWaitlist && (
+          <div className="text-center mb-4">
+            <span className="text-xs text-gray-400">Launching in 2-3 weeks</span>
+          </div>
+        )}
+        
         <button
-          onClick={handleCheckout}
-          disabled={disabled || !stripePriceId || isLoading}
+          onClick={handleClick}
+          disabled={disabled || isLoading}
           className={`w-full py-4 rounded-lg font-semibold text-lg transition-all duration-200 ${
             disabled
               ? 'bg-gray-600 text-gray-400 cursor-not-allowed'

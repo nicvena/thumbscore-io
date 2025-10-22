@@ -13,6 +13,7 @@ import AnalysisSummary from '../components/AnalysisSummary';
 import DetailsDisclosure from '../components/DetailsDisclosure';
 import { UpgradePrompt } from '../components/UpgradePrompt';
 import { useFreeCredits } from '@/lib/hooks/useFreeCredits';
+import { useUsageTracking } from '../components/UsageTracker';
 
 // Helper to get winner label based on score
 function getWinnerLabel(score: number): "🔥 Strong Performer" | "💡 Solid Choice" | "⚠️ Needs Work" {
@@ -198,6 +199,9 @@ function ResultsContent() {
   
   // Free credits tracking
   const { isUsedUp, increment } = useFreeCredits();
+  
+  // Usage tracking for subscription tiers
+  const { usage } = useUsageTracking();
   
   // State for animations
   const [displayedScore, setDisplayedScore] = useState(0);
@@ -599,15 +603,15 @@ function ResultsContent() {
           <p className="text-lg text-cyan-400">Analysis Results</p>
         </div>
         
-        {/* Usage Tracker - Only show if user has remaining free credits */}
-        {!isUsedUp && (
+        {/* Usage Tracker - Only show for free users or if user has remaining credits */}
+        {(!usage || usage.tier === 'free') && !isUsedUp && (
         <div className="mb-8 max-w-sm mx-auto">
           <UsageTracker />
         </div>
         )}
         
-        {/* Upgrade Prompt for Free Users - Clean, focused design */}
-        {isUsedUp && (
+        {/* Upgrade Prompt - Only for free users who have used up credits */}
+        {(!usage || usage.tier === 'free') && isUsedUp && (
           <div className="mb-12 max-w-2xl mx-auto">
             <div className="bg-gradient-to-br from-purple-900/50 to-blue-900/50 border border-purple-600/20 rounded-2xl p-8 text-center">
               <div className="mb-6">
@@ -904,6 +908,33 @@ function ResultsContent() {
                       </p>
               </div>
             </div>
+
+            {/* Key Insights Section */}
+            {((winner.gptSummary && winner.gptSummary.insights && winner.gptSummary.insights.length > 0) || 
+              (winner.insights && winner.insights.gptInsights && winner.insights.gptInsights.length > 0)) && (
+              <div className="mb-6 bg-gradient-to-r from-yellow-900/30 to-orange-900/30 rounded-lg p-5 border border-yellow-500/20">
+                <h5 className="text-lg font-semibold mb-4 flex items-center gap-2 text-yellow-300">
+                  <span>💡</span>
+                  Key Insights
+                </h5>
+                <div className="space-y-3">
+                  {(winner.gptSummary?.insights || winner.insights?.gptInsights || [])
+                    .slice(0, 3)
+                    .map((insight: any, i: number) => (
+                      <div key={i} className="flex gap-3 text-gray-200">
+                        <span className="text-yellow-400 font-semibold text-lg">{i + 1}.</span>
+                        <span className="leading-relaxed">
+                          {typeof insight === 'string' 
+                            ? insight 
+                            : insight.label && insight.evidence 
+                              ? `${insight.label} - ${insight.evidence}`
+                              : insight.text || insight.label || insight}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
             
                   {/* GPT-4 Vision Analysis - Single Source of Truth */}
                   <div className="mb-6 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg p-4 border border-purple-500/20">
@@ -935,58 +966,6 @@ function ResultsContent() {
                       </div>
                     )}
             
-                      {/* Force display GPT insights if available */}
-                      {winner.gptSummary && winner.gptSummary.insights && winner.gptSummary.insights.length > 0 && (
-                <div className="space-y-3">
-                          <div className="text-center">
-                            <h6 className="font-semibold text-purple-300 mb-3">🔍 Detailed Visual Analysis</h6>
-                          </div>
-                          {winner.gptSummary.insights
-                            .filter((insight: any) => 
-                              !insight.label?.toLowerCase().includes('text') && 
-                              !insight.label?.toLowerCase().includes('text elements') &&
-                              !insight.label?.toLowerCase().includes('text analysis')
-                            )
-                            .map((insight: any, index: number) => (
-                            <div key={index} className="bg-gray-800/70 rounded-lg p-4 border border-gray-600/70 hover:border-blue-500/30 transition-colors">
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                                <div className="font-semibold text-blue-300 text-sm">
-                                  {insight.label || `Technical Insight ${index + 1}`}
-                          </div>
-                        </div>
-                              <div className="text-gray-300 text-sm leading-relaxed pl-4">
-                                {insight.evidence || insight}
-                        </div>
-                      </div>
-                          ))}
-                    </div>
-                  )}
-              
-                      {/* Fallback to insights if no GPT summary */}
-                      {(!winner.gptSummary || !winner.gptSummary.winner_summary) && winner.insights.gptInsights && winner.insights.gptInsights.length > 0 && (
-                <div className="space-y-3">
-                          <div className="text-center">
-                            <h6 className="font-semibold text-purple-300 mb-3">🔍 Detailed Visual Analysis</h6>
-                          </div>
-                          {winner.insights.gptInsights
-                            .filter((insight: any) => 
-                              !insight.label?.toLowerCase().includes('text') && 
-                              !insight.label?.toLowerCase().includes('text elements') &&
-                              !insight.label?.toLowerCase().includes('text analysis')
-                            )
-                            .map((insight: any, index: number) => (
-                            <div key={index} className="bg-gray-800/50 rounded-lg p-3 border border-gray-600">
-                              <div className="font-medium text-blue-300 text-sm mb-1">
-                                {insight.label || `Insight ${index + 1}`}
-                          </div>
-                              <div className="text-gray-300 text-sm">
-                                {insight.evidence || insight}
-                        </div>
-                        </div>
-                          ))}
-                    </div>
-                  )}
                 </div>
               
               </div>

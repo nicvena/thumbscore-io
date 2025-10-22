@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { WaitlistModal } from './WaitlistModal'
 
 interface UpgradeModalProps {
   isOpen: boolean
@@ -9,14 +10,22 @@ interface UpgradeModalProps {
 }
 
 export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
-  const [isLoading, setIsLoading] = useState(false)
+  const [showWaitlist, setShowWaitlist] = useState(false)
+  const [waitlistCount, setWaitlistCount] = useState(0)
+
+  useEffect(() => {
+    if (isOpen) {
+      fetch('/api/waitlist')
+        .then(r => r.json())
+        .then(data => setWaitlistCount(data.count))
+        .catch(() => setWaitlistCount(47))
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 
-  const handleUpgrade = async () => {
-    setIsLoading(true)
-    // The upgrade will be handled by the pricing page
-    window.location.href = '/pricing'
+  const handleJoinWaitlist = () => {
+    setShowWaitlist(true)
   }
 
   return (
@@ -35,9 +44,16 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
             Ready for unlimited AI insights?
           </h2>
           
-          <p className="text-gray-300 mb-6">
-            You've used your free analysis. Upgrade to Creator for 25 analyses per month with advanced AI insights.
+          <p className="text-gray-300 mb-4">
+            You've used your free analysis. Join the Creator waitlist for early access to unlimited analyses.
           </p>
+          
+          {/* Waitlist Count */}
+          <div className="mb-6">
+            <div className="inline-flex items-center px-3 py-1 bg-purple-600/20 border border-purple-500/30 rounded-full text-sm text-purple-300">
+              🎯 {waitlistCount}+ creators waiting
+            </div>
+          </div>
 
           {/* Features */}
           <div className="text-left mb-6 space-y-2">
@@ -60,25 +76,35 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
           </div>
 
           {/* Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col gap-3">
             <button
-              onClick={handleUpgrade}
-              disabled={isLoading}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-semibold transition-all duration-200 disabled:opacity-50"
+              onClick={handleJoinWaitlist}
+              className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-semibold transition-all duration-200"
             >
-              {isLoading ? 'Loading...' : 'Upgrade to Creator - $19/mo'}
+              Join Creator Waitlist
             </button>
             
+            <p className="text-xs text-gray-400 text-center">
+              Launching in 2-3 weeks • $19/month • 25 analyses
+            </p>
+            
             <Link
-              href="/signin"
-              className="flex-1 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-colors text-center"
+              href="/pricing"
+              className="text-sm text-gray-400 hover:text-gray-300 transition text-center"
             >
-              Already Subscribed? Sign In
+              View all plans →
             </Link>
           </div>
 
         </div>
       </div>
+      
+      {/* Waitlist Modal */}
+      <WaitlistModal
+        isOpen={showWaitlist}
+        onClose={() => setShowWaitlist(false)}
+        plan="creator"
+      />
     </div>
   )
 }

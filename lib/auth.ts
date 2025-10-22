@@ -6,8 +6,8 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secr
 export interface UserSession {
   email: string
   stripeCustomerId?: string
-  subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'incomplete'
-  plan?: 'creator' | 'pro'
+  subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'incomplete' | 'none'
+  plan?: 'free' | 'creator' | 'pro'
   expiresAt: number
 }
 
