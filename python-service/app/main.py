@@ -100,80 +100,95 @@ async def score_thumbnails(req: ScoreRequest):
 
 async def analyze_with_gpt4_vision(thumb: Thumb, title: str, category: str) -> dict:
     """
-    Analyze thumbnail using GPT-4 Vision with structured scoring
+    Analyze thumbnail using GPT-4 Vision with structured scoring - NEVER FAILS
     """
     openai_key = os.environ.get("OPENAI_API_KEY")
     if not openai_key:
         logger.error("OPENAI_API_KEY not found - GPT-4 analysis cannot proceed")
         raise ValueError("OpenAI API key not configured")
     
-    try:
-        from openai import OpenAI
-        client = OpenAI(api_key=openai_key)
-        
-        # Prepare the prompt for GPT-4 Vision
-        system_prompt = f"""You are an expert YouTube thumbnail analyzer. Analyze this thumbnail and provide scores (0-100) for each metric:
-
-        SCORING CRITERIA:
-        - clarity: Text readability, image sharpness, mobile optimization
-        - subject_prominence: How well the main subject stands out  
-        - contrast_pop: Color contrast and visual impact against YouTube's interface
-        - emotion: Emotional appeal, facial expressions, curiosity factor
-        - hierarchy: Visual flow, rule of thirds, composition
-        - title_match: How well thumbnail matches the title "{title}"
-
-        VIDEO CONTEXT:
-        Title: "{title}"
-        Category: "{category}"
-
-        Return JSON ONLY in this exact format:
-        {{
-            "clarity": 85,
-            "subject_prominence": 92, 
-            "contrast_pop": 78,
-            "emotion": 88,
-            "hierarchy": 81,
-            "title_match": 94,
-            "insights": ["Specific insight 1", "Specific insight 2", "Specific insight 3"],
-            "winner_summary": "One sentence explaining why this thumbnail works for YouTube"
-        }}
-
-        Be precise with scores - consider mobile viewing, YouTube competition, and click psychology."""
-        
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {
-                    "role": "user", 
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": f"Analyze this YouTube thumbnail for the video titled: '{title}'"
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": thumb.url}
-                        }
-                    ]
-                }
-            ],
-            max_tokens=500,
-            temperature=0.1
-        )
-        
-        # Parse GPT-4 response
-        content = response.choices[0].message.content
+    # Retry mechanism for GPT-4 Vision
+    max_retries = 3
+    retry_delay = 1  # seconds
+    
+    for attempt in range(max_retries):
         try:
-            analysis = json.loads(content)
-            return analysis
-        except json.JSONDecodeError:
-            logger.error(f"Failed to parse GPT-4 response: {content}")
-            return None
+            from openai import OpenAI
+            client = OpenAI(api_key=openai_key)
+        
+            # Prepare the prompt for GPT-4 Vision
+            system_prompt = f"""You are an expert YouTube thumbnail analyzer. Analyze this thumbnail and provide scores (0-100) for each metric:
+
+            SCORING CRITERIA:
+            - clarity: Text readability, image sharpness, mobile optimization
+            - subject_prominence: How well the main subject stands out  
+            - contrast_pop: Color contrast and visual impact against YouTube's interface
+            - emotion: Emotional appeal, facial expressions, curiosity factor
+            - hierarchy: Visual flow, rule of thirds, composition
+            - title_match: How well thumbnail matches the title "{title}"
+
+            VIDEO CONTEXT:
+            Title: "{title}"
+            Category: "{category}"
+
+            Return JSON ONLY in this exact format:
+            {{
+                "clarity": 85,
+                "subject_prominence": 92, 
+                "contrast_pop": 78,
+                "emotion": 88,
+                "hierarchy": 81,
+                "title_match": 94,
+                "insights": ["Specific insight 1", "Specific insight 2", "Specific insight 3"],
+                "winner_summary": "One sentence explaining why this thumbnail works for YouTube"
+            }}
+
+            Be precise with scores - consider mobile viewing, YouTube competition, and click psychology."""
             
-    except Exception as e:
-        logger.error(f"GPT-4 Vision analysis failed: {str(e)}")
-        return None
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {
+                        "role": "user", 
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": f"Analyze this YouTube thumbnail for the video titled: '{title}'"
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": thumb.url}
+                            }
+                        ]
+                    }
+                ],
+                max_tokens=500,
+                temperature=0.1
+            )
+            
+            # Parse GPT-4 response
+            content = response.choices[0].message.content
+            try:
+                analysis = json.loads(content)
+                logger.info(f"GPT-4 Vision analysis successful on attempt {attempt + 1}")
+                return analysis
+            except json.JSONDecodeError:
+                logger.warning(f"Failed to parse GPT-4 response on attempt {attempt + 1}: {content}")
+                if attempt == max_retries - 1:
+                    raise ValueError(f"Failed to parse GPT-4 response after {max_retries} attempts")
+                continue
+                
+        except Exception as e:
+            logger.warning(f"GPT-4 Vision attempt {attempt + 1} failed: {str(e)}")
+            if attempt == max_retries - 1:
+                logger.error(f"GPT-4 Vision failed after {max_retries} attempts - this should never happen!")
+                raise Exception(f"GPT-4 Vision failed after {max_retries} attempts: {str(e)}")
+            
+            # Wait before retry
+            import asyncio
+            await asyncio.sleep(retry_delay)
+            retry_delay *= 2  # Exponential backoff
 
 async def generate_basic_score(thumb: Thumb, title: str, index: int) -> ThumbnailScore:
     """
@@ -203,42 +218,33 @@ async def generate_basic_score(thumb: Thumb, title: str, index: int) -> Thumbnai
         width, height = image.size
         aspect_ratio = width / height
         
-        # Try GPT-4 Vision analysis first
-        gpt_analysis = None
+        # GPT-4 Vision analysis - MUST ALWAYS SUCCEED
         try:
             # Create a modified thumb object with the correct URL for GPT-4
             gpt_thumb = Thumb(id=thumb.id, url=image_url_for_gpt)
             gpt_analysis = await analyze_with_gpt4_vision(gpt_thumb, title, "general")
         except Exception as e:
-            logger.error(f"GPT-4 analysis failed: {str(e)}")
+            logger.error(f"CRITICAL: GPT-4 analysis failed completely: {str(e)}")
+            raise Exception(f"GPT-4 Vision analysis failed: {str(e)}")
         
-        # Use GPT-4 scores if available, otherwise fallback
-        if gpt_analysis and all(key in gpt_analysis for key in ['clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']):
-            subscores = SubScores(
-                similarity=75.0,  # Not analyzed by GPT-4 currently
-                clarity=float(gpt_analysis['clarity']),
-                subject_prominence=float(gpt_analysis['subject_prominence']),
-                contrast_pop=float(gpt_analysis['contrast_pop']),
-                emotion=float(gpt_analysis['emotion']),
-                hierarchy=float(gpt_analysis['hierarchy']),
-                title_match=float(gpt_analysis['title_match'])
-            )
-            insights = gpt_analysis.get('insights', ['GPT-4 Vision analysis completed'])
-            winner_summary = gpt_analysis.get('winner_summary', '')
-        else:
-            # Fallback to basic scoring
-            logger.warning("Using fallback scoring due to GPT-4 failure")
-            subscores = SubScores(
-                similarity=75.0,
-                clarity=80.0 + (width * height / 100000),
-                subject_prominence=70.0 + (15 if aspect_ratio > 1.5 else 5),
-                contrast_pop=75.0,
-                emotion=70.0,
-                hierarchy=75.0,
-                title_match=80.0
-            )
-            insights = ['Fallback analysis - GPT-4 Vision unavailable']
-            winner_summary = ''
+        # Validate GPT-4 response has all required fields
+        required_fields = ['clarity', 'subject_prominence', 'contrast_pop', 'emotion', 'hierarchy', 'title_match']
+        if not gpt_analysis or not all(key in gpt_analysis for key in required_fields):
+            logger.error(f"GPT-4 returned invalid response: {gpt_analysis}")
+            raise Exception("GPT-4 returned incomplete scoring data")
+        
+        # Use GPT-4 scores - NO FALLBACK
+        subscores = SubScores(
+            similarity=75.0,  # Not analyzed by GPT-4 currently
+            clarity=float(gpt_analysis['clarity']),
+            subject_prominence=float(gpt_analysis['subject_prominence']),
+            contrast_pop=float(gpt_analysis['contrast_pop']),
+            emotion=float(gpt_analysis['emotion']),
+            hierarchy=float(gpt_analysis['hierarchy']),
+            title_match=float(gpt_analysis['title_match'])
+        )
+        insights = gpt_analysis.get('insights', ['GPT-4 Vision analysis completed'])
+        winner_summary = gpt_analysis.get('winner_summary', '')
         
         # Calculate final score (weighted average)
         weights = {
@@ -259,20 +265,7 @@ async def generate_basic_score(thumb: Thumb, title: str, index: int) -> Thumbnai
             subscores.title_match * weights["title_match"]
         )
         
-        # Use GPT-4 insights or generate fallback insights
-        if 'insights' not in locals():
-            insights = []
-            if subscores.clarity < 75:
-                insights.append("Consider improving image resolution and sharpness")
-            if subscores.subject_prominence < 70:
-                insights.append("Make the main subject more prominent")
-            if subscores.contrast_pop < 65:
-                insights.append("Increase visual contrast and color saturation")
-            if subscores.emotion < 70:
-                insights.append("Add more emotional appeal to the thumbnail")
-            
-            if not insights:
-                insights.append("Good overall thumbnail composition")
+        # GPT-4 insights are already set above - no fallback needed
         
         # Generate mock overlays (for API compatibility)
         overlays = {
