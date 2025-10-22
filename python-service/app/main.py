@@ -180,15 +180,20 @@ def generate_basic_score(thumb: Thumb, title: str, index: int) -> ThumbnailScore
     Generate thumbnail score using GPT-4 Vision analysis with fallback
     """
     try:
-        # Get image dimensions for basic metrics
+        # Get image for analysis
         if thumb.url.startswith('data:image'):
+            # Handle base64 data URL
             header, data = thumb.url.split(',', 1)
             image_data = base64.b64decode(data)
             image = Image.open(io.BytesIO(image_data))
+            # Use the data URL for GPT-4 Vision
+            image_url_for_gpt = thumb.url
         else:
+            # Handle regular URL
             response = requests.get(thumb.url, timeout=10)
             response.raise_for_status()
             image = Image.open(io.BytesIO(response.content))
+            image_url_for_gpt = thumb.url
         
         width, height = image.size
         aspect_ratio = width / height
@@ -204,8 +209,10 @@ def generate_basic_score(thumb: Thumb, title: str, index: int) -> ThumbnailScore
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
             
+            # Create a modified thumb object with the correct URL for GPT-4
+            gpt_thumb = Thumb(id=thumb.id, url=image_url_for_gpt)
             gpt_analysis = loop.run_until_complete(
-                analyze_with_gpt4_vision(thumb, title, "general")
+                analyze_with_gpt4_vision(gpt_thumb, title, "general")
             )
         except Exception as e:
             logger.error(f"GPT-4 analysis failed: {str(e)}")
