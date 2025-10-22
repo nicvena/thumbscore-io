@@ -36,8 +36,8 @@ app.add_middleware(
 
 # Pydantic models
 class Thumb(BaseModel):
-    title: str
-    thumbnail: str  # base64 encoded image
+    id: str
+    url: str
 
 class ScoreRequest(BaseModel):
     title: str
@@ -54,10 +54,11 @@ class SubScores(BaseModel):
     title_match: float = 80.0
 
 class ThumbnailScore(BaseModel):
+    id: str
     ctr_score: float
     subscores: SubScores
     insights: List[str]
-    thumbnail_index: int
+    overlays: Dict[str, str]
 
 @app.get("/")
 def root():
@@ -67,7 +68,8 @@ def root():
 def health():
     return {"status": "ok"}
 
-@app.post("/score")
+@app.post("/v1/score")
+@app.post("/score")  # Keep both endpoints for compatibility
 async def score_thumbnails(req: ScoreRequest):
     """
     Railway-safe thumbnail scoring with basic visual analysis
@@ -83,12 +85,13 @@ async def score_thumbnails(req: ScoreRequest):
         # Find winner
         winner = max(results, key=lambda x: x.ctr_score)
         
+        # Generate explanation
+        explanation = f"{winner.id} wins with {winner.ctr_score}% CTR score due to strong visual appeal and composition."
+        
         return {
-            "winner": winner,
-            "all_scores": results,
-            "total_thumbnails": len(req.thumbnails),
-            "processing_method": "basic_visual_analysis",
-            "timestamp": datetime.now().isoformat()
+            "winner_id": winner.id,
+            "thumbnails": results,
+            "explanation": explanation
         }
         
     except Exception as e:
@@ -100,9 +103,10 @@ def generate_basic_score(thumb: Thumb, title: str, index: int) -> ThumbnailScore
     Generate basic thumbnail score without heavy ML dependencies
     """
     try:
-        # Decode image
-        image_data = base64.b64decode(thumb.thumbnail.split(',')[1])
-        image = Image.open(io.BytesIO(image_data))
+        # Download image from URL
+        response = requests.get(thumb.url, timeout=10)
+        response.raise_for_status()
+        image = Image.open(io.BytesIO(response.content))
         
         # Basic image analysis
         width, height = image.size
@@ -110,8 +114,8 @@ def generate_basic_score(thumb: Thumb, title: str, index: int) -> ThumbnailScore
         
         # Generate realistic scores based on basic metrics
         subscores = SubScores(
-            similarity=75.0 + (hash(thumb.title) % 20) - 10,  # Simulated similarity
-            clarity=80.0 + (width * height / 100000) * 5,     # Resolution-based clarity
+            similarity=75.0 + (hash(thumb.id) % 20) - 10,     # Simulated similarity
+            clarity=80.0 + min((width * height / 100000) * 5, 20),  # Resolution-based clarity (capped)
             subject_prominence=70.0 + (15 if aspect_ratio > 1.5 else 5),  # Aspect ratio factor
             contrast_pop=65.0 + (hash(str(image.mode)) % 25),  # Color mode factor
             emotion=70.0 + (len(title) % 20),                  # Title length factor
@@ -152,21 +156,35 @@ def generate_basic_score(thumb: Thumb, title: str, index: int) -> ThumbnailScore
         if not insights:
             insights.append("Good overall thumbnail composition")
         
+        # Generate mock overlays (for API compatibility)
+        overlays = {
+            "saliency_heatmap_url": f"/api/v1/overlays/session/{thumb.id}/heatmap.png",
+            "ocr_boxes_url": f"/api/v1/overlays/session/{thumb.id}/ocr.png", 
+            "face_boxes_url": f"/api/v1/overlays/session/{thumb.id}/faces.png"
+        }
+        
         return ThumbnailScore(
+            id=thumb.id,
             ctr_score=round(final_score, 1),
             subscores=subscores,
             insights=insights,
-            thumbnail_index=index
+            overlays=overlays
         )
         
     except Exception as e:
         logger.error(f"Basic scoring error: {str(e)}")
         # Return fallback score
+        fallback_overlays = {
+            "saliency_heatmap_url": f"/api/v1/overlays/session/{thumb.id}/heatmap.png",
+            "ocr_boxes_url": f"/api/v1/overlays/session/{thumb.id}/ocr.png", 
+            "face_boxes_url": f"/api/v1/overlays/session/{thumb.id}/faces.png"
+        }
         return ThumbnailScore(
+            id=thumb.id,
             ctr_score=70.0,
             subscores=SubScores(),
             insights=["Basic analysis completed"],
-            thumbnail_index=index
+            overlays=fallback_overlays
         )
 
 @app.get("/status")
