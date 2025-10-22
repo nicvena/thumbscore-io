@@ -25,11 +25,19 @@ const waitlistStore: Array<{
 
 export async function POST(req: Request) {
   try {
+    console.log('=== WAITLIST API DEBUG ===')
+    console.log('Environment check:')
+    console.log('- RESEND_API_KEY present:', !!process.env.RESEND_API_KEY)
+    console.log('- SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log('- SUPABASE_SERVICE_KEY present:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+    
     const body = await req.json()
+    console.log('Request body:', { email: body.email, plan: body.plan, maxPrice: body.maxPrice })
     
     const { email, plan, maxPrice, interests } = body
     
     if (!email || !plan) {
+      console.error('Missing required fields:', { email: !!email, plan: !!plan })
       return NextResponse.json(
         { error: 'Email and plan are required' },
         { status: 400 }
