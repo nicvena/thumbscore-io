@@ -162,16 +162,19 @@ async function notifyWaitlistJoin(
   interests: string[]
 ) {
   try {
+    console.log(`Attempting to send email to ${email}`)
+    console.log(`Resend API key present: ${!!process.env.RESEND_API_KEY}`)
+    
     // Send confirmation email to user
     const { Resend } = await import('resend')
     const resend = new Resend(process.env.RESEND_API_KEY)
     
     if (!process.env.RESEND_API_KEY) {
-      console.log('No Resend API key - skipping email notification')
+      console.error('No Resend API key - skipping email notification')
       return
     }
     
-    await resend.emails.send({
+    const emailResult = await resend.emails.send({
       from: 'Thumbscore <noreply@resend.dev>',
       to: email,
       subject: "You're on the Thumbscore Waitlist! 🎯",
@@ -206,9 +209,16 @@ async function notifyWaitlistJoin(
       `
     })
     
-    console.log(`Confirmation email sent to ${email}`)
+    console.log(`Email send result:`, emailResult)
+    
+    if (emailResult.error) {
+      console.error(`Email send failed:`, emailResult.error)
+    } else {
+      console.log(`Confirmation email sent successfully to ${email}, ID: ${emailResult.data?.id}`)
+    }
     
   } catch (error) {
-    console.error('Email notification failed:', error)
+    console.error('Email notification failed with error:', error)
+    console.error('Error details:', JSON.stringify(error, null, 2))
   }
 }
