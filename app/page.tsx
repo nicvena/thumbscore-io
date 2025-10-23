@@ -70,7 +70,7 @@ export default function Home() {
           
           {/* Pricing Info */}
           <p className="text-lg text-gray-300 mb-12">
-            No credit card required • 5 free analyses per month
+            No credit card required • Join the waitlist for early access
           </p>
           
           {/* CTA Buttons */}
@@ -100,7 +100,7 @@ export default function Home() {
           
           {/* Bottom CTA Text */}
           <p className="text-sm text-gray-400">
-            No credit card required • Results in 10 seconds
+            No credit card required • Join the waitlist for launch updates
           </p>
         </div>
 
@@ -221,7 +221,7 @@ export default function Home() {
               Start Analyzing Free →
             </a>
             <p className="text-sm text-gray-400 mt-6">
-              No credit card required • Results in 10 seconds
+              No credit card required • Join the waitlist for launch updates
             </p>
           </div>
         </div>

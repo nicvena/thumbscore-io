@@ -32,7 +32,7 @@ const faqs: FAQItem[] = [
   },
   {
     question: "Can I try it for free?",
-    answer: "Yes! Every account gets 5 free analyses per month. No credit card required. Upgrade to Creator ($19/month) or Pro ($49/month) when you're ready for more."
+    answer: "We're currently in waitlist mode! Join our waitlist to be notified when we launch. No credit card required to join the waitlist."
   },
   {
     question: "What if I don't like the results?",
