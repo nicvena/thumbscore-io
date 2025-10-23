@@ -70,7 +70,7 @@ export default function Home() {
           
           {/* Pricing Info */}
           <p className="text-lg text-gray-300 mb-12">
-            No credit card required • Join the waitlist for early access
+            No credit card required • Join the waitlist for early access!
           </p>
           
           {/* CTA Buttons */}
