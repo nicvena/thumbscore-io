@@ -27,6 +27,7 @@ export function UsageTracker({ className = '' }: UsageTrackerProps) {
     try {
       const sessionToken = localStorage.getItem('thumbscore_user_session');
       const sessionId = getSessionId();
+      const adminOverride = localStorage.getItem('thumbscore_admin_override');
       
       const headers: Record<string, string> = {
         'X-Session-Id': sessionId,
@@ -34,6 +35,10 @@ export function UsageTracker({ className = '' }: UsageTrackerProps) {
       
       if (sessionToken) {
         headers['X-Session-Token'] = sessionToken;
+      }
+      
+      if (adminOverride === 'true') {
+        headers['X-Admin-Override'] = 'true';
       }
 
       const response = await fetch('/api/usage', { headers });
@@ -192,6 +197,7 @@ export function useUsageTracking() {
     try {
       const sessionToken = localStorage.getItem('thumbscore_user_session');
       const sessionId = localStorage.getItem('session-id') || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const adminOverride = localStorage.getItem('thumbscore_admin_override');
       localStorage.setItem('session-id', sessionId);
       
       const headers: Record<string, string> = {
@@ -200,6 +206,10 @@ export function useUsageTracking() {
       
       if (sessionToken) {
         headers['X-Session-Token'] = sessionToken;
+      }
+      
+      if (adminOverride === 'true') {
+        headers['X-Admin-Override'] = 'true';
       }
 
       const response = await fetch('/api/usage', { headers });
